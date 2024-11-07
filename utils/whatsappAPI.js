@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 exports.sendMessage = async (phone, content) => {
-  const url = `https://graph.facebook.com/v13.0/${process.env.PHONE_NUMBER_ID}/messages`;
+  const url = `https://graph.facebook.com/v21.0/${process.env.PHONE_NUMBER_ID}/messages`;
   const headers = {
     'Authorization': `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
     'Content-Type': 'application/json',
