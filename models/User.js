@@ -1,14 +1,15 @@
-// models/User.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    phoneNumber: String,
-    name: String,
-    group: String,
-    subscriptionPlan: String,
-    nextOrderDate: Date,
-    paymentStatus: String,
+    userPhone: { type: Number},  // Set userPhone as Number
+    name: { type: String },
+    group: { type: String },
+    buttonId: { type: String },
+    gheeType: { type: String },
+    nextOrderDate: { type: Date },
+    paymentStatus: { type: String },
     orderHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }]
 });
 
-module.exports = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+module.exports = User;
