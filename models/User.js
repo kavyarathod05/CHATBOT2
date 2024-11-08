@@ -1,15 +1,15 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    userPhone: { type: Number},  // Set userPhone as Number
-    name: { type: String },
-    group: { type: String },
-    buttonId: { type: String },
-    gheeType: { type: String },
-    nextOrderDate: { type: Date },
-    paymentStatus: { type: String },
-    orderHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }]
+    phone: { type: String},
+    name: String,
+    email: String,
+    subscriptionStatus: { type: String, default: 'inactive' },
+    subscriptionPlan: { type: mongoose.Schema.Types.ObjectId, ref: 'Subscription' },  // Link to Subscription
+    group: { type: mongoose.Schema.Types.ObjectId, ref: 'BroadcastGroup' },  // Link to Broadcast Group
+    lastInteraction: { type: Date, default: Date.now },
+    address: String,
+    paymentMethod: String  // e.g., "razorpay"
 });
 
-const User = mongoose.model('User', userSchema);
-module.exports = User;
+module.exports = mongoose.model('User', userSchema);

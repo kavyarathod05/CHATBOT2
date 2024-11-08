@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 const whatsappRoutes = require('./routes/whatsappRoutes');
-app.use('/webhook', whatsappRoutes); // Webhook for receiving WhatsApp messages
+app.use('/', whatsappRoutes); // Webhook for receiving WhatsApp messages
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

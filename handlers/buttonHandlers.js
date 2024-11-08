@@ -46,12 +46,22 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
         {
           id: "large_A2",
           title: "Large (2kg)"
-        }
+        },
+      ]
+    };
+    const customOrderMessage = {
+      text: "If you'd like to order a custom quantity, please choose this Option",
+      buttons: [
+        {
+          id: "custom_A2",
+          title: "Custom Amount"
+        },
       ]
     };
 
     // Send quantity options for A2 Ghee
     await sendMessage(userPhone, quantityMessage);
+    await sendMessage(userPhone, customOrderMessage);
   }
 
   // Handle buffalo selection
@@ -71,11 +81,22 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
           id: "large_buffalo",
           title: "Large (2kg)"
         }
+      ],
+      
+    };
+    const customOrderMessage = {
+      text: "If you'd like to order a custom quantity, please choose this Option",
+      buttons: [
+        {
+          id: "custom_buffalo",
+          title: "Custom Amount"
+        },
       ]
     };
 
     // Send quantity options for Buffalo Ghee
     await sendMessage(userPhone, quantityMessage);
+    await sendMessage(userPhone, customOrderMessage);
   }
 };
 
