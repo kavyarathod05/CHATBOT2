@@ -29,6 +29,11 @@ exports.handleBuyGhee = async (userPhone, buttonId) => {
   await sendMessage(userPhone, buttonMessage);
 };
 
+
+// exports.subscribe = async(userPhone,buttonId)=>{
+//   if
+// }
+
 exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
   // Handle A2_ghee selection
   if (buttonId === "A2_ghee") {
@@ -59,9 +64,20 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
       ]
     };
 
+    const planOrderMessage = {
+      text:" if you like to subscribe our monthly plan then click here ",
+      buttons: [
+        {
+          id: "plan_A2",
+          title: "Monthly Plan"
+        },
+      ]
+    }
+
     // Send quantity options for A2 Ghee
     await sendMessage(userPhone, quantityMessage);
     await sendMessage(userPhone, customOrderMessage);
+    await sendMessage(userPhone, planOrderMessage);
   }
 
   // Handle buffalo selection
@@ -94,9 +110,20 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
       ]
     };
 
+    const planOrderMessage = {
+      text: " if you like to subscribe our monthly plan then click here ",
+      buttons: [
+        {
+          id: "plan_buffalo",
+          title: "subscribe"
+        },
+      ]
+    }
+
     // Send quantity options for Buffalo Ghee
     await sendMessage(userPhone, quantityMessage);
     await sendMessage(userPhone, customOrderMessage);
+    await sendMessage(userPhone, planOrderMessage);
   }
 };
 
@@ -151,3 +178,75 @@ exports.handleB2B = async (userPhone) => {
   // Send B2B options
   await sendMessage(userPhone, b2bButtonMessage);
 };
+
+exports.handleBuyGheePlanQuantity = async(userPhone,buttonId) => {
+  if (buttonId === "plan_A2") {
+    const quantityMessage = {
+      text: "You selected A2 Cow Ghee! Please choose the quantity you'd like to purchase:",
+      buttons: [
+        {
+          id: "small_planA2",
+          title: "Small (500g)"
+        },
+        {
+          id: "medium_planA2",
+          title: "Medium (1kg)"
+        },
+        {
+          id: "large_planA2",
+          title: "Large (2kg)"
+        },
+      ]
+    };
+    const customOrderMessage = {
+      text: "If you'd like to order a custom quantity, please choose this Option",
+      buttons: [
+        {
+          id: "custom_planA2",
+          title: "Custom Amount"
+        },
+      ]
+    };
+
+
+    // Send quantity options for A2 Ghee
+    await sendMessage(userPhone, quantityMessage);
+    await sendMessage(userPhone, customOrderMessage);
+  }
+
+  // Handle buffalo selection
+  if (buttonId === "plan_buffalo") {
+    const quantityMessage = {
+      text: "You selected Buffalo Ghee! Please choose the quantity you'd like to purchase:",
+      buttons: [
+        {
+          id: "small_planbuffalo",
+          title: "Small (500g)"
+        },
+        {
+          id: "medium_planbuffalo",
+          title: "Medium (1kg)"
+        },
+        {
+          id: "large_planbuffalo",
+          title: "Large (2kg)"
+        }
+      ],
+      
+    };
+    const customOrderMessage = {
+      text: "if you like to subscribe our monthly plan then click here",
+      buttons: [
+        {
+          id: "custom_planbuffalo",
+          title: "Custom Amount"
+        },
+      ]
+    };
+
+
+    // Send quantity options for Buffalo Ghee
+    await sendMessage(userPhone, quantityMessage);
+    await sendMessage(userPhone, customOrderMessage);
+  }
+}

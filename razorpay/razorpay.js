@@ -27,7 +27,7 @@ exports.generatePaymentLinkWithDivision = async(amountEntered, userPhone, descri
           sms: true,
           email: false, // Set to true if you also want email notifications
         },
-        callback_url: 'https://b689-117-250-157-213.ngrok-free.app/payment-success', // Define your callback URL here
+        callback_url: 'https://7162-117-250-157-213.ngrok-free.app/payment-success', // Define your callback URL here
         callback_method: 'get',
       },
       { auth }
