@@ -1,9 +1,13 @@
 const mongoose = require('mongoose');
-const { PlaybackGrant } = require('twilio/lib/jwt/AccessToken');
+
 
 const subscriptionSchema = new mongoose.Schema({
-    plan : { type: String},
-    quantity:{type:String}
-});
-
-module.exports = mongoose.model('Subscription', subscriptionSchema);
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    subscriptionType: { type: String, enum: ['monthly', 'weekly'], required: true },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    status: { type: String, enum: ['active', 'inactive'], default: 'active' },
+  });
+  
+  module.exports = mongoose.model('Subscription', subscriptionSchema);
+  
