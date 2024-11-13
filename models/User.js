@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   subscription: { type: Boolean, default : false},
   subscriptionType: { type: String, required: false },
   subscriptionQuantity: { type: String, required: false },
+  subscriptionAmount: {type:String ,required:false},
   userAddress: { type: String, required: false },
   customerID: { type: String, required: false },
   subscriptionId: { type: String, required: false },

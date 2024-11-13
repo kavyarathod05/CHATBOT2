@@ -4,6 +4,7 @@ const buttonHandlers = require("../handlers/buttonHandlers"); // Import button h
 const { generatePaymentLinkWithDivision } = require("../razorpay/razorpay.js");
 const Razorpay = require("razorpay");
 const cron = require('node-cron');
+const axios = require('axios');
 
 const userStates = {};
 const useradd = {};
@@ -13,33 +14,33 @@ const useredit = {};
 
 exports.receiveMessage = async (req, res) => {
   // Handle Razorpay webhooks
-  if (req.body.event === 'subscription.charged') {
-    const subscriptionId = req.body.payload.subscription.entity.id;
+  // if (req.body.event === 'subscription.charged') {
+  //   const subscriptionId = req.body.payload.subscription.entity.id;
 
-    // Find the user by subscription ID
-    const user = await User.findOne({ subscriptionId });
-    if (user) {
-      const successMessage = {
-        text: `Thank you! Your subscription payment for A2 Cow Ghee has been successfully processed. Your next delivery is on schedule!`,
-      };
-      await sendMessage(user.phone, successMessage);
-    }
-    return res.sendStatus(200);
-  }
+  //   // Find the user by subscription ID
+  //   const user = await User.findOne({ subscriptionId });
+  //   if (user) {
+  //     const successMessage = {
+  //       text: `Thank you! Your subscription payment for A2 Cow Ghee has been successfully processed. Your next delivery is on schedule!`,
+  //     };
+  //     await sendMessage(user.phone, successMessage);
+  //   }
+  //   return res.sendStatus(200);
+  // }
 
-  if (req.body.event === 'subscription.charge_failed') {
-    const subscriptionId = req.body.payload.subscription.entity.id;
+  // if (req.body.event === 'subscription.charge_failed') {
+  //   const subscriptionId = req.body.payload.subscription.entity.id;
 
-    // Find the user by subscription ID
-    const user = await User.findOne({ subscriptionId });
-    if (user) {
-      const reminderMessage = {
-        text: `Your subscription payment for A2 Cow Ghee failed due to insufficient balance. Please ensure you have enough funds in your account for the next attempt.`,
-      };
-      await sendMessage(user.phone, reminderMessage);
-    }
-    return res.sendStatus(200);
-  }
+  //   // Find the user by subscription ID
+  //   const user = await User.findOne({ subscriptionId });
+  //   if (user) {
+  //     const reminderMessage = {
+  //       text: `Your subscription payment for A2 Cow Ghee failed due to insufficient balance. Please ensure you have enough funds in your account for the next attempt.`,
+  //     };
+  //     await sendMessage(user.phone, reminderMessage);
+  //   }
+  //   return res.sendStatus(200);
+  // }
   try {
     // Safely access entry and changes data
     const entry = req.body.entry && req.body.entry[0];
@@ -67,32 +68,25 @@ exports.receiveMessage = async (req, res) => {
       if (userStates[userPhone] === "awaiting_custom_amount_A2") {
         console.log("cow");
 
-        // Call handleCustomAmountInput to process the entered amount
         await handleCustomAmountInput_A2(messageText, userPhone);
-        // delete userStates[userPhone]; // Clear state after processing
+        userStates[userPhone] = "";
         return res.sendStatus(200);
       } else if (userStates[userPhone] === "awaiting_custom_amount_buffalo") {
         console.log("buffalo");
-
-        // Call handleCustomAmountInput to process the entered amount
         await handleCustomAmountInput_buffalo(messageText, userPhone);
-        // delete userStates[userPhone]; // Clear state after processing
+        userStates[userPhone] = "";
         return res.sendStatus(200);
       } else if (
         userStates[userPhone] === "awaiting_custom_amount_plan_buffalo"
       ) {
         console.log("buffalo");
-
-        // Call handleCustomAmountInput to process the entered amount
         await handleCustomAmountInput_plan_buffalo(messageText, userPhone);
-        // delete userStates[userPhone]; // Clear state after processing
+        userStates[userPhone] = "";
         return res.sendStatus(200);
       } else if (userStates[userPhone] === "awaiting_custom_amount_plan_A2") {
-        console.log("buffalo");
-
-        // Call handleCustomAmountInput to process the entered amount
+        console.log("Plan A2");
         await handleCustomAmountInput_plan_A2(messageText, userPhone);
-        // delete userStates[userPhone]; // Clear state after processing
+        userStates[userPhone] = "";
         return res.sendStatus(200);
       }
 
@@ -496,6 +490,27 @@ exports.receiveMessage = async (req, res) => {
             return;
           }
 
+          if (buttonId === "old_address") {
+            await handleAddress(userPhone);
+            return;
+          }
+
+          if (buttonId === "new_address") {
+            if (planType[userPhone].includes("plan")) {
+              const message = {
+                text: "Please provide your address for Subscription.",
+              };
+              await sendMessage(userPhone, message);
+            } else {
+              const message = {
+                text: "Please provide your address.",
+              };
+              await sendMessage(userPhone, message);
+            }
+            useradd[userPhone] = "awaiting_address";
+            return;
+          }
+
 
           if (buttonId == "A2_ghee" || buttonId == "buffalo") {
             if (messages.interactive && messages.interactive.button_reply) {
@@ -522,13 +537,32 @@ exports.receiveMessage = async (req, res) => {
               await sendMessage(userPhone, message);
               return;
             }
+            const user = await User.findOne({ phone: userPhone });
 
-            useradd[userPhone] = "awaiting_address";
             userAmount = amount;
             planType[userPhone] = "plan_A2";
+            console.log(user.address);
+            if (user.address) {
+              const buttonMessage = {
+                text: `Want to continue with address : ${user.address}`,
+                buttons: [
+                  {
+                    id: "old_address",
+                    title: "Yes Same Address"
+                  },
+                  {
+                    id: "new_address",
+                    title: "New Address"
+                  }
+                ]
+              };
+              await sendMessage(userPhone, buttonMessage);
+              return;
+            }
             const message = {
-              text: "Please provide your address for subscription.",
+              text: "Please provide your address for Subscription.",
             };
+            useradd[userPhone] = "awaiting_address";
             await sendMessage(userPhone, message);
             return;
 
@@ -558,10 +592,32 @@ exports.receiveMessage = async (req, res) => {
               await sendMessage(userPhone, message);
               return res.sendStatus(200); // Await custom input
             }
-            useradd[userPhone] = "awaiting_address";
+            const user = await User.findOne({ phone: userPhone });
+
             userAmount = amount;
             planType[userPhone] = "A2";
-            const message = { text: "Please provide your address." };
+            console.log(user.address);
+            if (user.address) {
+              const buttonMessage = {
+                text: `Want to continue with address : ${user.address}`,
+                buttons: [
+                  {
+                    id: "old_address",
+                    title: "Yes Same Address"
+                  },
+                  {
+                    id: "new_address",
+                    title: "New Address"
+                  }
+                ]
+              };
+              await sendMessage(userPhone, buttonMessage);
+              return;
+            }
+            const message = {
+              text: "Please provide your address.",
+            };
+            useradd[userPhone] = "awaiting_address";
             await sendMessage(userPhone, message);
             return;
           }
@@ -581,12 +637,32 @@ exports.receiveMessage = async (req, res) => {
               await sendMessage(userPhone, message);
               return;
             }
-            useradd[userPhone] = "awaiting_address";
+            const user = await User.findOne({ phone: userPhone });
+
             userAmount = amount;
             planType[userPhone] = "plan_buffalo";
+            console.log(user.address);
+            if (user.address) {
+              const buttonMessage = {
+                text: `Want to continue with address : ${user.address}`,
+                buttons: [
+                  {
+                    id: "old_address",
+                    title: "Yes Same Address"
+                  },
+                  {
+                    id: "new_address",
+                    title: "New Address"
+                  }
+                ]
+              };
+              await sendMessage(userPhone, buttonMessage);
+              return;
+            }
             const message = {
               text: "Please provide your address for Subscription.",
             };
+            useradd[userPhone] = "awaiting_address";
             await sendMessage(userPhone, message);
             return;
 
@@ -616,10 +692,32 @@ exports.receiveMessage = async (req, res) => {
               await sendMessage(userPhone, message);
               return res.sendStatus(200); // Await custom input
             }
-            useradd[userPhone] = "awaiting_address";
+            const user = await User.findOne({ phone: userPhone });
+
             userAmount = amount;
             planType[userPhone] = "buffalo";
-            const message = { text: "Please provide your address." };
+            console.log(user.address);
+            if (user.address) {
+              const buttonMessage = {
+                text: `Want to continue with address : ${user.address}`,
+                buttons: [
+                  {
+                    id: "old_address",
+                    title: "Yes Same Address"
+                  },
+                  {
+                    id: "new_address",
+                    title: "New Address"
+                  }
+                ]
+              };
+              await sendMessage(userPhone, buttonMessage);
+              return;
+            }
+            const message = {
+              text: "Please provide your address.",
+            };
+            useradd[userPhone] = "awaiting_address";
             await sendMessage(userPhone, message);
             return;
           }
@@ -661,8 +759,9 @@ exports.receiveMessage = async (req, res) => {
             // Call the handler for "B2B"
             await buttonHandlers.handleB2B(userPhone);
           } else if (buttonId === "view_plans") {
+            const user = await User.findOne({phone:userPhone})
             const msg = {
-              text: "choose",
+              text: `Your Plan is ${user.subscriptionType} Ghee having Quantity ${user.subscriptionQuantity} which was started on ${user.subscriptionStartDate} and which is scheduled on ${user.nextReminderDate} and the Amount is ${user.subscriptionAmount} `,
               buttons: [
                 { id: "edit_date", title: "edit date" },
                 { id: "edit_quantity", title: "edit quantity" },
@@ -717,6 +816,35 @@ exports.receiveMessage = async (req, res) => {
   }
 };
 
+async function handleAddress(userPhone) {
+  if (
+    planType[userPhone] === "plan_buffalo" ||
+    planType[userPhone] === "plan_A2"
+  ) {
+    message = {
+      text: "Thank you for providing your address! Now, let us know the date you'd like to start your subscription (format: YYYY-MM-DD).",
+    };
+
+    // Update user state to await subscription date
+
+    useradd[userPhone] = "awaiting_subscription_date";
+    await sendMessage(userPhone, message);
+    return;
+  } else {
+    useradd[userPhone] = "";
+    message = {
+      text: "Thank you for providing your address! We will deliver your Order ASAP",
+    };
+    await sendMessage(userPhone, message);
+    if (planType[userPhone] === "A2")
+      await createPayment_A2(userPhone, userAmount);
+    if (planType[userPhone] === "buffalo")
+      await createPayment_buffalo(userPhone, userAmount);
+    return;
+  }
+
+}
+
 // Function to process custom amount input from the user
 async function handleCustomAmountInput_A2(messageText, userPhone) {
   let amount = parseInt(messageText); // Convert input to a number
@@ -731,11 +859,32 @@ async function handleCustomAmountInput_A2(messageText, userPhone) {
     await sendMessage(userPhone, errorMessage);
     return;
   }
-  userStates[userPhone] = "";
-  useradd[userPhone] = "awaiting_address";
+  const user = await User.findOne({ phone: userPhone });
+
   userAmount = amount;
   planType[userPhone] = "A2";
-  const message = { text: "Please provide your address." };
+  console.log(user.address);
+  if (user.address) {
+    const buttonMessage = {
+      text: `Want to continue with address : ${user.address}`,
+      buttons: [
+        {
+          id: "old_address",
+          title: "Yes Same Address"
+        },
+        {
+          id: "new_address",
+          title: "New Address"
+        }
+      ]
+    };
+    await sendMessage(userPhone, buttonMessage);
+    return;
+  }
+  const message = {
+    text: "Please provide your address.",
+  };
+  useradd[userPhone] = "awaiting_address";
   await sendMessage(userPhone, message);
   return;
 
@@ -768,11 +917,32 @@ async function handleCustomAmountInput_buffalo(messageText, userPhone) {
     await sendMessage(userPhone, errorMessage);
     return;
   }
-  userStates[userPhone] = "";
-  useradd[userPhone] = "awaiting_address";
+  const user = await User.findOne({ phone: userPhone });
+
   userAmount = amount;
   planType[userPhone] = "buffalo";
-  const message = { text: "Please provide your address." };
+  console.log(user.address);
+  if (user.address) {
+    const buttonMessage = {
+      text: `Want to continue with address : ${user.address}`,
+      buttons: [
+        {
+          id: "old_address",
+          title: "Yes Same Address"
+        },
+        {
+          id: "new_address",
+          title: "New Address"
+        }
+      ]
+    };
+    await sendMessage(userPhone, buttonMessage);
+    return;
+  }
+  const message = {
+    text: "Please provide your address.",
+  };
+  useradd[userPhone] = "awaiting_address";
   await sendMessage(userPhone, message);
   return;
 
@@ -806,11 +976,32 @@ async function handleCustomAmountInput_plan_buffalo(messageText, userPhone) {
     await sendMessage(userPhone, errorMessage);
     return;
   }
-  userStates[userPhone] = "";
-  useradd[userPhone] = "awaiting_address";
+  const user = await User.findOne({ phone: userPhone });
+
   userAmount = amount;
-  planType[userPhone] = "plan_A2";
-  const message = { text: "Please provide your address for subscription." };
+  planType[userPhone] = "plan_buffalo";
+  console.log(user.address);
+  if (user.address) {
+    const buttonMessage = {
+      text: `Want to continue with address : ${user.address}`,
+      buttons: [
+        {
+          id: "old_address",
+          title: "Yes Same Address"
+        },
+        {
+          id: "new_address",
+          title: "New Address"
+        }
+      ]
+    };
+    await sendMessage(userPhone, buttonMessage);
+    return;
+  }
+  const message = {
+    text: "Please provide your address for Subscription.",
+  };
+  useradd[userPhone] = "awaiting_address";
   await sendMessage(userPhone, message);
   return;
   // Use the custom amount to create the subscription
@@ -830,11 +1021,32 @@ async function handleCustomAmountInput_plan_A2(messageText, userPhone) {
     await sendMessage(userPhone, errorMessage);
     return;
   }
-  userStates[userPhone] = "";
-  useradd[userPhone] = "awaiting_address";
+  const user = await User.findOne({ phone: userPhone });
+
   userAmount = amount;
   planType[userPhone] = "plan_A2";
-  const message = { text: "Please provide your address for subscription." };
+  console.log(user.address);
+  if (user.address) {
+    const buttonMessage = {
+      text: `Want to continue with address : ${user.address}`,
+      buttons: [
+        {
+          id: "old_address",
+          title: "Yes Same Address"
+        },
+        {
+          id: "new_address",
+          title: "New Address"
+        }
+      ]
+    };
+    await sendMessage(userPhone, buttonMessage);
+    return;
+  }
+  const message = {
+    text: "Please provide your address for Subscription.",
+  };
+  useradd[userPhone] = "awaiting_address";
   await sendMessage(userPhone, message);
   return;
 
@@ -958,6 +1170,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
   const description = "Monthly Subscription of A2 Cow Ghee";
 
   try {
+    // Create the subscription using Razorpay
     const subscription = await razorpayInstance.subscriptions.create({
       plan_id: PLAN_ID_A2,
       customer_notify: 1,
@@ -966,97 +1179,140 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
       notes: {
         phone: userPhone,
         description: description,
+        amount: 350 * amountMultiplier / 500
       },
     });
 
-
-    // const user = await User.findOne({ phone: userPhone });
+    // Update the user record with subscription details
     const user = await User.findOneAndUpdate(
       { phone: userPhone },
       { planId: PLAN_ID_A2 },
-      { new: true },
-    );
-
-    if (user) {
-      user.subscription = true;
-      user.subscriptionId = subscription.id
-    }
-
-    console.log(user.subscription);
-
-    const reminderDate = new Date(user.subscriptionStartDate);
-    reminderDate.setDate(reminderDate.getDate() + 23); // Set to 7 days before next cycle
-
-    // Save the calculated reminder date
-    user.nextReminderDate = reminderDate;
-    await user.save();
-
-    console.log("ee", subscription.id);
-
-    const message = {
-      text: `You have now subscribed to Our Monthly Plan of A2 Cow Ghee. Your subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${user.address
-        }. Please complete your payment here to activate: ${subscription.short_url
-        }`,
-    };
-    await sendMessage(userPhone, message);
-  } catch (error) {
-    console.error("Error creating subscription for A2 Cow Ghee:", error);
-    const errorMessage = {
-      text: "Failed to create subscription. Please try again later.",
-    };
-    await sendMessage(userPhone, errorMessage);
-  }
-}
-
-async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
-  const description = "Monthly Subscription of Buffalo Ghee";
-
-  try {
-    const subscription = await razorpayInstance.subscriptions.create({
-      plan_id: PLAN_ID_BUFFALO,
-      customer_notify: 1,
-      total_count: 12, // Example: 12-month subscription
-      quantity: amountMultiplier / 500,
-      notes: {
-        phone: userPhone,
-        description: description,
-      },
-    });
-
-    const user = await User.findOneAndUpdate(
-      { phone: userPhone },
-      { planId: PLAN_ID_BUFFALO }, // Save the subscription 
       { new: true }
     );
 
     if (user) {
       user.subscription = true;
-      user.subscriptionId = subscription.id
+      user.subscriptionId = subscription.id;
+      user.subscriptionQuantity = subscription.quantity;
+      user.subscriptionType = "A2 Cow" //future problem may arise coz of space
+      user.subscriptionAmount = subscription.notes.amount;
     }
-    console.log(user.subscription);
-
 
     const reminderDate = new Date(user.subscriptionStartDate);
-    reminderDate.setDate(reminderDate.getDate() + 23); // Set to 7 days before next cycle
+    reminderDate.setDate(reminderDate.getDate() + 23); // Set reminder 7 days before next cycle
 
     // Save the calculated reminder date
     user.nextReminderDate = reminderDate;
     await user.save();
 
+    // Send subscription confirmation message to the user
     const message = {
-      text: `You have now subscribed to Our Monthly Plan of Buffalo Ghee. Your subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${user.address
-        }. Please complete your payment here to activate: ${subscription.short_url
-        }`,
+      text: `You have now subscribed to Our Monthly Plan of A2 Cow Ghee. Your subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${user.address}. Please complete your payment here to activate: ${subscription.short_url}`,
     };
     await sendMessage(userPhone, message);
+
+    // Notify the admin of subscription and payment link creation
+    const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER'; // Replace with your admin phone or load from env
+    const adminMessage = {
+      text: `Subscription created for ${userPhone}. Payment link: ${subscription.short_url}. Subscription ID: ${subscription.id}`,
+    };
+    await sendMessage(adminPhone, adminMessage);
+
+    console.log("Subscription created with ID:", subscription.id);
+
   } catch (error) {
     console.error("Error creating subscription for A2 Cow Ghee:", error);
+
+    // Send failure message to user
     const errorMessage = {
       text: "Failed to create subscription. Please try again later.",
     };
     await sendMessage(userPhone, errorMessage);
+
+    // Notify the admin of subscription creation failure
+    const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER'; // Replace with your admin phone or load from env
+    const adminMessage = {
+      text: `Alert: Subscription creation failed for ${userPhone}. Error: ${error.response ? error.response.data.description : error.message}`,
+    };
+    await sendMessage(adminPhone, adminMessage);
   }
 }
+
+
+async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
+  const description = "Monthly Subscription of Buffalo Ghee";
+
+  try {
+    // Create the subscription using Razorpay
+    const subscription = await razorpayInstance.subscriptions.create({
+      plan_id: PLAN_ID_BUFFALO,
+      customer_notify: 1, // This will still notify the customer (default behavior)
+      total_count: 12, // Example: 12-month subscription
+      quantity: amountMultiplier / 500,
+      notes: {
+        phone: userPhone,
+        description: description,
+        amount: 400 * amountMultiplier / 500
+      },
+    });
+
+    // Update the user record with subscription details
+    const user = await User.findOneAndUpdate(
+      { phone: userPhone },
+      { planId: PLAN_ID_BUFFALO },
+      { new: true }
+    );
+
+    if (user) {
+      user.subscription = true;
+      user.subscriptionId = subscription.id;
+      user.subscriptionQuantity = subscription.quantity;
+      user.subscriptionType = "Buffalo"
+      user.subscriptionAmount = subscription.notes.amount;
+    }
+
+    // Set the reminder date to 7 days before the next cycle
+    const reminderDate = new Date(user.subscriptionStartDate);
+    reminderDate.setDate(reminderDate.getDate() + 23);
+
+    // Save the calculated reminder date
+    user.nextReminderDate = reminderDate;
+    await user.save();
+
+    // Send subscription confirmation message to the user
+    const message = {
+      text: `You have now subscribed to Our Monthly Plan of Buffalo Ghee. Your subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${user.address}. Please complete your payment here to activate: ${subscription.short_url}`,
+    };
+    await sendMessage(userPhone, message);
+
+    // Notify the admin of subscription and payment link creation
+    const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER'; // Replace with your admin phone or load from env
+    const adminMessage = {
+      text: `Subscription created for ${userPhone}. Payment link: ${subscription.short_url}. Subscription ID: ${subscription.id}`,
+    };
+    await sendMessage(adminPhone, adminMessage);
+
+    console.log("Subscription created with ID:", subscription.id);
+
+  } catch (error) {
+    console.error("Error creating subscription for Buffalo Ghee:", error);
+
+    // Send failure message to user
+    const errorMessage = {
+      text: "Failed to create subscription. Please try again later.",
+    };
+    await sendMessage(userPhone, errorMessage);
+
+    // Notify the admin of subscription creation failure
+    const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER'; // Replace with your admin phone or load from env
+    const adminMessage = {
+      text: `Alert: Subscription creation failed for ${userPhone}. Error: ${error.response ? error.response.data.description : error.message}`,
+    };
+    await sendMessage(adminPhone, adminMessage);
+  }
+}
+
+
 
 // Handle address input
 async function handleAddressInput(messageText, userPhone) {
