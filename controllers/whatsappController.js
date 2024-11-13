@@ -1183,7 +1183,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     // Update the user record with subscription details
     const user = await User.findOneAndUpdate(
       { phone: userPhone },
-      { planId: PLAN_ID_A2 },
+      { planId: process.env.PLAN_ID_A2 },
       { new: true }
     );
 
@@ -1256,7 +1256,7 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
     // Update the user record with subscription details
     const user = await User.findOneAndUpdate(
       { phone: userPhone },
-      { planId: PLAN_ID_BUFFALO },
+      { planId: process.env.PLAN_ID_BUFFALO },
       { new: true }
     );
 
