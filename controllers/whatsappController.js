@@ -1056,13 +1056,10 @@ async function handleCustomAmountInput_plan_A2(messageText, userPhone) {
 
 // Initialize Razorpay with your API credentials
 const razorpayInstance = new Razorpay({
-  key_id: "rzp_test_QgUWVxoBmFqwYe",
-  key_secret: "GH4s895V1dCT9COR25iG2JoY",
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Define plan IDs for subscriptions
-const PLAN_ID_BUFFALO = "plan_PJbyRozbzkR06G";
-const PLAN_ID_A2 = "plan_PJbyRozbzkR06G";
 
 // // Function to create a subscription for Buffalo Ghee
 // async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
@@ -1172,7 +1169,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
   try {
     // Create the subscription using Razorpay
     const subscription = await razorpayInstance.subscriptions.create({
-      plan_id: PLAN_ID_A2,
+      plan_id: process.env.PLAN_ID_A2,
       customer_notify: 1,
       total_count: 12, // Example: 12-month subscription
       quantity: amountMultiplier / 500,
@@ -1245,7 +1242,7 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
   try {
     // Create the subscription using Razorpay
     const subscription = await razorpayInstance.subscriptions.create({
-      plan_id: PLAN_ID_BUFFALO,
+      plan_id: process.env.PLAN_ID_BUFFALO,
       customer_notify: 1, // This will still notify the customer (default behavior)
       total_count: 12, // Example: 12-month subscription
       quantity: amountMultiplier / 500,

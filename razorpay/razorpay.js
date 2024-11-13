@@ -29,7 +29,7 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
           email: true,
           whatsapp: true,
         },
-        callback_url: 'https://c6c9-117-250-157-213.ngrok-free.app/payment-status', // Update as needed
+        callback_url: process.env.CALLBACK_URL, // Update as needed
         callback_method: 'get',
       },
       { auth }
