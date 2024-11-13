@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema({
   subscriptionId: { type: String, required: false },
   subscriptionStartDate:{type:Date , default: Date.now()},
   planId:{type:String, required:false},
+  deliveryDay:{type:Date,default:Date.now()},
   nextReminderDate:{type:Date , default: Date.now()}
 });
 

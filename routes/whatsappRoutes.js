@@ -8,6 +8,7 @@ const User = require("../models/User"); // Adjust the path if necessar
 
 
 
+
 // GET request for webhook verification
 router.get('/webhook', (req, res) => {
   const verifyToken = process.env.VERIFY_TOKEN; // Token in .env file
@@ -27,6 +28,7 @@ router.get('/webhook', (req, res) => {
     res.sendStatus(403); // Forbidden if tokens do not match
   }
 });
+
 
 // POST request to handle messages
 router.post('/webhook', whatsappController.receiveMessage);

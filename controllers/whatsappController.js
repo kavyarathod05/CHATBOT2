@@ -759,9 +759,18 @@ exports.receiveMessage = async (req, res) => {
             // Call the handler for "B2B"
             await buttonHandlers.handleB2B(userPhone);
           } else if (buttonId === "view_plans") {
-            const user = await User.findOne({phone:userPhone})
+            const user = await User.findOne({ phone: userPhone })
+            
+            const today = new Date();
+            let deliveryDate = new Date(today.getFullYear(), today.getMonth(), user.deliveryDay);
+
+            // If the chosen day has already passed this month, set delivery to next month
+            if (deliveryDate < today) {
+              deliveryDate = nextReminderDate;
+            }
+
             const msg = {
-              text: `Your Plan is ${user.subscriptionType} Ghee having Quantity ${user.subscriptionQuantity} which was started on ${user.subscriptionStartDate} and which is scheduled on ${user.nextReminderDate} and the Amount is ${user.subscriptionAmount} `,
+              text: `Your Plan is ${user.subscriptionType} Ghee having Quantity ${user.subscriptionQuantity} which was started on ${user.subscriptionStartDate.toDateString()} and which is scheduled to deliver on or Around ${deliveryDate} and the Amount is ${user.subscriptionAmount} `,
               buttons: [
                 { id: "edit_date", title: "edit date" },
                 { id: "edit_quantity", title: "edit quantity" },
@@ -1195,16 +1204,24 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
       user.subscriptionAmount = subscription.notes.amount;
     }
 
-    const reminderDate = new Date(user.subscriptionStartDate);
+    const reminderDate = new Date(user.deliveryDay);
     reminderDate.setDate(reminderDate.getDate() + 23); // Set reminder 7 days before next cycle
 
     // Save the calculated reminder date
     user.nextReminderDate = reminderDate;
     await user.save();
 
+    const today = new Date();
+    let deliveryDate = new Date(today.getFullYear(), today.getMonth(), user.deliveryDay);
+
+    // If the chosen day has already passed this month, set delivery to next month
+    if (deliveryDate < today) {
+      deliveryDate.setMonth(today.getMonth() + 1);
+    }
+
     // Send subscription confirmation message to the user
     const message = {
-      text: `You have now subscribed to Our Monthly Plan of A2 Cow Ghee. Your subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${user.address}. Please complete your payment here to activate: ${subscription.short_url}`,
+      text: `You have now subscribed to Our Monthly Plan of A2 Cow Ghee. Your subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${user.address} on or around ${deliveryDate.toDateString()}. Please complete your payment here to activate: ${subscription.short_url}`,
     };
     await sendMessage(userPhone, message);
 
@@ -1269,16 +1286,24 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
     }
 
     // Set the reminder date to 7 days before the next cycle
-    const reminderDate = new Date(user.subscriptionStartDate);
+    const reminderDate = new Date(user.deliveryDay);
     reminderDate.setDate(reminderDate.getDate() + 23);
 
     // Save the calculated reminder date
     user.nextReminderDate = reminderDate;
     await user.save();
 
+    const today = new Date();
+    let deliveryDate = new Date(today.getFullYear(), today.getMonth(), user.deliveryDay);
+
+    // If the chosen day has already passed this month, set delivery to next month
+    if (deliveryDate < today) {
+      deliveryDate.setMonth(today.getMonth() + 1);
+    }
+
     // Send subscription confirmation message to the user
     const message = {
-      text: `You have now subscribed to Our Monthly Plan of Buffalo Ghee. Your subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${user.address}. Please complete your payment here to activate: ${subscription.short_url}`,
+      text: `You have now subscribed to Our Monthly Plan of Buffalo Ghee. Your subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${user.address} on or around ${deliveryDate.toDateString()}. Please complete your payment here to activate: ${subscription.short_url}`,
     };
     await sendMessage(userPhone, message);
 
@@ -1360,7 +1385,7 @@ async function handleAddressInput(messageText, userPhone) {
       planType[userPhone] === "plan_A2"
     ) {
       message = {
-        text: "Thank you for providing your address! Now, let us know the date you'd like to start your subscription (format: YYYY-MM-DD).",
+        text: "Thank you for providing your address! Now, let us know the day on which you want to deliver your order (1-31)",
       };
 
       // Update user state to await subscription date
@@ -1429,36 +1454,50 @@ async function handleAddressInput(messageText, userPhone) {
 
 // Handle subscription date input
 async function handleSubscriptionDateInput(messageText, userPhone) {
-  const subscriptionDate = new Date(messageText);
+  const dayOfMonth = parseInt(messageText, 10);
 
-  // Validate the date format
-  if (isNaN(subscriptionDate.getTime())) {
+  // Validate that the input is a valid day of the month (1-31)
+  if (isNaN(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31) {
     const errorMessage = {
-      text: "Please enter a valid date (e.g., YYYY-MM-DD).",
+      text: "Please enter a valid day of the month (e.g., 1-31).",
     };
     await sendMessage(userPhone, errorMessage);
     return;
   }
 
+  // Find the user in the database
   const user = await User.findOne({ phone: userPhone });
   if (user) {
+    // Determine the next delivery date based on the entered day
+    const today = new Date();
+    let deliveryDate = new Date(today.getFullYear(), today.getMonth(), dayOfMonth);
+
+    // If the chosen day has already passed this month, set delivery to next month
+    if (deliveryDate < today) {
+      deliveryDate.setMonth(today.getMonth() + 1);
+    }
+
+    const subscriptionDate = new Date();
+
+    // Save the user's preferred day and the calculated first delivery date
+    user.deliveryDay = dayOfMonth;
     user.subscriptionStartDate = subscriptionDate;
     await user.save();
   }
 
+  // Send confirmation message to the user
   const message = {
-    text: `Your subscription will start on ${subscriptionDate.toDateString()}. Pay to Subscribe`,
+    text: `Your subscription deliveries will start on ${user.subscriptionStartDate.toDateString()} and continue on the ${dayOfMonth} of each month. Please complete your payment to activate your subscription.`,
   };
   await sendMessage(userPhone, message);
 
-  // Create subscription after collecting all info
+  // Create subscription after collecting all required info
   if (planType[userPhone] === "plan_A2") {
-    console.log(planType[userPhone]);
     await createSubscriptionA2(userPhone, userAmount);
   } else if (planType[userPhone] === "plan_buffalo") {
-    console.log(planType[userPhone]);
     await createSubscriptionBuffalo(userPhone, userAmount);
   }
 }
+
 
 // Create subscription using Razorpay
