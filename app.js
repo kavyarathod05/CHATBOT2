@@ -2,6 +2,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
+const scheduleSubscriptionReminders = require('./reminder/scheduler.js');
 require('./config/db'); // Database connection
 
 require('dotenv').config();
@@ -9,6 +10,9 @@ require('dotenv').config();
 // Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Start cron jobs
+scheduleSubscriptionReminders();
 
 // Routes
 const whatsappRoutes = require('./routes/whatsappRoutes');
