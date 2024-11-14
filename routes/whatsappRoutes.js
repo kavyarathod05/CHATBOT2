@@ -139,6 +139,8 @@ router.post('/payment-success', async (req, res) => {
         { new: true }
       );
 
+      user.userPaymentStatus = true;
+
       // Send success message to user
       const successMessage = {
         text: `Payment successful! Thank you for your purchase of ₹${amount}.`,
@@ -173,6 +175,8 @@ router.post('/payment-success', async (req, res) => {
         { subscriptionId: subscriptionData.id }, // Store or update subscription ID
         { new: true }
       );
+
+      user.userPaymentStatus = true;
 
       const successMessage = {
         text: `Subscription renewal successful for ₹${amount}. Thank you for continuing with our service!`,

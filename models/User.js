@@ -1,11 +1,12 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  userName: { type: String, required: false },
+  name: { type: String, required: false },
   phone: { type: String, required: false, unique: false },
   address: { type: String, required: false },
   userOrderQuantity: { type: String, required: false },
   userOrderPaymentID: { type: String, required: false },
+  userPaymentStatus:{type:Boolean,default:false},
   subscription: { type: Boolean, default : false},
   subscriptionType: { type: String, required: false },
   subscriptionQuantity: { type: String, required: false },
@@ -15,7 +16,7 @@ const userSchema = new mongoose.Schema({
   subscriptionId: { type: String, required: false },
   subscriptionStartDate:{type:Date , default: Date.now()},
   planId:{type:String, required:false},
-  deliveryDay:{type:Date,default:Date.now()},
+  deliveryDate:{type:Date,default:Date.now()},
   nextReminderDate:{type:Date , default: Date.now()}
 });
 
