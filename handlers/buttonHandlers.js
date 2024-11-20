@@ -3,13 +3,6 @@ const User = require('../models/User');  // Import your User model
 
 // Handle Buy Ghee selection
 exports.handleBuyGhee = async (userPhone, buttonId) => {
-  // First message with the options to choose ghee products
-  // const message = {
-  //   text: "Great choice! Here are our ghee products:\n1. Pure Bilona Ghee - $20\n2. A2 Cow Ghee - $25\nWould you like to proceed with a purchase?"
-  // };
-  // await sendMessage(userPhone, message);
-
-  // Message with buttons for choosing the variety of ghee
   const buttonMessage = {
     text: "Please choose the variety",
     buttons: [
@@ -23,16 +16,10 @@ exports.handleBuyGhee = async (userPhone, buttonId) => {
       }
     ]
   };
-
-  // Send button message with the two ghee options
   console.log(buttonMessage);
   await sendMessage(userPhone, buttonMessage);
 };
 
-
-// exports.subscribe = async(userPhone,buttonId)=>{
-//   if
-// }
 
 exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
   // Handle A2_ghee selection
@@ -127,57 +114,60 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
   }
 };
 
-// Handle customer support selection
+
 exports.handleCustomerSupport = async (userPhone) => {
+  // Check if the user has already received the support message
+  if (userSupportStatus[userPhone]) {
+    console.log("Support message already sent to this user.");
+    return;
+  }
+
+  // Send initial support message
   const supportMessage = {
-    text: "Our support team is here to assist you. How can we help you today?"
+    text: "Our support team is here to assist you. We will contact you within 24 hours."
   };
   await sendMessage(userPhone, supportMessage);
 
   // Send button options for support
   const buttonMessage = {
-    text: "Please select an option for customer support:",
+    text: "Please click to continue",
     buttons: [
       {
-        id: "technical_support",
-        title: "Technical Support"
-      },
-      {
-        id: "billing_inquiry",
-        title: "Billing Inquiry"
+        id: "help",
+        title: "Continue"
       }
     ]
   };
-
-  // Send customer support buttons
   await sendMessage(userPhone, buttonMessage);
+
+  // Mark the user as having received the support message
+  userSupportStatus[userPhone] = true;
+  
 };
+
 
 // Handle B2B selection
-exports.handleB2B = async (userPhone) => {
+exports.handleknowaboutus = async (userPhone) => {
   const b2bMessage = {
-    text: "Thank you for your interest in B2B! Please provide your business details so we can assist you further."
-  };
-  await sendMessage(userPhone, b2bMessage);
-
-  // Send button message for B2B interaction
-  const b2bButtonMessage = {
-    text: "Please select your preferred service:",
-    buttons: [
-      {
-        id: "b2b_product_inquiry",
-        title: "Product Inquiry"
-      },
-      {
-        id: "b2b_partnership_inquiry",
-        title: "Partnership Inquiry"
-      }
+    text: "this is nani bilona ghee and all",
+    buttons:[
+      {id: "ghee_prep", title: "ghee is prepared"},
+      {id:"faq", title:"FAQs"},
+      {id:"contact", title:"Contact Us"},
     ]
   };
-
-  // Send B2B options
-  await sendMessage(userPhone, b2bButtonMessage);
+  await sendMessage(userPhone, b2bMessage);
+  const msg={
+    text:"press to continue",
+    buttons:[
+      {id:"helpp", title:"continue"}
+    ]
+  }
+  await sendMessage(userPhone, msg);
+  // Send button message for B2B interaction
+ return;
 };
+
 
 exports.handleBuyGheePlanQuantity = async(userPhone,buttonId) => {
   if (buttonId === "plan_A2") {

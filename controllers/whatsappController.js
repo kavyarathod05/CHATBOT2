@@ -14,34 +14,6 @@ const useredit = {};
 const name = {};
 
 exports.receiveMessage = async (req, res) => {
-  // Handle Razorpay webhooks
-  // if (req.body.event === 'subscription.charged') {
-  //   const subscriptionId = req.body.payload.subscription.entity.id;
-
-  //   // Find the user by subscription ID
-  //   const user = await User.findOne({ subscriptionId });
-  //   if (user) {
-  //     const successMessage = {
-  //       text: `Thank you! Your subscription payment for A2 Cow Ghee has been successfully processed. Your next delivery is on schedule!`,
-  //     };
-  //     await sendMessage(user.phone, successMessage);
-  //   }
-  //   return res.sendStatus(200);
-  // }
-
-  // if (req.body.event === 'subscription.charge_failed') {
-  //   const subscriptionId = req.body.payload.subscription.entity.id;
-
-  //   // Find the user by subscription ID
-  //   const user = await User.findOne({ subscriptionId });
-  //   if (user) {
-  //     const reminderMessage = {
-  //       text: `Your subscription payment for A2 Cow Ghee failed due to insufficient balance. Please ensure you have enough funds in your account for the next attempt.`,
-  //     };
-  //     await sendMessage(user.phone, reminderMessage);
-  //   }
-  //   return res.sendStatus(200);
-  // }
   try {
     // Safely access entry and changes data
     const entry = req.body.entry && req.body.entry[0];
@@ -69,7 +41,7 @@ exports.receiveMessage = async (req, res) => {
       console.log(name[userPhone]);
       
       if(name[userPhone] === "taking_name"){
-        name[userPhone] = "";
+        delete name[userPhone];
         user.name = messageText;
         await user.save();
         const message2 = {
@@ -84,24 +56,22 @@ exports.receiveMessage = async (req, res) => {
         console.log("cow");
 
         await handleCustomAmountInput_A2(messageText, userPhone);
-        userStates[userPhone] = "";
+        delete userStates[userPhone];
         return res.sendStatus(200);
       } else if (userStates[userPhone] === "awaiting_custom_amount_buffalo") {
         console.log("buffalo");
         await handleCustomAmountInput_buffalo(messageText, userPhone);
-        userStates[userPhone] = "";
+        delete userStates[userPhone];
         return res.sendStatus(200);
-      } else if (
-        userStates[userPhone] === "awaiting_custom_amount_plan_buffalo"
-      ) {
+      } else if (userStates[userPhone] === "awaiting_custom_amount_plan_buffalo") {
         console.log("buffalo");
         await handleCustomAmountInput_plan_buffalo(messageText, userPhone);
-        userStates[userPhone] = "";
+        delete userStates[userPhone];
         return res.sendStatus(200);
       } else if (userStates[userPhone] === "awaiting_custom_amount_plan_A2") {
         console.log("Plan A2");
         await handleCustomAmountInput_plan_A2(messageText, userPhone);
-        userStates[userPhone] = "";
+        delete userStates[userPhone];
         return res.sendStatus(200);
       }
 
@@ -286,7 +256,7 @@ exports.receiveMessage = async (req, res) => {
       //   return;
       // }
       if (useredit[userPhone] === "awaiting_edit_quantity") {
-        useredit[userPhone] = ""
+        delete useredit[userPhone]
         console.log("editing quantitty");
         const newQuantity = parseInt(messageText, 10);
 
@@ -363,7 +333,7 @@ exports.receiveMessage = async (req, res) => {
         }
       }
       if (useredit[userPhone] === "awaiting_cancel_subscription") {
-        useredit[userPhone] = ""; // Clear the user status
+        delete useredit[userPhone] // Clear the user status
 
         console.log("Cancelling subscription...");
 
@@ -412,11 +382,11 @@ exports.receiveMessage = async (req, res) => {
         messageText == "hello" ||
         messageText == "help"
       ) {
-        userStates[userPhone] = "";
-        useradd[userPhone] = "";
-        userAmount = "";
-        planType[userPhone] = "";
-        useredit[userPhone] = "";
+        delete userStates[userPhone];
+        delete useradd[userPhone];
+        delete userAmount;
+        delete planType[userPhone];
+        delete useredit[userPhone];
         // Send a welcome message
         const welcomeText =
           "Hi there! Welcome to Nani's Bilona Ghee. How can we assist you today?";
@@ -479,7 +449,7 @@ exports.receiveMessage = async (req, res) => {
             }
 
           }
-          if (buttonId === "edit_date") {
+          else if (buttonId === "edit_date") {
             const dateprompt = {
               text: "Please enter the date to edit in format YYYY-MM-DD",
             };
@@ -487,7 +457,7 @@ exports.receiveMessage = async (req, res) => {
             sendMessage(userPhone, dateprompt);
             return;
           }
-          if (buttonId === "edit_address_existing") {
+          else if (buttonId === "edit_address_existing") {
             const prompt = {
               text: "Please enter new address",
             };
@@ -495,7 +465,7 @@ exports.receiveMessage = async (req, res) => {
             await sendMessage(userPhone, prompt);
             return;
           }
-          if (buttonId === "edit_quantity") {
+          else if (buttonId === "edit_quantity") {
             const message1 = {
               text: "enter quantity",
             };
@@ -503,7 +473,7 @@ exports.receiveMessage = async (req, res) => {
             useredit[userPhone] = "awaiting_edit_quantity";
             return;
           }
-          if (buttonId === "cancel_subscription") {
+          else if (buttonId === "cancel_subscription") {
             const msg = {
               text: "Confirm Your Cancellation",
             };
@@ -519,12 +489,12 @@ exports.receiveMessage = async (req, res) => {
             return;
           }
 
-          if (buttonId === "old_address") {
+          else if (buttonId === "old_address") {
             await handleAddress(userPhone);
             return;
           }
 
-          if (buttonId === "new_address") {
+          else if (buttonId === "new_address") {
             if (planType[userPhone].includes("plan")) {
               const message = {
                 text: "Please provide your address for Subscription.",
@@ -540,8 +510,34 @@ exports.receiveMessage = async (req, res) => {
             return;
           }
 
+          else if(buttonId==="ghee_prep"){
+            console.log('ghee prep going');
+            const msg={
+              text:"Videos",
+            };
+            await sendMessage(userPhone, msg);
+            return;
+          }
+         
+          else if(buttonId==="faq"){
+              const msg1={
+                text:"faq"
+              }
+              
+              await sendMessage(userPhone, msg1);
+              return;
+            } 
+         
+          else if(buttonId==="contact"){
+            const msg2={
+              text:"contact"
+          }
+          await sendMessage(userPhone, msg2);
+          return;
+          }
 
-          if (buttonId == "A2_ghee" || buttonId == "buffalo") {
+
+          else if (buttonId == "A2_ghee" || buttonId == "buffalo") {
             if (messages.interactive && messages.interactive.button_reply) {
               const buttonId = messages.interactive.button_reply.id; // Button ID the user clicked
               console.log(buttonId);
@@ -550,7 +546,7 @@ exports.receiveMessage = async (req, res) => {
             }
           }
 
-          if (buttonId.includes("_planA2")) {
+          else if (buttonId.includes("_planA2")) {
             console.log("plan a2");
 
             let amount = 1;
@@ -651,7 +647,7 @@ exports.receiveMessage = async (req, res) => {
             return;
           }
 
-          if (buttonId.includes("_planbuffalo")) {
+          else if (buttonId.includes("_planbuffalo")) {
             console.log("plan_buffalo");
             let amount = 1;
 
@@ -751,7 +747,7 @@ exports.receiveMessage = async (req, res) => {
             return;
           }
 
-          if (buttonId.includes("_address")) {
+          else if (buttonId.includes("_address")) {
             if (buttonId === "edit_address") {
               useradd[userPhone] = "awaiting_edit_address";
               const message = {
@@ -773,7 +769,7 @@ exports.receiveMessage = async (req, res) => {
             return;
           }
 
-          if (buttonId === "buy_ghee") {
+          else if (buttonId === "buy_ghee") {
             // Call the handler for "Buy Our Ghee"
             if (messages.interactive && messages.interactive.button_reply) {
               const buttonId = messages.interactive.button_reply.id; // Button ID the user clicked
@@ -784,9 +780,10 @@ exports.receiveMessage = async (req, res) => {
           } else if (buttonId === "customer_support") {
             // Call the handler for "Customer Support"
             await buttonHandlers.handleCustomerSupport(userPhone);
-          } else if (buttonId === "b2b") {
+          } else if (buttonId === "know_about_us") {
             // Call the handler for "B2B"
-            await buttonHandlers.handleB2B(userPhone);
+            await buttonHandlers.handleknowaboutus(userPhone);
+            return;
           } else if (buttonId === "view_plans") {
             const user = await User.findOne({ phone: userPhone })
             deliveryDate = user.deliveryDate;
@@ -811,7 +808,7 @@ exports.receiveMessage = async (req, res) => {
             return;
           }
 
-          if (buttonId === "yes_cancel") {
+          else if (buttonId === "yes_cancel") {
             useredit[userPhone] = "awaiting_cancel_subscription";
             const msg = {
               text: "If you want to cancel your subscription. then write 'cancel'.",
@@ -843,7 +840,7 @@ exports.receiveMessage = async (req, res) => {
 
     res.sendStatus(400); // Bad request, invalid data
   } catch (error) {
-    console.error("Error processing the message:", error);
+    console.error("Error processing the message:", error.error_data.details);
     res.sendStatus(500); // Internal server error if something goes wrong
   }
 };
@@ -863,7 +860,7 @@ async function handleAddress(userPhone) {
     await sendMessage(userPhone, message);
     return;
   } else {
-    useradd[userPhone] = "";
+    delete useradd[userPhone];
     message = {
       text: "Thank you for providing your address! We will deliver your Order ASAP",
     };
@@ -1363,7 +1360,7 @@ async function handleAddressInput(messageText, userPhone) {
   }
 
   if (useradd[userPhone] === "awaiting_address") {
-    useradd[userPhone] = "";
+    delete useradd[userPhone];
     const rewriteAddress = {
       text: "Want to Edit your Address!??",
       buttons: [
@@ -1405,7 +1402,7 @@ async function handleAddressInput(messageText, userPhone) {
       await sendMessage(userPhone, message);
       return;
     } else {
-      useradd[userPhone] = "";
+      delete useradd[userPhone];
       message = {
         text: "Thank you for providing your address! We will deliver your Order ASAP",
       };
@@ -1509,6 +1506,3 @@ async function handleSubscriptionDateInput(messageText, userPhone) {
     await createSubscriptionBuffalo(userPhone, userAmount);
   }
 }
-
-
-// Create subscription using Razorpay

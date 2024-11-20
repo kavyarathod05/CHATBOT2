@@ -1,4 +1,11 @@
 const axios = require('axios');
+const https = require('https');
+// const fs = require('fs');
+// const path = require('path');
+
+// const certPath = path.join(__dirname, '..', 'utils', 'certificate.pem');
+
+// const cert = fs.readFileSync(certPath)
 
 exports.sendMessage = async (phone, content) => {
   const url = `https://graph.facebook.com/v21.0/${process.env.PHONE_NUMBER_ID}/messages`;
@@ -6,6 +13,10 @@ exports.sendMessage = async (phone, content) => {
     'Authorization': `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
     'Content-Type': 'application/json',
   };
+
+  // const httpsAgent = new https.Agent({
+  //   cert:"Cm8KKwiWl6L6+qznAhIGZW50OndhIhJOYW5pJ3MgQmlsb25hIEdoZWVQ4O32uQYaQDjBeL0jA/WsbmeAd2YC1qOvADFoyycRsMN6tvCUC0MtLn0FG8rodAbfGpZ+5ju9J9zRB5JD8vuKyVhaiTXDrwsSLm0PY5ftppxD4ESHs5GpbCGVU+HjXMPY/as6OE6tPF4vdVEkznys9ThNXJJ/zQg=",
+  // })
 
   try {
     // Ensure `phone` (the `to` parameter) is provided
@@ -17,6 +28,7 @@ exports.sendMessage = async (phone, content) => {
     if (content.text) {
       const textData = {
         messaging_product: 'whatsapp',
+        cert:"Cm8KKwiWl6L6+qznAhIGZW50OndhIhJOYW5pJ3MgQmlsb25hIEdoZWVQ4O32uQYaQDjBeL0jA/WsbmeAd2YC1qOvADFoyycRsMN6tvCUC0MtLn0FG8rodAbfGpZ+5ju9J9zRB5JD8vuKyVhaiTXDrwsSLm0PY5ftppxD4ESHs5GpbCGVU+HjXMPY/as6OE6tPF4vdVEkznys9ThNXJJ/zQg=",
         to: phone,  // This should be the recipient phone number
         type: 'text',
         text: {
@@ -32,6 +44,7 @@ exports.sendMessage = async (phone, content) => {
       for (const media of content.media) {
         const mediaData = {
           messaging_product: 'whatsapp',
+          cert:"Cm8KKwiWl6L6+qznAhIGZW50OndhIhJOYW5pJ3MgQmlsb25hIEdoZWVQ4O32uQYaQDjBeL0jA/WsbmeAd2YC1qOvADFoyycRsMN6tvCUC0MtLn0FG8rodAbfGpZ+5ju9J9zRB5JD8vuKyVhaiTXDrwsSLm0PY5ftppxD4ESHs5GpbCGVU+HjXMPY/as6OE6tPF4vdVEkznys9ThNXJJ/zQg=",
           to: phone,  // Ensure `to` is included here as well
           type: media.type,
           [media.type]: {
@@ -47,6 +60,7 @@ exports.sendMessage = async (phone, content) => {
     if (content.buttons && Array.isArray(content.buttons)) {
       const interactiveMessage = {
         messaging_product: 'whatsapp',
+        cert:"Cm8KKwiWl6L6+qznAhIGZW50OndhIhJOYW5pJ3MgQmlsb25hIEdoZWVQ4O32uQYaQDjBeL0jA/WsbmeAd2YC1qOvADFoyycRsMN6tvCUC0MtLn0FG8rodAbfGpZ+5ju9J9zRB5JD8vuKyVhaiTXDrwsSLm0PY5ftppxD4ESHs5GpbCGVU+HjXMPY/as6OE6tPF4vdVEkznys9ThNXJJ/zQg=",
         to: phone,
         type: 'interactive',
         interactive: {
@@ -74,6 +88,7 @@ exports.sendMessage = async (phone, content) => {
     // Log error details for debugging
     if (error.response) {
       console.error('Error data:', error.response.data);
+      
     } else {
       console.error('Error sending message:', error.message);
     }
