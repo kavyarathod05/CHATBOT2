@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const axios = require('axios');
+const db = require('./config/db.js');
 const cron = require('node-cron'); // For cron scheduling
 require('dotenv').config(); // Load environment variables
 
@@ -12,9 +13,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Database connection
-require('./config/db'); // Database connection
-mongoose.connection.on('connected', () => console.log('Connected to MongoDB'));
-mongoose.connection.on('error', (err) => console.error('MongoDB connection error:', err));
+// require('./config/db'); // Database connection
+// mongoose.connection.on('connected', () => console.log('Connected to MongoDB'));
+// mongoose.connection.on('error', (err) => console.error('MongoDB connection error:', err));
 
 // Load environment variables
 const phoneNumberId = process.env.PHONE_NUMBER_ID;
