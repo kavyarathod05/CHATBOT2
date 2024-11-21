@@ -202,9 +202,9 @@ router.post('/payment-success', async (req, res) => {
       const adminMessage = {
         text: `Alert: Subscription renewal payment of ₹${amount} failed for ${userPhone}. Reason: ${failureReason}`,
       };
-      await sendMessage(adminPhone, adminMessage);
-
       console.log('Subscription payment failure notification sent to admin and user:', userPhone);
+      return await sendMessage(adminPhone, adminMessage);
+
     }
 
     res.status(200).send('Webhook received');

@@ -79,8 +79,7 @@ exports.receiveMessage = async (req, res) => {
           buttons: [{ id: "help", title: "Need help!!" }],
         };
 
-        await sendMessage(userPhone, messageData);
-        return;
+        return await sendMessage(userPhone, messageData);
       }
 
       console.log(state.username);
@@ -94,31 +93,31 @@ exports.receiveMessage = async (req, res) => {
           text: `Hello ${user.name}!! Click to continue 😊`,
           buttons: [{ id: "helpp", title: "Continue" }],
         };
-        await sendMessage(userPhone, message2)
-        return;
+        return await sendMessage(userPhone, message2);
+        
       }
       console.log(state.userState);
 
       if (state.userState === "awaiting_custom_amount_A2") {
         console.log("cow");
-        await handleCustomAmountInput_A2(messageText, userPhone);
+        return await handleCustomAmountInput_A2(messageText, userPhone);
 
-        return;
+        
       } else if (state.userState === "awaiting_custom_amount_buffalo") {
         console.log("buffalo");
-        await handleCustomAmountInput_buffalo(messageText, userPhone);
+        return await handleCustomAmountInput_buffalo(messageText, userPhone);
 
-        return;
+        
       } else if (state.userState === "awaiting_custom_amount_plan_buffalo") {
         console.log("buffalo");
-        await handleCustomAmountInput_plan_buffalo(messageText, userPhone);
+        return await handleCustomAmountInput_plan_buffalo(messageText, userPhone);
 
-        return;
+        
       } else if (state.userState === "awaiting_custom_amount_plan_A2") {
         console.log("Plan A2");
-        await handleCustomAmountInput_plan_A2(messageText, userPhone);
+        return await handleCustomAmountInput_plan_A2(messageText, userPhone);
 
-        return;
+        
       }
 
       // console.log(useradd[userPhone]);
@@ -128,17 +127,17 @@ exports.receiveMessage = async (req, res) => {
       if (state.useradd === "awaiting_address") {
         console.log("cow");
         console.log(messageText);
-        await handleAddressInput(messageText, userPhone);
-        return;
+        return await handleAddressInput(messageText, userPhone);
+        
       } else if (state.useradd === "awaiting_edit_address") {
-        await handleAddressInput(messageText, userPhone);
-        return;
+        return await handleAddressInput(messageText, userPhone);
+        
       } else if (state.useradd === "awaiting_subscription_date") {
         console.log("Date Called");
         await handleSubscriptionDateInput(messageText, userPhone);
         state.useradd = null;
-        await state.save();
-        return;
+        return await state.save();
+        
       }
 
       console.log(state.useredit);
@@ -153,8 +152,8 @@ exports.receiveMessage = async (req, res) => {
           const errorMessage = {
             text: "Please enter a valid date (e.g., YYYY-MM-DD).",
           };
-          await sendMessage(userPhone, errorMessage);
-          return; // Return here to stop further processing if date is invalid
+          return await sendMessage(userPhone, errorMessage);
+           // Return here to stop further processing if date is invalid
         }
 
         const user = await User.findOne({ phone: userPhone });
@@ -198,22 +197,21 @@ exports.receiveMessage = async (req, res) => {
               text: `Your subscription has been updated successfully! The new start date is ${subscriptionDate.toDateString()}. Please complete your payment here: ${newSubscription.short_url
                 }`,
             };
-            await sendMessage(userPhone, message);
+            return await sendMessage(userPhone, message);
           } catch (error) {
             console.error("Error updating subscription:", error);
             const errorMessage = {
               text: "Failed to update the subscription. Please try again later.",
             };
-            await sendMessage(userPhone, errorMessage);
+            return await sendMessage(userPhone, errorMessage);
           }
 
-          return; // Ensure the function stops after processing
         } else {
           const errorMessage = {
             text: "No user found with this phone number.",
           };
-          await sendMessage(userPhone, errorMessage);
-          return; // Return if no user is found
+          return await sendMessage(userPhone, errorMessage);
+           // Return if no user is found
         }
       }
       if (state.useredit === "awaiting_edit_address_existing") {
@@ -231,15 +229,15 @@ exports.receiveMessage = async (req, res) => {
           const s = {
             text: "Your address has been updated successfully!"
           };
-          await sendMessage(userPhone, s);
+         return await sendMessage(userPhone, s);
         } else {
           const errorMessage = {
             text: "There was an issue updating your address. Please try again.",
           };
-          await sendMessage(userPhone, errorMessage);
+         return await sendMessage(userPhone, errorMessage);
         }
 
-        return;
+        
       }
       // if (useredit[userPhone] === "awaiting_edit_address") {
       //   console.log("editing address");
@@ -405,7 +403,7 @@ exports.receiveMessage = async (req, res) => {
               const msg = {
                 text: `Your subscription (${user.subscriptionId}) cancelled successfully.`
               }
-              sendMessage(userPhone, msg);
+              await sendMessage(userPhone, msg);
               user.subscription = false;
               user.subscriptionId = "";
               user.planId = "";
@@ -479,7 +477,7 @@ exports.receiveMessage = async (req, res) => {
             };
             state.useredit = "awaiting_edit_date";
             await state.save()
-            sendMessage(userPhone, dateprompt);
+            await sendMessage(userPhone, dateprompt);
             return;
           }
           else if (buttonId === "edit_address_existing") {
@@ -838,7 +836,7 @@ exports.receiveMessage = async (req, res) => {
               await sendMessage(userPhone, message);
               console.log(state.useradd);
               await handleAddressInput("same address", userPhone);
-              return;
+              
             }
             return;
           }
@@ -867,7 +865,7 @@ exports.receiveMessage = async (req, res) => {
                 { id: "edit_address_existing", title: "edit address" },
               ],
             };
-            sendMessage(userPhone, msg);
+            await sendMessage(userPhone, msg);
             const msg2 = {
               text: "do you want to cancel the subscription??",
               buttons: [
@@ -884,15 +882,15 @@ exports.receiveMessage = async (req, res) => {
             const msg = {
               text: "If you want to cancel your subscription. then write 'cancel'.",
             };
-            await sendMessage(userPhone, msg);
-            return;
+            return await sendMessage(userPhone, msg);
+            
           }
           else if (buttonId === "no_cancel") {
             const msg = {
               text: "Not cancelling Your Subscription. Type 'Hi' to get Help!!!",
             };
-            await sendMessage(userPhone, msg);
-            return;
+            return await sendMessage(userPhone, msg);
+            
           }
         }
 
@@ -900,14 +898,13 @@ exports.receiveMessage = async (req, res) => {
       } else {
         // Default message if no recognized text
         console.log(messages);
-        await sendMessage(userPhone, {
+        return await sendMessage(userPhone, {
           text: "Click if you need any type if help!!",
           buttons: [{ id: "help", title: "Need help!!" }],
         });
-        return;
+        
       }
 
-      return; // Acknowledge receipt of the message
     }
 
     return; 
@@ -1274,8 +1271,8 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     const adminMessage = {
       text: `Alert: Subscription creation failed for ${userPhone}. Error: ${error.response ? error.response.data.description : error.message}`,
     };
-    await sendMessage(adminPhone, adminMessage);
-    return;
+    return await sendMessage(adminPhone, adminMessage);
+    
   }
   return;
 }
@@ -1332,10 +1329,10 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
     const adminMessage = {
       text: `Subscription created for ${userPhone}. Payment link: ${subscription.short_url}. Subscription ID: ${subscription.id}`,
     };
-    await sendMessage(adminPhone, adminMessage);
-
     console.log("Subscription created with ID:", subscription.id);
-    return;
+    return await sendMessage(adminPhone, adminMessage);
+
+    
   } catch (error) {
     console.error("Error creating subscription for Buffalo Ghee:", error);
 
@@ -1350,8 +1347,8 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
     const adminMessage = {
       text: `Alert: Subscription creation failed for ${userPhone}. Error: ${error.response ? error.response.data.description : error.message}`,
     };
-    await sendMessage(adminPhone, adminMessage);
-    return;
+    return await sendMessage(adminPhone, adminMessage);
+    
   }
   return;
 }
