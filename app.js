@@ -119,6 +119,9 @@ scheduleSubscriptionReminders();
 const whatsappRoutes = require('./routes/whatsappRoutes');
 app.use('/', whatsappRoutes); // Webhook for receiving WhatsApp messages
 
+const Routes = require("./routes/Routes.js")
+app.use("/",Routes);
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
