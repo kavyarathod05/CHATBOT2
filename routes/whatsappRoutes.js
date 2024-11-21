@@ -5,7 +5,8 @@ const whatsappController = require('../controllers/whatsappController');
 const crypto = require('crypto');
 const { sendMessage } = require("../utils/whatsappAPI");
 const User = require("../models/User"); // Adjust the path if necessar
-
+const State = require("../models/State");
+// const State = require('../models/State');
 
 
 
@@ -84,6 +85,7 @@ router.get('/payment-status', async (req, res) => {
       { new: true }
     );
 
+    
     // Notify user of successful payment
     const successMessage = {
       text: `Payment successful! Thank you for your purchase!`,
@@ -139,7 +141,7 @@ router.post('/payment-success', async (req, res) => {
         { new: true }
       );
 
-      user.userPaymentStatus = true;
+      user.singleorderPaymentStatus = true;
 
       // Send success message to user
       const successMessage = {
@@ -176,7 +178,7 @@ router.post('/payment-success', async (req, res) => {
         { new: true }
       );
 
-      user.userPaymentStatus = true;
+      user.subscriptionPaymentStatus = true;
 
       const successMessage = {
         text: `Subscription renewal successful for ₹${amount}. Thank you for continuing with our service!`,

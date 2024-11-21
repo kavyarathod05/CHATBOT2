@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { sendMessage } = require("../utils/whatsappAPI");
-
+const User = require('../models/User');
 
 // Function to calculate and create Razorpay payment link
 exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, description = "Purchase at Nani's Bilona Ghee") => {
@@ -13,6 +13,10 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
   // Calculate the amount by dividing by 500, then convert to paise (for Razorpay)
   const calculatedAmount = Math.round(amountEntered / 500) * 100; // Amount in paise
   console.log(`Calculated Amount (paise): ${calculatedAmount}`);
+
+  const user = await User.findOne({phone:userPhone})
+  user.userOrderAmount = calculatedAmount;
+  user.save()
 
   try {
     const response = await axios.post(
