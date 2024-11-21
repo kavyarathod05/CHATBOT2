@@ -11,6 +11,7 @@ const PhoneNumber = require("../models/phoneNumber.js");
 
 
 exports.receiveMessage = async (req, res) => {
+  res.send("gujju bsdi waalo");
   try {
     // Safely access entry and changes data
     const entry = req.body.entry && req.body.entry[0];
