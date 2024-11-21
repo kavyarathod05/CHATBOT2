@@ -93,4 +93,5 @@ exports.sendMessage = async (phone, content) => {
       console.error('Error sending message:', error.message);
     }
   }
+  res.status(200).send("message sent");
 };

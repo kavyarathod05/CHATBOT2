@@ -12,6 +12,7 @@ const State = require("../models/State");
 
 // GET request for webhook verification
 router.get('/webhook', (req, res) => {
+  res.sendStatus(200).send("gujju bsdi waaalo");
   const verifyToken = process.env.VERIFY_TOKEN; // Token in .env file
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
