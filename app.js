@@ -47,6 +47,33 @@ const token = process.env.WHATSAPP_ACCESS_TOKEN;
 // Import PhoneNumber model
 const PhoneNumber = require('./models/phoneNumber');
 
+
+
+// Schedule the task to run every day at 10:00 AM (adjust the time as needed)
+cron.schedule('* 10 * * *', async () => {
+    console.log('Starting daily broadcast message...');
+    await sendBroadcastMessage();
+    console.log('Daily broadcast message sent!');
+});
+
+// Start cron jobs for subscription reminders
+const scheduleSubscriptionReminders = require('./reminder/scheduler.js');
+scheduleSubscriptionReminders();
+
+// Routes
+const whatsappRoutes = require('./routes/whatsappRoutes');
+app.use('/whatsapp', whatsappRoutes); // Webhook for receiving WhatsApp messages
+
+app.get('/', (req, res) => {
+    console.log("abcd");
+    res.status(200).send("Hello from Nani Belona Ghee!!");
+})
+
+app.get('/favicon.ico', (req, res) => res.status(204));
+
+
+
+
 // Helper function to send WhatsApp message
 async function sendMessage(phoneNumber) {
     const apiUrl = `https://graph.facebook.com/v17.0/${phoneNumberId}/messages`;
@@ -104,25 +131,10 @@ async function sendBroadcastMessage() {
     }
 }
 
-// Schedule the task to run every day at 10:00 AM (adjust the time as needed)
-cron.schedule('* 10 * * *', async () => {
-    console.log('Starting daily broadcast message...');
-    await sendBroadcastMessage();
-    console.log('Daily broadcast message sent!');
-});
 
-// Start cron jobs for subscription reminders
-const scheduleSubscriptionReminders = require('./reminder/scheduler.js');
-scheduleSubscriptionReminders();
-
-// Routes
-const whatsappRoutes = require('./routes/whatsappRoutes');
-app.use('/whatsapp', whatsappRoutes); // Webhook for receiving WhatsApp messages
-
-app.get('/', (req, res) => {
-    res.send("Hello from Nani Belona Ghee!!");
-})
 
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+module.exports = app;
