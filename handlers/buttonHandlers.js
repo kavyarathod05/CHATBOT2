@@ -17,7 +17,7 @@ exports.handleBuyGhee = async (userPhone, buttonId) => {
     ]
   };
   console.log(buttonMessage);
-  await sendMessage(userPhone, buttonMessage);
+  return await sendMessage(userPhone, buttonMessage);
 };
 
 
@@ -64,8 +64,8 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
     // Send quantity options for A2 Ghee
     await sendMessage(userPhone, quantityMessage);
     await sendMessage(userPhone, customOrderMessage);
-    await sendMessage(userPhone, planOrderMessage);
-    return;
+    return await sendMessage(userPhone, planOrderMessage);
+    
   }
 
   // Handle buffalo selection
@@ -111,8 +111,8 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
     // Send quantity options for Buffalo Ghee
     await sendMessage(userPhone, quantityMessage);
     await sendMessage(userPhone, customOrderMessage);
-    await sendMessage(userPhone, planOrderMessage);
-    return;
+    return await sendMessage(userPhone, planOrderMessage);
+    
   }
   return;
 };
@@ -166,9 +166,9 @@ exports.handleknowaboutus = async (userPhone) => {
       {id:"helpp", title:"continue"}
     ]
   }
-  await sendMessage(userPhone, msg);
+  return await sendMessage(userPhone, msg);
   // Send button message for B2B interaction
- return;
+ 
 };
 
 
@@ -204,8 +204,8 @@ exports.handleBuyGheePlanQuantity = async(userPhone,buttonId) => {
 
     // Send quantity options for A2 Ghee
     await sendMessage(userPhone, quantityMessage);
-    await sendMessage(userPhone, customOrderMessage);
-    return;
+    return await sendMessage(userPhone, customOrderMessage);
+    
   }
 
   // Handle buffalo selection
@@ -241,8 +241,6 @@ exports.handleBuyGheePlanQuantity = async(userPhone,buttonId) => {
 
     // Send quantity options for Buffalo Ghee
     await sendMessage(userPhone, quantityMessage);
-    await sendMessage(userPhone, customOrderMessage);
-    return;
+    return await sendMessage(userPhone, customOrderMessage);
   }
-  return;
 }
