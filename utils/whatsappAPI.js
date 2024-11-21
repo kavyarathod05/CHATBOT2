@@ -1,11 +1,6 @@
 const axios = require('axios');
 const https = require('https');
-// const fs = require('fs');
-// const path = require('path');
 
-// const certPath = path.join(__dirname, '..', 'utils', 'certificate.pem');
-
-// const cert = fs.readFileSync(certPath)
 
 exports.sendMessage = async (phone, content) => {
   const url = `https://graph.facebook.com/v21.0/${process.env.PHONE_NUMBER_ID}/messages`;
@@ -93,5 +88,5 @@ exports.sendMessage = async (phone, content) => {
       console.error('Error sending message:', error.message);
     }
   }
-  res.status(200).send("message sent");
+  return;
 };
