@@ -11,7 +11,7 @@ const PhoneNumber = require("../models/phoneNumber.js");
 
 
 exports.receiveMessage = async (req, res) => {
-  if(!req.body) return res.status(111);
+  try {
     // Safely access entry and changes data
     const entry = req.body.entry && req.body.entry[0];
     const changes = entry && entry.changes && entry.changes[0];
@@ -913,11 +913,11 @@ exports.receiveMessage = async (req, res) => {
     }
 
     return; 
-  //  catch (error) {
-  //   console.error("Error processing the message:", error);
-  //   res.sendStatus(500); // Internal server error if something goes wrong
-  //   return;
-  // }
+  } catch (error) {
+    console.error("Error processing the message:", error);
+    res.sendStatus(500); // Internal server error if something goes wrong
+    return;
+  }
 };
 
 async function handleAddress(userPhone) {
