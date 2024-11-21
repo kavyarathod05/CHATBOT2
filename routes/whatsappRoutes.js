@@ -22,9 +22,9 @@ router.get('/webhook', (req, res) => {
   console.log('Token received:', token);
   console.log('Challenge:', challenge);
 
-  if ( token === verifyToken) {
+  if (mode === 'subscribe' && token === verifyToken) {
     console.log("WEBHOOK_VERIFIED");
-    res.status(200).send("It's working webhook") 
+    res.status(200).send(challenge); 
   } else {
     console.log("Verification failed - tokens do not match");
     res.sendStatus(403); 
@@ -32,10 +32,6 @@ router.get('/webhook', (req, res) => {
 });
 
 
-// if (mode === 'subscribe' && token === verifyToken) {
-//   console.log("WEBHOOK_VERIFIED");
-//   res.status(200).send(challenge); 
-// }
 
 // POST request to handle messages
 router.post('/webhook', whatsappController.receiveMessage);
