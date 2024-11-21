@@ -38,7 +38,7 @@ scheduleSubscriptionReminders();
 
 // Routes
 const whatsappRoutes = require('./routes/whatsappRoutes');
-app.use('/whatsapp', whatsappRoutes); // Webhook for receiving WhatsApp messages
+app.use('/', whatsappRoutes); // Webhook for receiving WhatsApp messages
 
 app.get('/', (req, res) => {
     console.log("abcd");
