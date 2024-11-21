@@ -4,8 +4,6 @@ const State = require("../models/State.js")
 const buttonHandlers = require("../handlers/buttonHandlers"); // Import button handlers
 const { generatePaymentLinkWithDivision } = require("../razorpay/razorpay.js");
 const Razorpay = require("razorpay");
-const cron = require('node-cron');
-const axios = require('axios');
 const PhoneNumber = require("../models/phoneNumber.js");
 
 

@@ -35,7 +35,6 @@ router.get('/webhook', (req, res) => {
 // POST request to handle messages
 router.post('/webhook', whatsappController.receiveMessage);
 
-module.exports = router;
 
 // In your server.js or routes file
 
@@ -215,4 +214,5 @@ router.post('/payment-success', async (req, res) => {
   }
 });
 
+module.exports = router;
 
