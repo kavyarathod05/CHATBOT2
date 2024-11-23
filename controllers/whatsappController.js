@@ -135,7 +135,7 @@ exports.receiveMessage = async (req, res) => {
       } else if (state.useradd === "awaiting_subscription_date") {
         console.log("Date Called");
         await handleSubscriptionDateInput(messageText, userPhone);
-        state.useradd = null;
+        
         return await state.save();
 
       }
@@ -1438,6 +1438,8 @@ async function handleSubscriptionDateInput(messageText, userPhone) {
     return await sendMessage(userPhone, errorMessage);
     
   }
+
+  state.useradd = null;
 
   // Find the user in the database
   const user = await User.findOne({ phone: userPhone });
