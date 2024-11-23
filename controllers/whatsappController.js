@@ -513,7 +513,6 @@ exports.receiveMessage = async (req, res) => {
 
           else if (buttonId === "old_address") {
             return await handleAddress(userPhone);
-            
           }
 
           else if (buttonId === "new_address") {
@@ -1270,7 +1269,6 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     return await sendMessage(adminPhone, adminMessage);
 
   }
-  return;
 }
 
 
