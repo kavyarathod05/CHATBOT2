@@ -119,11 +119,6 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
 
 
 exports.handleCustomerSupport = async (userPhone) => {
-  // Check if the user has already received the support message
-  if (userSupportStatus[userPhone]) {
-    console.log("Support message already sent to this user.");
-    return;
-  }
 
   // Send initial support message
   const supportMessage = {
@@ -142,9 +137,6 @@ exports.handleCustomerSupport = async (userPhone) => {
     ]
   };
   await sendMessage(userPhone, buttonMessage);
-
-  // Mark the user as having received the support message
-  userSupportStatus[userPhone] = true;
   
 };
 

@@ -23,11 +23,20 @@ exports.receiveMessage = async (req, res) => {
       // Check if the user already exists in the database
       let user = await User.findOne({ phone: userPhone });
       let state = await State.findOne({ userPhone })
+      
       let phoneNumber = await PhoneNumber.findOne({ userPhone });
+      if(!phoneNumber) {
       phoneNumber = new PhoneNumber({
         userPhone: userPhone
       });
       await phoneNumber.save();
+      }
+      // if(!phoneNumber) {
+      // phoneNumber = new PhoneNumber({
+      //   userPhone: userPhone
+      // });
+      // await phoneNumber.save();
+      // }
       // If the user doesn't exist, create a new one
       if (!user) {
         user = new User({
@@ -89,11 +98,11 @@ exports.receiveMessage = async (req, res) => {
         await state.save();
         user.name = messageText;
         await user.save();
-        const message2 = {
+        const message = {
           text: `Hello ${user.name}!! Click to continue 😊`,
-          buttons: [{ id: "helpp", title: "Continue" }],
+          buttons: [{ id: "help", title: "Continue" }],
         };
-        return await sendMessage(userPhone, message2);
+        return await sendMessage(userPhone, message);
 
       }
       console.log(state.userState);
@@ -428,7 +437,7 @@ exports.receiveMessage = async (req, res) => {
         console.log(buttonId);
 
         if (buttonId) {
-          if (buttonId == "help" || buttonId == "helpp") {
+          if (buttonId === "help" || buttonId === "helpp") {
             // Respond with an interactive menu for help
             const user = await User.findOne({ phone: userPhone });
 
@@ -436,8 +445,8 @@ exports.receiveMessage = async (req, res) => {
               text: `Hello ${user.name}! How can we assist you today?`,
               buttons: [
                 { id: "buy_ghee", title: "Buy Our Ghee" },
-                { id: "subscription_plans", title: "Customer Support" },
-                { id: "contact_support", title: "B2B" },
+                { id: "customer_support", title: "Customer Support" },
+                { id: "know_about_us", title: "B2B" },
               ],
             };
 
@@ -454,7 +463,7 @@ exports.receiveMessage = async (req, res) => {
             if (user.name) {
               await sendMessage(userPhone, message1);
               if (user) {
-                if (user.subscription) {
+                if (user.subscriptionPaymentStatus) {
                   return await sendMessage(userPhone, message2);
                 }
               }
@@ -538,7 +547,18 @@ exports.receiveMessage = async (req, res) => {
             const msg = {
               text: "Videos",
             };
-            return await sendMessage(userPhone, msg);
+            await sendMessage(userPhone, msg);
+            const buttonMessage = {
+              text: "Please click to continue",
+              buttons: [
+                {
+                  id: "help",
+                  title: "Continue"
+                }
+              ]
+            };
+            return await sendMessage(userPhone, buttonMessage);
+
           }
 
           else if (buttonId === "faq") {
@@ -546,7 +566,17 @@ exports.receiveMessage = async (req, res) => {
               text: "faq"
             }
 
-            return await sendMessage(userPhone, msg1);
+            await sendMessage(userPhone, msg1);
+            const buttonMessage = {
+              text: "Please click to continue",
+              buttons: [
+                {
+                  id: "help",
+                  title: "Continue"
+                }
+              ]
+            };
+            return await sendMessage(userPhone, buttonMessage);
             
           }
 
@@ -554,7 +584,17 @@ exports.receiveMessage = async (req, res) => {
             const msg2 = {
               text: "contact"
             }
-            return await sendMessage(userPhone, msg2);
+            await sendMessage(userPhone, msg2);
+            const buttonMessage = {
+              text: "Please click to continue",
+              buttons: [
+                {
+                  id: "help",
+                  title: "Continue"
+                }
+              ]
+            };
+            return await sendMessage(userPhone, buttonMessage);
             
           }
 
@@ -1439,11 +1479,11 @@ async function handleSubscriptionDateInput(messageText, userPhone) {
     
   }
 
-  state.useradd = null;
-
+  
   // Find the user in the database
   const user = await User.findOne({ phone: userPhone });
   const state = await State.findOne({ userPhone });
+  state.useradd = null;
   if (user) {
     // Determine the next delivery date based on the entered day
     const today = new Date();

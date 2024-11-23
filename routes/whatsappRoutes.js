@@ -36,7 +36,6 @@ router.get('/webhook', (req, res) => {
 router.post('/webhook', whatsappController.receiveMessage);
 
 
-// In your server.js or routes file
 
 
 router.get('/payment-status', async (req, res) => {
