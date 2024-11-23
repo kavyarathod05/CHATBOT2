@@ -12,10 +12,6 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Database connection
-// require('./config/db'); // Database connection
-// mongoose.connection.on('connected', () => console.log('Connected to MongoDB'));
-// mongoose.connection.on('error', (err) => console.error('MongoDB connection error:', err));
 
 // Load environment variables
 const phoneNumberId = process.env.PHONE_NUMBER_ID;
@@ -27,7 +23,7 @@ const PhoneNumber = require('./models/phoneNumber');
 
 
 // Schedule the task to run every day at 10:00 AM (adjust the time as needed)
-cron.schedule('* 10 * * *', async () => {
+cron.schedule('0 10 * * *', async () => {
     console.log('Starting daily broadcast message...');
     await sendBroadcastMessage();
     console.log('Daily broadcast message sent!');
@@ -52,7 +48,7 @@ app.get('/favicon.ico', (req, res) => res.status(204));
 
 
 // Helper function to send WhatsApp message
-async function sendMessage(phoneNumber) {
+async function sendTemplateMessage(phoneNumber) {
     const apiUrl = `https://graph.facebook.com/v17.0/${phoneNumberId}/messages`;
 
     try {
@@ -93,7 +89,7 @@ async function sendBroadcastMessage() {
         // Loop through and send the message
         for (const record of phoneNumbers) {
             const phoneNumber = record.userPhone;
-            const success = await sendMessage(phoneNumber);
+            const success = await sendTemplateMessage(phoneNumber);
 
             // If message is sent successfully, update the database
             if (success) {
@@ -103,9 +99,11 @@ async function sendBroadcastMessage() {
                 console.log(`Failed to send message to ${phoneNumber}`);
             }
         }
+        
     } catch (error) {
         console.error('Error sending broadcast messages:', error);
     }
+    return;
 }
 
 
