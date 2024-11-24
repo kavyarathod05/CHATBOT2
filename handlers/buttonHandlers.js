@@ -136,7 +136,7 @@ exports.handleCustomerSupport = async (userPhone) => {
       }
     ]
   };
-  await sendMessage(userPhone, buttonMessage);
+  return await sendMessage(userPhone, buttonMessage);
   
 };
 
