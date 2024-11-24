@@ -555,12 +555,11 @@ exports.receiveMessage = async (req, res) => {
             if (buttonId === "small_A2") amount *= 500;
             else if (buttonId === "medium_A2") amount *= 1000;
             else if (buttonId === "large_A2") amount *= 2000;
-            else if (buttonId === "plan_A2"){
-                return await buttonHandlers.handleBuyGheePlanQuantity(
-                  userPhone,
-                  buttonId
-                );
-              
+            else if (buttonId === "plan_A2") {
+              return await buttonHandlers.handleBuyGheePlanQuantity(
+                userPhone,
+                buttonId
+              );
             } else if (buttonId === "custom_A2") {
               const state = await State.findOne({ userPhone });
               if (state) {
@@ -661,11 +660,10 @@ exports.receiveMessage = async (req, res) => {
             else if (buttonId === "medium_buffalo") amount *= 1000;
             else if (buttonId === "large_buffalo") amount *= 2000;
             else if (buttonId === "plan_buffalo") {
-                return await buttonHandlers.handleBuyGheePlanQuantity(
-                  userPhone,
-                  buttonId
-                );
-              
+              return await buttonHandlers.handleBuyGheePlanQuantity(
+                userPhone,
+                buttonId
+              );
             } else if (buttonId == "custom_buffalo") {
               const state = await State.findOne({ userPhone });
               if (state) {
@@ -1033,6 +1031,15 @@ async function createPayment_A2(userPhone, amount) {
       text: `Please complete your purchase here: ${paymentLink}`,
     };
 
+    const state = await State.findOne({ userPhone });
+    state.userState = null;
+    state.useradd = null;
+    state.planType = null;
+    state.useredit = null;
+    state.username = null;
+    state.userAmount = null;
+    await state.save();
+
     return await sendMessage(userPhone, message);
   } catch (error) {
     console.error("Error sending payment link:", error);
@@ -1052,6 +1059,16 @@ async function createPayment_buffalo(userPhone, amount) {
     const message = {
       text: `Please complete your purchase here: ${paymentLink}`,
     };
+
+    const state = await State.findOne({ userPhone });
+    state.userState = null;
+    state.useradd = null;
+    state.planType = null;
+    state.useredit = null;
+    state.username = null;
+    state.userAmount = null;
+    await state.save();
+
 
     return await sendMessage(userPhone, message);
   } catch (error) {
@@ -1108,6 +1125,16 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
       }`,
     };
     await sendMessage(userPhone, message);
+
+    const state = await State.findOne({ userPhone });
+    state.userState = null;
+    state.useradd = null;
+    state.planType = null;
+    state.useredit = null;
+    state.username = null;
+    state.userAmount = null;
+    await state.save();
+
 
     // Notify the admin of subscription and payment link creation
     const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
@@ -1184,6 +1211,16 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
       }`,
     };
     await sendMessage(userPhone, message);
+
+    const state = await State.findOne({ userPhone });
+    state.userState = null;
+    state.useradd = null;
+    state.planType = null;
+    state.useredit = null;
+    state.username = null;
+    state.userAmount = null;
+    await state.save();
+
 
     // Notify the admin of subscription and payment link creation
     const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
