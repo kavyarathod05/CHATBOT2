@@ -549,7 +549,7 @@ exports.receiveMessage = async (req, res) => {
               await state.save();
             }
             return await sendMessage(userPhone, message);
-          } else if (buttonId.includes("_A2")) {
+          } else if (buttonId.includes("_A2")) {   
             console.log("no plan A2");
             let amount = 350;
             if (buttonId === "small_A2") amount *= 500;
@@ -598,10 +598,9 @@ exports.receiveMessage = async (req, res) => {
             const message = {
               text: "Please provide your address.",
             };
-            if (state) {
               state.useradd = "awaiting_address";
               await state.save();
-            }
+            
             return await sendMessage(userPhone, message);
           } else if (buttonId.includes("_planbuffalo")) {
             console.log("plan_buffalo");
@@ -814,8 +813,6 @@ async function handleAddress(userPhone) {
     await state.save();
     return await sendMessage(userPhone, message);
   } else {
-    state.useradd = null;
-    await state.save();
     message = {
       text: "Thank you for providing your address! We will deliver your Order ASAP",
     };
