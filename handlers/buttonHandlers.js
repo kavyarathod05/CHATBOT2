@@ -2,7 +2,7 @@ const { sendMessage } = require('../utils/whatsappAPI');
 const User = require('../models/User');  // Import your User model
 
 // Handle Buy Ghee selection
-exports.handleBuyGhee = async (userPhone, buttonId) => {
+exports.handleBuyGhee = async (userPhone) => {
   const buttonMessage = {
     text: "Please choose the variety",
     buttons: [

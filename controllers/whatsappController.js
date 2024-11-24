@@ -55,9 +55,9 @@ exports.receiveMessage = async (req, res) => {
       }
 
       if (
-        messageText == "hi" ||
-        messageText == "hello" ||
-        messageText == "help"
+        messageText === "hi" ||
+        messageText === "hello" ||
+        messageText === "help"
       ) {
         state.userState = null;
         state.useradd = null;
@@ -386,6 +386,7 @@ exports.receiveMessage = async (req, res) => {
               if (user.subscriptionPaymentStatus) {
                 return await sendMessage(userPhone, message2);
               }
+              return;
             } else {
               state.username = "taking_name";
               await state.save();
@@ -492,7 +493,7 @@ exports.receiveMessage = async (req, res) => {
               ],
             };
             return await sendMessage(userPhone, buttonMessage);
-          } else if (buttonId == "A2_ghee" || buttonId == "buffalo") {
+          } else if (buttonId === "A2_ghee" || buttonId === "buffalo") {
             return await buttonHandlers.handleBuyGheeQuantity(
               userPhone,
               buttonId
@@ -551,20 +552,16 @@ exports.receiveMessage = async (req, res) => {
           } else if (buttonId.includes("_A2")) {
             console.log("no plan A2");
             let amount = 350;
-            if (buttonId == "small_A2") amount *= 500;
-            else if (buttonId == "medium_A2") amount *= 1000;
-            else if (buttonId == "large_A2") amount *= 2000;
-            else if (buttonId == "plan_A2") {
-              if (messages.interactive && messages.interactive.button_reply) {
-                const buttonId = messages.interactive.button_reply.id; // Button ID the user clicked
-                console.log(buttonId);
-
+            if (buttonId === "small_A2") amount *= 500;
+            else if (buttonId === "medium_A2") amount *= 1000;
+            else if (buttonId === "large_A2") amount *= 2000;
+            else if (buttonId === "plan_A2"){
                 return await buttonHandlers.handleBuyGheePlanQuantity(
                   userPhone,
                   buttonId
                 );
-              }
-            } else if (buttonId == "custom_A2") {
+              
+            } else if (buttonId === "custom_A2") {
               const state = await State.findOne({ userPhone });
               if (state) {
                 state.userState = "awaiting_custom_amount_A2";
@@ -660,19 +657,15 @@ exports.receiveMessage = async (req, res) => {
           } else if (buttonId.includes("_buffalo")) {
             console.log("no plan buffalo");
             let amount = 400;
-            if (buttonId == "small_buffalo") amount *= 500;
-            else if (buttonId == "medium_buffalo") amount *= 1000;
-            else if (buttonId == "large_buffalo") amount *= 2000;
-            else if (buttonId == "plan_buffalo") {
-              if (messages.interactive && messages.interactive.button_reply) {
-                const buttonId = messages.interactive.button_reply.id; // Button ID the user clicked
-                console.log(buttonId);
-
+            if (buttonId === "small_buffalo") amount *= 500;
+            else if (buttonId === "medium_buffalo") amount *= 1000;
+            else if (buttonId === "large_buffalo") amount *= 2000;
+            else if (buttonId === "plan_buffalo") {
                 return await buttonHandlers.handleBuyGheePlanQuantity(
                   userPhone,
                   buttonId
                 );
-              }
+              
             } else if (buttonId == "custom_buffalo") {
               const state = await State.findOne({ userPhone });
               if (state) {
@@ -737,7 +730,7 @@ exports.receiveMessage = async (req, res) => {
               return await handleAddressInput("same address", userPhone);
             }
           } else if (buttonId === "buy_ghee") {
-            return await buttonHandlers.handleBuyGhee(userPhone, buttonId);
+            return await buttonHandlers.handleBuyGhee(userPhone);
           } else if (buttonId === "customer_support") {
             // Call the handler for "Customer Support"
             return await buttonHandlers.handleCustomerSupport(userPhone);

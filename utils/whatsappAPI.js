@@ -78,7 +78,7 @@ exports.sendMessage = async (phone, content) => {
       await axios.post(url, interactiveMessage, { headers });
       console.log('Interactive button message sent successfully');
     }
-
+    return;
   } catch (error) {
     // Log error details for debugging
     if (error.response) {
