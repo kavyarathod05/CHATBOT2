@@ -6,6 +6,30 @@ const { generatePaymentLinkWithDivision } = require("../razorpay/razorpay.js");
 const Razorpay = require("razorpay");
 const PhoneNumber = require("../models/phoneNumber.js");
 
+// Timeout duration in milliseconds (3 minutes)
+const TIMEOUT_DURATION = 3 * 30 * 1000;
+
+// Map to track timeouts for each user
+const userTimeouts = new Map();
+
+// Function to reset user state
+const resetUserState = async (userPhone) => {
+  try {
+    const state = await State.findOne({ userPhone });
+    if (state) {
+      state.useredit = null;
+      state.useradd = null;
+      state.userState = null;
+      state.planType = null;
+      state.userAmount = null;
+      await state.save();
+      console.log(`State reset for user: ${userPhone}`);
+    }
+  } catch (error) {
+    console.error(`Error resetting state for user ${userPhone}:`, error);
+  }
+};
+
 exports.receiveMessage = async (req, res) => {
   try {
     // Safely access entry and changes data
@@ -54,52 +78,33 @@ exports.receiveMessage = async (req, res) => {
         console.log(`New State added: ${userPhone}`);
       }
 
-      // Timeout duration in milliseconds (e.g., 5 minutes)
-      const TIMEOUT_DURATION = 10 * 1000;
-
-      // Function to reset user state
-      const resetUserState = async (userPhone) => {
-        const state = await State.findOne({ userPhone });
-        if (state) {
-          state.useredit = null;
-          state.useradd = null;
-          state.userState = null;
-          state.planType = null;
-          state.userAmount = null;
-          await state.save();
-          console.log(`State reset for user: ${userPhone}`);
-        }
-      };
-
-      // Main logic
-      const buttonId = messages.interactive.button_reply.id; // Button ID the user clicked
-      console.log(buttonId);
-      if (!buttonId && !messageText) {
-        console.log(`No buttonId or messageText found for user: ${userPhone}`);
-        // Schedule a state reset after the timeout duration
-        setTimeout(async () => {
-          const user = await User.findOne({ phone: userPhone });
-          if (user) {
-            // Check if the state hasn't been updated within the timeout
-            const state = await State.findOne({ userPhone });
-            if (state && !state.useredit && !state.useradd) {
-              await resetUserState(userPhone);
-              const timeoutMessage = {
-                text: "Session expired due to inactivity. Please type 'Hi' to start again.",
-              };
-              await sendMessage(userPhone, timeoutMessage);
-            }
-          }
-        }, TIMEOUT_DURATION);
-        return;
+      // Clear the existing timeout for this user if any
+      if (userTimeouts.has(userPhone)) {
+        clearTimeout(userTimeouts.get(userPhone));
+        userTimeouts.delete(userPhone);
       }
 
+      // Set a new timeout for the user
+      const timeout = setTimeout(async () => {
+        await resetUserState(userPhone);
+        const timeoutMessage = {
+          text: "Session expired due to inactivity. Please type 'Hi' to start again.",
+        };
+        await sendMessage(userPhone, timeoutMessage);
+        console.log(`Timeout triggered and state reset for user: ${userPhone}`);
+        userTimeouts.delete(userPhone); // Clean up the map
+      }, TIMEOUT_DURATION);
+
+      // Store the timeout in the map
+      userTimeouts.set(userPhone, timeout);
+
+    
       if (
         messageText === "hi" ||
         messageText === "hello" ||
         messageText === "help"
       ) {
-        resetState(state);
+        resetUserState(userPhone);
 
         // Send a welcome message
         const welcomeText =
@@ -394,6 +399,7 @@ exports.receiveMessage = async (req, res) => {
         if (buttonId) {
           if (buttonId === "help" || buttonId === "helpp") {
             // Respond with an interactive menu for help
+            console.log("help called");
             const user = await User.findOne({ phone: userPhone });
 
             const message1 = {
@@ -812,13 +818,7 @@ exports.receiveMessage = async (req, res) => {
         return; // Acknowledge receipt of the button interaction
       } else {
         // Default message if no recognized text
-        state.userState = null;
-        state.useradd = null;
-        state.planType = null;
-        state.useredit = null;
-        state.username = null;
-        state.userAmount = null;
-        await state.save();
+        resetUserState(userPhone);
         console.log(messages);
         return await sendMessage(userPhone, {
           text: "Click if you need any type if help!!",
@@ -833,6 +833,7 @@ exports.receiveMessage = async (req, res) => {
     return res.sendStatus(500); // Internal server error if something goes wrong
   }
 };
+
 
 async function handleAddress(userPhone) {
   const state = await State.findOne({ userPhone });
