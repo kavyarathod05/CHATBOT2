@@ -54,18 +54,50 @@ exports.receiveMessage = async (req, res) => {
         console.log(`New State added: ${userPhone}`);
       }
 
+      // Timeout duration in milliseconds (e.g., 5 minutes)
+      const TIMEOUT_DURATION = 10 * 1000;
+
+      // Function to reset user state
+      const resetUserState = async (userPhone) => {
+        const state = await State.findOne({ userPhone });
+        if (state) {
+          state.useredit = null;
+          state.useradd = null;
+          state.userState = null;
+          state.planType = null;
+          state.userAmount = null;
+          await state.save();
+          console.log(`State reset for user: ${userPhone}`);
+        }
+      };
+
+      // Main logic
+      if (!buttonId && !messageText) {
+        console.log(`No buttonId or messageText found for user: ${userPhone}`);
+        // Schedule a state reset after the timeout duration
+        setTimeout(async () => {
+          const user = await User.findOne({ phone: userPhone });
+          if (user) {
+            // Check if the state hasn't been updated within the timeout
+            const state = await State.findOne({ userPhone });
+            if (state && !state.useredit && !state.useradd) {
+              await resetUserState(userPhone);
+              const timeoutMessage = {
+                text: "Session expired due to inactivity. Please type 'Hi' to start again.",
+              };
+              await sendMessage(userPhone, timeoutMessage);
+            }
+          }
+        }, TIMEOUT_DURATION);
+        return;
+      }
+
       if (
         messageText === "hi" ||
         messageText === "hello" ||
         messageText === "help"
       ) {
-        state.userState = null;
-        state.useradd = null;
-        state.planType = null;
-        state.useredit = null;
-        state.username = null;
-        state.userAmount = null;
-        await state.save();
+        resetState(state);
 
         // Send a welcome message
         const welcomeText =
@@ -549,7 +581,7 @@ exports.receiveMessage = async (req, res) => {
               await state.save();
             }
             return await sendMessage(userPhone, message);
-          } else if (buttonId.includes("_A2")) {   
+          } else if (buttonId.includes("_A2")) {
             console.log("no plan A2");
             let amount = 350;
             if (buttonId === "small_A2") amount *= 500;
@@ -598,9 +630,9 @@ exports.receiveMessage = async (req, res) => {
             const message = {
               text: "Please provide your address.",
             };
-              state.useradd = "awaiting_address";
-              await state.save();
-            
+            state.useradd = "awaiting_address";
+            await state.save();
+
             return await sendMessage(userPhone, message);
           } else if (buttonId.includes("_planbuffalo")) {
             console.log("plan_buffalo");
@@ -1066,7 +1098,6 @@ async function createPayment_buffalo(userPhone, amount) {
     state.userAmount = null;
     await state.save();
 
-
     return await sendMessage(userPhone, message);
   } catch (error) {
     console.error("Error sending payment link:", error);
@@ -1131,7 +1162,6 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     state.username = null;
     state.userAmount = null;
     await state.save();
-
 
     // Notify the admin of subscription and payment link creation
     const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
@@ -1217,7 +1247,6 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
     state.username = null;
     state.userAmount = null;
     await state.save();
-
 
     // Notify the admin of subscription and payment link creation
     const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
