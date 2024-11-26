@@ -72,6 +72,8 @@ exports.receiveMessage = async (req, res) => {
       };
 
       // Main logic
+      const buttonId = messages.interactive.button_reply.id; // Button ID the user clicked
+      console.log(buttonId);
       if (!buttonId && !messageText) {
         console.log(`No buttonId or messageText found for user: ${userPhone}`);
         // Schedule a state reset after the timeout duration
