@@ -23,13 +23,13 @@ exports.receiveMessage = async (req, res) => {
       let user = await User.findOne({ phone: userPhone });
       let state = await State.findOne({ userPhone });
 
-      let phoneNumber = await PhoneNumber.findOne({ userPhone });
-      if (!phoneNumber) {
-        phoneNumber = new PhoneNumber({
-          userPhone: userPhone,
-        });
-        await phoneNumber.save();
-      }
+      // let phoneNumber = await PhoneNumber.findOne({ userPhone });
+      // if (!phoneNumber) {
+      //   phoneNumber = new PhoneNumber({
+      //     userPhone: userPhone,
+      //   });
+      //   await phoneNumber.save();
+      // }
       // if(!phoneNumber) {
       // phoneNumber = new PhoneNumber({
       //   userPhone: userPhone
@@ -91,8 +91,8 @@ exports.receiveMessage = async (req, res) => {
 
       if (state.username === "taking_name") {
         state.username = null;
-        await state.save();
         user.name = messageText;
+        await state.save();
         await user.save();
         const message = {
           text: `Hello ${user.name}!! Click to continue 😊`,
@@ -1313,7 +1313,6 @@ async function handleAddressInput(messageText, userPhone) {
       return await state.save();
     }
   }
-
   return;
 }
 
