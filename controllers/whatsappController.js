@@ -9,6 +9,8 @@ const PhoneNumber = require("../models/phoneNumber.js");
 // Timeout duration in milliseconds (3 minutes)
 const TIMEOUT_DURATION = 3 * 30 * 1000;
 
+const processedMessages = new Set(); // Initialize the Set to track message IDs
+
 // Map to track timeouts for each user
 const userTimeouts = new Map();
 
@@ -40,6 +42,7 @@ exports.receiveMessage = async (req, res) => {
     // Check if the request contains 'messages' (incoming message data)
     const messages = value && value.messages && value.messages[0];
     if (messages) {
+      const messageId = messages.id; // Unique message ID provided by WhatsApp
       const userPhone = messages.from; // Phone number of the sender
       const messageText = messages.text ? messages.text.body.toLowerCase() : ""; // Safely access message text
 
@@ -47,20 +50,16 @@ exports.receiveMessage = async (req, res) => {
       let user = await User.findOne({ phone: userPhone });
       let state = await State.findOne({ userPhone });
 
-      // let phoneNumber = await PhoneNumber.findOne({ userPhone });
-      // if (!phoneNumber) {
-      //   phoneNumber = new PhoneNumber({
-      //     userPhone: userPhone,
-      //   });
-      //   await phoneNumber.save();
-      // }
-      // if(!phoneNumber) {
-      // phoneNumber = new PhoneNumber({
-      //   userPhone: userPhone
-      // });
-      // await phoneNumber.save();
-      // }
-      // If the user doesn't exist, create a new one
+      if (processedMessages.has(messageId)) {
+        console.log(`Duplicate message ignored: ${messageId}`);
+        return res.sendStatus(200); // Acknowledge without re-processing
+      }
+      processedMessages.add(messageId);  // *** Add this line ***
+      console.log(`Processing new message: ${messageId}`);
+      setInterval(() => {
+        processedMessages.clear();  // Clears all stored message IDs in the Set
+        console.log('Cleared processed messages to free memory.');
+      }, 3600000);
       if (!user) {
         user = new User({
           phone: userPhone, // Save the phone number
@@ -98,33 +97,45 @@ exports.receiveMessage = async (req, res) => {
       // Store the timeout in the map
       userTimeouts.set(userPhone, timeout);
 
-    
       if (
-        messageText === "hi" ||
-        messageText === "hello" ||
-        messageText === "help"
+        messageText.toLowerCase() === "hi" ||
+        messageText.toLowerCase() === "hello" ||
+        messageText.toLowerCase() === "help" && messageId
       ) {
-        resetUserState(userPhone);
-
-        // Send a welcome message
-        const welcomeText =
-          "Hi there! Welcome to Nani's Bilona Ghee. How can we assist you today?";
-        const imageUrl =
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQXaekK87HoROClCOCn3UAEwvmxcHSOdTKqg&s"; // Replace with your image URL
-
+        // Reset the user's state to ensure a fresh start
+        await resetUserState(userPhone);
+      
+        // Construct the welcome message text
+        const welcomeText = "Hi there! 👋 Welcome to Nani's Bilona Ghee. How can we assist you today?";
+      
+        // URL for the welcome image
+        const imageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQXaekK87HoROClCOCn3UAEwvmxcHSOdTKqg&s"; // Replace with your image URL
+      
+        // Message content to send to the user
         const messageData = {
           text: welcomeText,
           media: [
             {
-              type: "image",
-              url: imageUrl,
+              type: "image", // Image type for media
+              url: imageUrl, // Image URL to be sent
             },
           ],
-          buttons: [{ id: "help", title: "Need help!!" }],
+          buttons: [
+            { id: "help", title: "Need Help!" },
+          ],
         };
-
-        return await sendMessage(userPhone, messageData);
+      
+        // Send the message and handle potential errors
+        try {
+          await sendMessage(userPhone, messageData);
+          console.log(`Welcome message sent successfully to ${userPhone}`);
+          return res.status(200); // Return response if needed for further processing
+        } catch (error) {
+          console.error(`Error sending welcome message to ${userPhone}:`, error);
+          throw new Error(`Failed to send welcome message to ${userPhone}`);
+        }
       }
+      
 
       console.log(state.username);
 
@@ -139,8 +150,6 @@ exports.receiveMessage = async (req, res) => {
         };
         return await sendMessage(userPhone, message);
       }
-      console.log(state.userState);
-
       if (state.userState === "awaiting_custom_amount_A2") {
         console.log("cow");
         return await handleCustomAmountInput_A2(messageText, userPhone);
@@ -157,11 +166,6 @@ exports.receiveMessage = async (req, res) => {
         console.log("Plan A2");
         return await handleCustomAmountInput_plan_A2(messageText, userPhone);
       }
-
-      // console.log(useradd[userPhone]);
-      console.log(state.planType);
-
-      console.log(state.useradd);
       if (state.useradd === "awaiting_address") {
         console.log("cow");
         console.log(messageText);
@@ -174,9 +178,6 @@ exports.receiveMessage = async (req, res) => {
 
         return await state.save();
       }
-
-      console.log(state.useredit);
-
       if (state.useredit === "awaiting_edit_date") {
         console.log("editing date");
 
@@ -392,7 +393,7 @@ exports.receiveMessage = async (req, res) => {
       }
 
       // Handle different types of incoming messages
-      if (messages.interactive && messages.interactive.button_reply) {
+      if (messages.interactive && messages.interactive.button_reply && messageId) {
         const buttonId = messages.interactive.button_reply.id; // Button ID the user clicked
         console.log(buttonId);
 
@@ -833,7 +834,6 @@ exports.receiveMessage = async (req, res) => {
     return res.sendStatus(500); // Internal server error if something goes wrong
   }
 };
-
 
 async function handleAddress(userPhone) {
   const state = await State.findOne({ userPhone });

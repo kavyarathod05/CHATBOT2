@@ -32,8 +32,50 @@ router.get('/webhook', (req, res) => {
 
 
 
-// POST request to handle messages
-router.post('/webhook', whatsappController.receiveMessage);
+
+// POST request to handle webhook
+router.post('/webhook', (req, res) => {
+  try {
+      const signature = req.headers['x-hub-signature']; // Retrieve the signature from the header
+      const payload = JSON.stringify(req.body); // The request payload
+
+      // Ensure payload and signature exist
+      if (!payload) {
+          console.log('Webhook Error: Missing payload');
+          return res.status(400).send('Bad Request: Missing payload');
+      }
+      if (!signature) {
+          console.log('Webhook Error: Missing signature');
+          return res.status(403).send('Forbidden: Missing signature');
+      }
+
+      // Generate the expected signature using your app secret
+      const expectedSignature = `sha1=${crypto
+          .createHmac('sha1', process.env.APP_SECRET) // Replace with your actual app secret
+          .update(payload)
+          .digest('hex')}`;
+
+      // Compare the signatures
+      if (signature !== expectedSignature) {
+          console.log('Webhook Error: Invalid signature detected');
+          console.log('Expected Signature:', expectedSignature);
+          console.log('Received Signature:', signature);
+          return res.status(403).send('Forbidden: Invalid signature');
+      }
+
+      console.log('Webhook Validated: Proceeding with message handling');
+      res.status(200).send('Webhook received and processed');
+      
+      // Proceed with handling the message using the controller
+      whatsappController.receiveMessage(req, res);
+  } catch (error) {
+      // Handle unexpected errors gracefully
+      console.error('Webhook Error:', error.message);
+      res.status(500).send('Internal Server Error');
+  }
+});
+
+
 
 
 
