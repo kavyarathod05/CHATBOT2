@@ -9,7 +9,6 @@ const PhoneNumber = require("../models/phoneNumber.js");
 // Timeout duration in milliseconds (3 minutes)
 const TIMEOUT_DURATION = 3 * 30 * 1000;
 
-const processedMessages = new Set(); // Initialize the Set to track message IDs
 
 // Map to track timeouts for each user
 const userTimeouts = new Map();
@@ -50,16 +49,6 @@ exports.receiveMessage = async (req, res) => {
       let user = await User.findOne({ phone: userPhone });
       let state = await State.findOne({ userPhone });
 
-      if (processedMessages.has(messageId)) {
-        console.log(`Duplicate message ignored: ${messageId}`);
-        return res.sendStatus(200); // Acknowledge without re-processing
-      }
-      processedMessages.add(messageId);  // *** Add this line ***
-      console.log(`Processing new message: ${messageId}`);
-      setInterval(() => {
-        processedMessages.clear();  // Clears all stored message IDs in the Set
-        console.log('Cleared processed messages to free memory.');
-      }, 3600000);
       if (!user) {
         user = new User({
           phone: userPhone, // Save the phone number
