@@ -10,7 +10,6 @@ const State = require("../models/State");
 
 
 
-const processedMessages = new Set(); // Replace with a persistent store if needed
 
 
 // GET request for webhook verification
@@ -36,42 +35,54 @@ router.get('/webhook', (req, res) => {
 
 
 // POST request to handle messages
+const processedMessages = new Set(); // To track processed message IDs
+
 router.post('/webhook', (req, res) => {
-  try {
-      const payload = req.body;
+    try {
+        const payload = req.body;
 
-      // Log the full payload for debugging purposes
-      console.log('Webhook Payload:', JSON.stringify(payload, null, 2));
+        // Log the full payload for debugging purposes
+        console.log('Webhook Payload:', JSON.stringify(payload, null, 2));
 
-      // Extract relevant data from the payload
-      const changes = payload.entry?.[0]?.changes?.[0]?.value;
+        // Extract relevant data from the payload
+        const changes = payload.entry?.[0]?.changes?.[0]?.value;
 
-      // Check if the event contains actual messages
-      if (changes?.messages && Array.isArray(changes.messages)) {
-          const messages = changes.messages;
+        // Check if the event contains actual messages
+        if (changes?.messages && Array.isArray(changes.messages)) {
+            const messages = changes.messages;
 
-          // Check each message in the messages array
-          messages.forEach((message) => {
-              console.log('Processing message:', message);
+            // Check each message in the messages array
+            messages.forEach((message) => {
+                console.log('Processing message:', message);
 
-              // Ensure this is a user-generated message
-              if (message.type && message.from) {
-                  console.log('User message detected, calling receiveMessage');
-                  whatsappController.receiveMessage(req, res); // Call your controller
-              } else {
-                  console.log('Skipping non-user message event');
-              }
-          });
+                // Ensure this is a user-generated message with valid content
+                if (message.type && message.from && (message.text?.body || (message.interactive && message.interactive.button_reply))) {
+                    // Deduplication: Check if the message has already been processed
+                    const messageId = message.id;
+                    if (processedMessages.has(messageId)) {
+                        console.log('Duplicate message detected, ignoring...');
+                        return; // Skip processing this message
+                    }
 
-          res.status(200).send('Message processed');
-      } else {
-          console.log('No valid messages in the payload, ignoring event');
-          res.status(200).send('No valid messages to process');
-      }
-  } catch (error) {
-      console.error('Webhook Error:', error.message);
-      res.status(500).send('Internal Server Error');
-  }
+                    // Add message ID to processed set
+                    processedMessages.add(messageId);
+
+                    console.log('User message detected, calling receiveMessage');
+                    whatsappController.receiveMessage(req, res); // Call your controller
+                } else {
+                    console.log('Skipping non-user message event or invalid message');
+                }
+            });
+
+            res.status(200).send('Message processed');
+        } else {
+            console.log('No valid messages in the payload, ignoring event');
+            res.status(200).send('No valid messages to process');
+        }
+    } catch (error) {
+        console.error('Webhook Error:', error.message);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 
