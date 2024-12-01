@@ -11,7 +11,7 @@ exports.sendMessage = async (phone, content) => {
 
   // const httpsAgent = new https.Agent({
   //   cert:"Cm8KKwiWl6L6+qznAhIGZW50OndhIhJOYW5pJ3MgQmlsb25hIEdoZWVQ4O32uQYaQDjBeL0jA/WsbmeAd2YC1qOvADFoyycRsMN6tvCUC0MtLn0FG8rodAbfGpZ+5ju9J9zRB5JD8vuKyVhaiTXDrwsSLm0PY5ftppxD4ESHs5GpbCGVU+HjXMPY/as6OE6tPF4vdVEkznys9ThNXJJ/zQg=",
-  // })
+  // })z
 
   try {
     // Ensure `phone` (the `to` parameter) is provided

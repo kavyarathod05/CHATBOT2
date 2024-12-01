@@ -6,6 +6,7 @@ const { generatePaymentLinkWithDivision } = require("../razorpay/razorpay.js");
 const Razorpay = require("razorpay");
 const PhoneNumber = require("../models/phoneNumber.js");
 
+
 // Timeout duration in milliseconds (3 minutes)
 const TIMEOUT_DURATION = 3 * 30 * 1000;
 
@@ -40,6 +41,7 @@ exports.receiveMessage = async (req, res) => {
 
     // Check if the request contains 'messages' (incoming message data)
     const messages = value && value.messages && value.messages[0];
+    console.log(messages);
     if (messages) {
       const messageId = messages.id; // Unique message ID provided by WhatsApp
       const userPhone = messages.from; // Phone number of the sender

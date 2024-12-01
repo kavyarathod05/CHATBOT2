@@ -10,6 +10,9 @@ const State = require("../models/State");
 
 
 
+const processedMessages = new Set(); // Replace with a persistent store if needed
+
+
 // GET request for webhook verification
 router.get('/webhook', (req, res) => {
   const verifyToken = process.env.VERIFY_TOKEN; // Token in .env file
@@ -33,7 +36,44 @@ router.get('/webhook', (req, res) => {
 
 
 // POST request to handle messages
-router.post('/webhook', whatsappController.receiveMessage);
+router.post('/webhook', (req, res) => {
+  try {
+      const payload = req.body;
+
+      // Log the full payload for debugging purposes
+      console.log('Webhook Payload:', JSON.stringify(payload, null, 2));
+
+      // Extract relevant data from the payload
+      const changes = payload.entry?.[0]?.changes?.[0]?.value;
+
+      // Check if the event contains actual messages
+      if (changes?.messages && Array.isArray(changes.messages)) {
+          const messages = changes.messages;
+
+          // Check each message in the messages array
+          messages.forEach((message) => {
+              console.log('Processing message:', message);
+
+              // Ensure this is a user-generated message
+              if (message.type && message.from) {
+                  console.log('User message detected, calling receiveMessage');
+                  whatsappController.receiveMessage(req, res); // Call your controller
+              } else {
+                  console.log('Skipping non-user message event');
+              }
+          });
+
+          res.status(200).send('Message processed');
+      } else {
+          console.log('No valid messages in the payload, ignoring event');
+          res.status(200).send('No valid messages to process');
+      }
+  } catch (error) {
+      console.error('Webhook Error:', error.message);
+      res.status(500).send('Internal Server Error');
+  }
+});
+
 
 
 
