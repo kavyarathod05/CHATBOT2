@@ -34,8 +34,14 @@ router.get('/webhook', (req, res) => {
 
 
 
-// POST request to handle messages
-const processedMessages = new Set(); // To track processed message IDs
+
+// Store processed message timestamps (you can use a database or in-memory storage)
+const processedMessages = new Map();
+
+// Define a threshold in milliseconds (e.g., 5 minutes)
+const MESSAGE_PROCESS_THRESHOLD = 5 * 60 * 1000; // 5 minutes
+
+const MIN_TIMESTAMP_DIFF = 5 * 60 * 1000; // 5 minutes threshold in milliseconds
 
 router.post('/webhook', (req, res) => {
     try {
@@ -51,26 +57,31 @@ router.post('/webhook', (req, res) => {
         if (changes?.messages && Array.isArray(changes.messages)) {
             const messages = changes.messages;
 
+            // Get current timestamp
+            const currentTimestamp = Date.now(); // Get the current timestamp in milliseconds
+
             // Check each message in the messages array
             messages.forEach((message) => {
                 console.log('Processing message:', message);
 
-                // Ensure this is a user-generated message with valid content
-                if (message.type && message.from && (message.text?.body || (message.interactive && message.interactive.button_reply))) {
-                    // Deduplication: Check if the message has already been processed
-                    const messageId = message.id;
-                    if (processedMessages.has(messageId)) {
-                        console.log('Duplicate message detected, ignoring...');
+                // Ensure this is a user-generated message
+                if (message.type && message.from) {
+                    // Extract timestamp from the message
+                    const messageTimestamp = parseInt(message.timestamp, 10) * 1000; // Convert to milliseconds
+
+                    // Check if the timestamp difference is within an acceptable range (e.g., 5 minutes)
+                    const timestampDifference = currentTimestamp - messageTimestamp;
+
+                    // If the timestamp difference is too large, consider it as a duplicate/random message
+                    if (timestampDifference > MIN_TIMESTAMP_DIFF) {
+                        console.log('Skipping message with old timestamp:', message);
                         return; // Skip processing this message
                     }
-
-                    // Add message ID to processed set
-                    processedMessages.add(messageId);
 
                     console.log('User message detected, calling receiveMessage');
                     whatsappController.receiveMessage(req, res); // Call your controller
                 } else {
-                    console.log('Skipping non-user message event or invalid message');
+                    console.log('Skipping non-user message event');
                 }
             });
 
