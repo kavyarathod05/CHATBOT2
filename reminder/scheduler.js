@@ -28,11 +28,12 @@ function scheduleSubscriptionReminders() {
 
         // Update user’s next reminder date
         user.nextReminderDate = nextReminderDate;
-        await user.save();
+        return await user.save();
       }
     } catch (error) {
       console.error("Error sending reminders:", error);
     }
+    return;
   });
 }
 

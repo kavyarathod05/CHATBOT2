@@ -1,11 +1,36 @@
 const { sendMessage } = require("../utils/whatsappAPI");
 const User = require("../models/User"); // Adjust the path if necessar
-const State = require("../models/State.js")
+const State = require("../models/State.js");
 const buttonHandlers = require("../handlers/buttonHandlers"); // Import button handlers
 const { generatePaymentLinkWithDivision } = require("../razorpay/razorpay.js");
 const Razorpay = require("razorpay");
 const PhoneNumber = require("../models/phoneNumber.js");
 
+
+// Timeout duration in milliseconds (3 minutes)
+const TIMEOUT_DURATION = 3 * 30 * 1000;
+
+
+// Map to track timeouts for each user
+const userTimeouts = new Map();
+
+// Function to reset user state
+const resetUserState = async (userPhone) => {
+  try {
+    const state = await State.findOne({ userPhone });
+    if (state) {
+      state.useredit = null;
+      state.useradd = null;
+      state.userState = null;
+      state.planType = null;
+      state.userAmount = null;
+      await state.save();
+      console.log(`State reset for user: ${userPhone}`);
+    }
+  } catch (error) {
+    console.error(`Error resetting state for user ${userPhone}:`, error);
+  }
+};
 
 exports.receiveMessage = async (req, res) => {
   try {
@@ -16,19 +41,16 @@ exports.receiveMessage = async (req, res) => {
 
     // Check if the request contains 'messages' (incoming message data)
     const messages = value && value.messages && value.messages[0];
+    console.log(messages);
     if (messages) {
+      const messageId = messages.id; // Unique message ID provided by WhatsApp
       const userPhone = messages.from; // Phone number of the sender
       const messageText = messages.text ? messages.text.body.toLowerCase() : ""; // Safely access message text
 
       // Check if the user already exists in the database
       let user = await User.findOne({ phone: userPhone });
-      let state = await State.findOne({ userPhone })
-      let phoneNumber = await PhoneNumber.findOne({ userPhone });
-      phoneNumber = new PhoneNumber({
-        userPhone: userPhone
-      });
-      await phoneNumber.save();
-      // If the user doesn't exist, create a new one
+      let state = await State.findOne({ userPhone });
+
       if (!user) {
         user = new User({
           phone: userPhone, // Save the phone number
@@ -46,39 +68,63 @@ exports.receiveMessage = async (req, res) => {
         console.log(`New State added: ${userPhone}`);
       }
 
+      // Clear the existing timeout for this user if any
+      if (userTimeouts.has(userPhone)) {
+        clearTimeout(userTimeouts.get(userPhone));
+        userTimeouts.delete(userPhone);
+      }
+
+      // Set a new timeout for the user
+      const timeout = setTimeout(async () => {
+        await resetUserState(userPhone);
+        const timeoutMessage = {
+          text: "Session expired due to inactivity. Please type 'Hi' to start again.",
+        };
+        await sendMessage(userPhone, timeoutMessage);
+        console.log(`Timeout triggered and state reset for user: ${userPhone}`);
+        userTimeouts.delete(userPhone); // Clean up the map
+      }, TIMEOUT_DURATION);
+
+      // Store the timeout in the map
+      userTimeouts.set(userPhone, timeout);
+
       if (
-        messageText == "hi" ||
-        messageText == "hello" ||
-        messageText == "help"
+        messageText.toLowerCase() === "hi" ||
+        messageText.toLowerCase() === "hello" ||
+        messageText.toLowerCase() === "help" && messageId
       ) {
-        state.userState = null;
-        state.useradd = null;
-        state.planType = null;
-        state.useredit = null;
-        state.username = null;
-        state.userAmount = null;
-        await state.save();
-
-
-
-        // Send a welcome message
-        const welcomeText =
-          "Hi there! Welcome to Nani's Bilona Ghee. How can we assist you today?";
-        const imageUrl =
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQXaekK87HoROClCOCn3UAEwvmxcHSOdTKqg&s"; // Replace with your image URL
-
+        // Reset the user's state to ensure a fresh start
+        await resetUserState(userPhone);
+      
+        // Construct the welcome message text
+        const welcomeText = "Hi there! 👋 Welcome to Nani's Bilona Ghee. How can we assist you today?";
+      
+        // URL for the welcome image
+        const imageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQXaekK87HoROClCOCn3UAEwvmxcHSOdTKqg&s"; // Replace with your image URL
+      
+        // Message content to send to the user
         const messageData = {
           text: welcomeText,
           media: [
             {
-              type: "image",
-              url: imageUrl,
+              type: "image", // Image type for media
+              url: imageUrl, // Image URL to be sent
             },
           ],
-          buttons: [{ id: "help", title: "Need help!!" }],
+          buttons: [
+            { id: "help", title: "Need Help!" },
+          ],
         };
-
-        return await sendMessage(userPhone, messageData);
+      
+        // Send the message and handle potential errors
+        try {
+          await sendMessage(userPhone, messageData);
+          console.log(`Welcome message sent successfully to ${userPhone}`);
+          return res.status(200); // Return response if needed for further processing
+        } catch (error) {
+          console.error(`Error sending welcome message to ${userPhone}:`, error);
+          throw new Error(`Failed to send welcome message to ${userPhone}`);
+        }
       }
       
 
@@ -86,62 +132,43 @@ exports.receiveMessage = async (req, res) => {
 
       if (state.username === "taking_name") {
         state.username = null;
-        await state.save();
         user.name = messageText;
+        await state.save();
         await user.save();
-        const message2 = {
+        const message = {
           text: `Hello ${user.name}!! Click to continue 😊`,
-          buttons: [{ id: "helpp", title: "Continue" }],
+          buttons: [{ id: "help", title: "Continue" }],
         };
-        return await sendMessage(userPhone, message2);
-
+        return await sendMessage(userPhone, message);
       }
-      console.log(state.userState);
-
       if (state.userState === "awaiting_custom_amount_A2") {
         console.log("cow");
         return await handleCustomAmountInput_A2(messageText, userPhone);
-
-
       } else if (state.userState === "awaiting_custom_amount_buffalo") {
         console.log("buffalo");
         return await handleCustomAmountInput_buffalo(messageText, userPhone);
-
-
       } else if (state.userState === "awaiting_custom_amount_plan_buffalo") {
         console.log("buffalo");
-        return await handleCustomAmountInput_plan_buffalo(messageText, userPhone);
-
-
+        return await handleCustomAmountInput_plan_buffalo(
+          messageText,
+          userPhone
+        );
       } else if (state.userState === "awaiting_custom_amount_plan_A2") {
         console.log("Plan A2");
         return await handleCustomAmountInput_plan_A2(messageText, userPhone);
-
-
       }
-
-      // console.log(useradd[userPhone]);
-      console.log(state.planType);
-
-      console.log(state.useradd);
       if (state.useradd === "awaiting_address") {
         console.log("cow");
         console.log(messageText);
         return await handleAddressInput(messageText, userPhone);
-
       } else if (state.useradd === "awaiting_edit_address") {
         return await handleAddressInput(messageText, userPhone);
-
       } else if (state.useradd === "awaiting_subscription_date") {
         console.log("Date Called");
         await handleSubscriptionDateInput(messageText, userPhone);
-        state.useradd = null;
+
         return await state.save();
-
       }
-
-      console.log(state.useredit);
-
       if (state.useredit === "awaiting_edit_date") {
         console.log("editing date");
 
@@ -155,7 +182,6 @@ exports.receiveMessage = async (req, res) => {
           return await sendMessage(userPhone, errorMessage);
           // Return here to stop further processing if date is invalid
         }
-
 
         const user = await User.findOne({ phone: userPhone });
         console.log(user.subscriptionId);
@@ -195,8 +221,9 @@ exports.receiveMessage = async (req, res) => {
 
             // Step 3: Confirm success
             const message = {
-              text: `Your subscription has been updated successfully! The new start date is ${subscriptionDate.toDateString()}. Please complete your payment here: ${newSubscription.short_url
-                }`,
+              text: `Your subscription has been updated successfully! The new start date is ${subscriptionDate.toDateString()}. Please complete your payment here: ${
+                newSubscription.short_url
+              }`,
             };
             return await sendMessage(userPhone, message);
           } catch (error) {
@@ -206,7 +233,6 @@ exports.receiveMessage = async (req, res) => {
             };
             return await sendMessage(userPhone, errorMessage);
           }
-
         } else {
           const errorMessage = {
             text: "No user found with this phone number.",
@@ -228,7 +254,7 @@ exports.receiveMessage = async (req, res) => {
 
         if (user) {
           const s = {
-            text: "Your address has been updated successfully!"
+            text: "Your address has been updated successfully!",
           };
           return await sendMessage(userPhone, s);
         } else {
@@ -237,71 +263,7 @@ exports.receiveMessage = async (req, res) => {
           };
           return await sendMessage(userPhone, errorMessage);
         }
-
-
       }
-      // if (useredit[userPhone] === "awaiting_edit_address") {
-      //   console.log("editing address");
-      //   console.log(messageText);
-
-      //   // Assuming you want to change the quantity in the Razorpay subscription
-      //   // First, get the current user's subscription ID
-      //   const user = await User.findOne({ phone: userPhone });
-
-      //   if (user && user.subscriptionId) {
-      //     try {
-      //       // Cancel the existing subscription in Razorpay
-      //       const cancelSubscriptionResponse =
-      //         await razorpayInstance.subscriptions.cancel(user.subscriptionId);
-      //       console.log(
-      //         "Subscription canceled successfully:",
-      //         cancelSubscriptionResponse
-      //       );
-
-      //       // Create a new subscription with the updated quantity
-      //       const updatedQuantity = 2; // Example: updated quantity based on user's input or logic
-      //       const subscription = await razorpayInstance.subscriptions.create({
-      //         plan_id: user.planId, // Assuming you stored the planId in the user's record
-      //         customer_notify: 1,
-      //         total_count: 12, // Example: 12-month subscription
-      //         quantity: updatedQuantity,
-      //         notes: {
-      //           phone: userPhone,
-      //           description: "Updated subscription with new quantity.",
-      //         },
-      //       });
-
-      //       // Update the user with the new subscription ID and other details
-      //       await User.findOneAndUpdate(
-      //         { phone: userPhone },
-      //         {
-      //           subscriptionId: subscription.id,
-      //           subscriptionStartDate: new Date(), // Set the new subscription start date if needed
-      //         },
-      //         { new: true }
-      //       );
-
-      //       // Send the confirmation message
-      //       const message = {
-      //         text: `Your subscription has been updated successfully. Your new subscription will start with ${updatedQuantity} items. Please complete your payment here to activate: ${subscription.short_url}`,
-      //       };
-      //       await sendMessage(userPhone, message);
-      //     } catch (error) {
-      //       console.error("Error processing subscription update:", error);
-      //       const errorMessage = {
-      //         text: "Failed to update the subscription. Please try again later.",
-      //       };
-      //       await sendMessage(userPhone, errorMessage);
-      //     }
-      //   } else {
-      //     const errorMessage = {
-      //       text: "No active subscription found. Please try again.",
-      //     };
-      //     await sendMessage(userPhone, errorMessage);
-      //   }
-
-      //   return;
-      // }
       if (state.useredit === "awaiting_edit_quantity") {
         state.useredit = null;
         state.save();
@@ -359,8 +321,9 @@ exports.receiveMessage = async (req, res) => {
 
             // Step 3: Confirm success
             const message = {
-              text: `Your subscription has been updated successfully! The new start date is ${subscriptionDate.toDateString()}. Please complete your payment here: ${newSubscription.short_url
-                }`,
+              text: `Your subscription has been updated successfully! The new start date is ${subscriptionDate.toDateString()}. Please complete your payment here: ${
+                newSubscription.short_url
+              }`,
             };
             return await sendMessage(userPhone, message);
           } catch (error) {
@@ -370,13 +333,11 @@ exports.receiveMessage = async (req, res) => {
             };
             return await sendMessage(userPhone, errorMessage);
           }
-
         } else {
           const errorMessage = {
             text: "No user found with this phone number.",
           };
           return await sendMessage(userPhone, errorMessage);
-  
         }
       }
       if (state.useredit === "awaiting_cancel_subscription") {
@@ -397,17 +358,18 @@ exports.receiveMessage = async (req, res) => {
             // Attempt to cancel the subscription using Razorpay API
             try {
               await razorpayInstance.subscriptions.cancel(user.subscriptionId);
-              console.log(`Your subscription (${user.subscriptionId}) cancelled successfully.`);
+              console.log(
+                `Your subscription (${user.subscriptionId}) cancelled successfully.`
+              );
               const msg = {
-                text: `Your subscription (${user.subscriptionId}) cancelled successfully.`
-              }
+                text: `Your subscription (${user.subscriptionId}) cancelled successfully.`,
+              };
               await sendMessage(userPhone, msg);
               user.subscription = false;
               user.subscriptionId = "";
               user.planId = "";
               console.log(user);
               return await user.save();
-              
             } catch (error) {
               console.error(`Failed to cancel subscription: ${error.message}`);
             }
@@ -421,23 +383,23 @@ exports.receiveMessage = async (req, res) => {
         return;
       }
 
-
       // Handle different types of incoming messages
-      if (messages.interactive && messages.interactive.button_reply) {
+      if (messages.interactive && messages.interactive.button_reply && messageId) {
         const buttonId = messages.interactive.button_reply.id; // Button ID the user clicked
         console.log(buttonId);
 
         if (buttonId) {
-          if (buttonId == "help" || buttonId == "helpp") {
+          if (buttonId === "help" || buttonId === "helpp") {
             // Respond with an interactive menu for help
+            console.log("help called");
             const user = await User.findOne({ phone: userPhone });
 
             const message1 = {
               text: `Hello ${user.name}! How can we assist you today?`,
               buttons: [
                 { id: "buy_ghee", title: "Buy Our Ghee" },
-                { id: "subscription_plans", title: "Customer Support" },
-                { id: "contact_support", title: "B2B" },
+                { id: "customer_support", title: "Customer Support" },
+                { id: "know_about_us", title: "B2B" },
               ],
             };
 
@@ -453,49 +415,39 @@ exports.receiveMessage = async (req, res) => {
             // Send the messages sequentially
             if (user.name) {
               await sendMessage(userPhone, message1);
-              if (user) {
-                if (user.subscription) {
-                  return await sendMessage(userPhone, message2);
-                }
+              if (user.subscriptionPaymentStatus) {
+                return await sendMessage(userPhone, message2);
               }
-            }
-            else {
+              return;
+            } else {
               state.username = "taking_name";
               await state.save();
               return await sendMessage(userPhone, message3);
             }
-
-          }
-          else if (buttonId === "edit_date") {
-            const state = await State.findOne({ userPhone })
+          } else if (buttonId === "edit_date") {
+            const state = await State.findOne({ userPhone });
             const dateprompt = {
               text: "Please enter the date to edit in format YYYY-MM-DD",
             };
             state.useredit = "awaiting_edit_date";
-            await state.save()
+            await state.save();
             return await sendMessage(userPhone, dateprompt);
-            
-          }
-          else if (buttonId === "edit_address_existing") {
-            const state = await State.findOne({ userPhone })
+          } else if (buttonId === "edit_address_existing") {
+            const state = await State.findOne({ userPhone });
             const prompt = {
               text: "Please enter new address",
             };
             state.useredit = "awaiting_edit_address_existing";
-            await state.save()
+            await state.save();
             return await sendMessage(userPhone, prompt);
-            
-          }
-          else if (buttonId === "edit_quantity") {
+          } else if (buttonId === "edit_quantity") {
             const message1 = {
               text: "enter quantity",
             };
             await sendMessage(userPhone, message1);
             state.useredit = "awaiting_edit_quantity";
-            return await state.save()
-            
-          }
-          else if (buttonId === "cancel_subscription") {
+            return await state.save();
+          } else if (buttonId === "cancel_subscription") {
             const msg = {
               text: "Confirm Your Cancellation",
             };
@@ -505,18 +457,13 @@ exports.receiveMessage = async (req, res) => {
               buttons: [
                 { id: "yes_cancel", title: "cancel subscription" },
                 { id: "no_cancel", title: "No" },
-              ]
-            }
+              ],
+            };
             return await sendMessage(userPhone, message);
-            
-          }
-
-          else if (buttonId === "old_address") {
+          } else if (buttonId === "old_address") {
             return await handleAddress(userPhone);
-          }
-
-          else if (buttonId === "new_address") {
-            const state = await State.findOne({ userPhone })
+          } else if (buttonId === "new_address") {
+            const state = await State.findOne({ userPhone });
             if (state.planType.includes("plan")) {
               const message = {
                 text: "Please provide your address for Subscription.",
@@ -531,40 +478,59 @@ exports.receiveMessage = async (req, res) => {
 
             state.useradd = "awaiting_address";
             return await state.save();
-          }
-
-          else if (buttonId === "ghee_prep") {
-            console.log('ghee prep going');
+          } else if (buttonId === "ghee_prep") {
+            console.log("ghee prep going");
             const msg = {
               text: "Videos",
             };
-            return await sendMessage(userPhone, msg);
-          }
-
-          else if (buttonId === "faq") {
+            await sendMessage(userPhone, msg);
+            const buttonMessage = {
+              text: "Please click to continue",
+              buttons: [
+                {
+                  id: "help",
+                  title: "Continue",
+                },
+              ],
+            };
+            return await sendMessage(userPhone, buttonMessage);
+          } else if (buttonId === "faq") {
             const msg1 = {
-              text: "faq"
-            }
+              text: "faq",
+            };
 
-            return await sendMessage(userPhone, msg1);
-            
-          }
-
-          else if (buttonId === "contact") {
+            await sendMessage(userPhone, msg1);
+            const buttonMessage = {
+              text: "Please click to continue",
+              buttons: [
+                {
+                  id: "help",
+                  title: "Continue",
+                },
+              ],
+            };
+            return await sendMessage(userPhone, buttonMessage);
+          } else if (buttonId === "contact") {
             const msg2 = {
-              text: "contact"
-            }
-            return await sendMessage(userPhone, msg2);
-            
-          }
-
-
-          else if (buttonId == "A2_ghee" || buttonId == "buffalo") {
-            return await buttonHandlers.handleBuyGheeQuantity(userPhone, buttonId);
-            
-          }
-
-          else if (buttonId.includes("_planA2")) {
+              text: "contact",
+            };
+            await sendMessage(userPhone, msg2);
+            const buttonMessage = {
+              text: "Please click to continue",
+              buttons: [
+                {
+                  id: "help",
+                  title: "Continue",
+                },
+              ],
+            };
+            return await sendMessage(userPhone, buttonMessage);
+          } else if (buttonId === "A2_ghee" || buttonId === "buffalo") {
+            return await buttonHandlers.handleBuyGheeQuantity(
+              userPhone,
+              buttonId
+            );
+          } else if (buttonId.includes("_planA2")) {
             console.log("plan a2");
 
             let amount = 1;
@@ -573,7 +539,6 @@ exports.receiveMessage = async (req, res) => {
             else if (buttonId === "medium_planA2") amount *= 1000;
             else if (buttonId === "large_planA2") amount *= 2000;
             else if (buttonId === "custom_planA2") {
-
               const state = await State.findOne({ userPhone });
               if (state) {
                 state.userState = "awaiting_custom_amount_plan_A2";
@@ -584,7 +549,6 @@ exports.receiveMessage = async (req, res) => {
                 text: "Please enter the amount you want to order (should be divisible by 500).",
               };
               return await sendMessage(userPhone, message);
-              
             }
             const user = await User.findOne({ phone: userPhone });
             const state = await State.findOne({ userPhone });
@@ -599,16 +563,15 @@ exports.receiveMessage = async (req, res) => {
                 buttons: [
                   {
                     id: "old_address",
-                    title: "Yes Same Address"
+                    title: "Yes Same Address",
                   },
                   {
                     id: "new_address",
-                    title: "New Address"
-                  }
-                ]
+                    title: "New Address",
+                  },
+                ],
               };
               return await sendMessage(userPhone, buttonMessage);
-              
             }
             const message = {
               text: "Please provide your address for Subscription.",
@@ -618,26 +581,18 @@ exports.receiveMessage = async (req, res) => {
               await state.save();
             }
             return await sendMessage(userPhone, message);
-            
-
           } else if (buttonId.includes("_A2")) {
             console.log("no plan A2");
             let amount = 350;
-            if (buttonId == "small_A2") amount *= 500;
-            else if (buttonId == "medium_A2") amount *= 1000;
-            else if (buttonId == "large_A2") amount *= 2000;
-            else if (buttonId == "plan_A2") {
-              if (messages.interactive && messages.interactive.button_reply) {
-                const buttonId = messages.interactive.button_reply.id; // Button ID the user clicked
-                console.log(buttonId);
-
-                return await buttonHandlers.handleBuyGheePlanQuantity(
-                  userPhone,
-                  buttonId
-                );
-              }
-            } else if (buttonId == "custom_A2") {
-
+            if (buttonId === "small_A2") amount *= 500;
+            else if (buttonId === "medium_A2") amount *= 1000;
+            else if (buttonId === "large_A2") amount *= 2000;
+            else if (buttonId === "plan_A2") {
+              return await buttonHandlers.handleBuyGheePlanQuantity(
+                userPhone,
+                buttonId
+              );
+            } else if (buttonId === "custom_A2") {
               const state = await State.findOne({ userPhone });
               if (state) {
                 state.userState = "awaiting_custom_amount_A2";
@@ -648,11 +603,9 @@ exports.receiveMessage = async (req, res) => {
                 text: "Please enter the amount you want to Order (shoud be divisible by 500).",
               };
               return await sendMessage(userPhone, message);
-              
             }
             const user = await User.findOne({ phone: userPhone });
             const state = await State.findOne({ userPhone });
-
 
             state.userAmount = amount;
             state.planType = "A2";
@@ -664,29 +617,24 @@ exports.receiveMessage = async (req, res) => {
                 buttons: [
                   {
                     id: "old_address",
-                    title: "Yes Same Address"
+                    title: "Yes Same Address",
                   },
                   {
                     id: "new_address",
-                    title: "New Address"
-                  }
-                ]
+                    title: "New Address",
+                  },
+                ],
               };
               return await sendMessage(userPhone, buttonMessage);
-              
             }
             const message = {
               text: "Please provide your address.",
             };
-            if (state) {
-              state.useradd = "awaiting_address";
-              await state.save();
-            }
-            return await sendMessage(userPhone, message);
-            
-          }
+            state.useradd = "awaiting_address";
+            await state.save();
 
-          else if (buttonId.includes("_planbuffalo")) {
+            return await sendMessage(userPhone, message);
+          } else if (buttonId.includes("_planbuffalo")) {
             console.log("plan_buffalo");
             let amount = 1;
 
@@ -694,7 +642,6 @@ exports.receiveMessage = async (req, res) => {
             else if (buttonId === "medium_planbuffalo") amount *= 1000;
             else if (buttonId === "large_planbuffalo") amount *= 2000;
             else if (buttonId === "custom_planbuffalo") {
-
               const state = await State.findOne({ userPhone });
               if (state) {
                 state.userState = "awaiting_custom_amount_plan_buffalo";
@@ -705,7 +652,6 @@ exports.receiveMessage = async (req, res) => {
                 text: "Please enter the amount you want to order (should be divisible by 500).",
               };
               return await sendMessage(userPhone, message);
-              
             }
             const user = await User.findOne({ phone: userPhone });
             const state = await State.findOne({ userPhone });
@@ -720,16 +666,15 @@ exports.receiveMessage = async (req, res) => {
                 buttons: [
                   {
                     id: "old_address",
-                    title: "Yes Same Address"
+                    title: "Yes Same Address",
                   },
                   {
                     id: "new_address",
-                    title: "New Address"
-                  }
-                ]
+                    title: "New Address",
+                  },
+                ],
               };
               return await sendMessage(userPhone, buttonMessage);
-              
             }
             const message = {
               text: "Please provide your address for Subscription.",
@@ -739,26 +684,18 @@ exports.receiveMessage = async (req, res) => {
               await state.save();
             }
             return await sendMessage(userPhone, message);
-            
-
           } else if (buttonId.includes("_buffalo")) {
             console.log("no plan buffalo");
             let amount = 400;
-            if (buttonId == "small_buffalo") amount *= 500;
-            else if (buttonId == "medium_buffalo") amount *= 1000;
-            else if (buttonId == "large_buffalo") amount *= 2000;
-            else if (buttonId == "plan_buffalo") {
-              if (messages.interactive && messages.interactive.button_reply) {
-                const buttonId = messages.interactive.button_reply.id; // Button ID the user clicked
-                console.log(buttonId);
-
-                return await buttonHandlers.handleBuyGheePlanQuantity(
-                  userPhone,
-                  buttonId
-                );
-              }
+            if (buttonId === "small_buffalo") amount *= 500;
+            else if (buttonId === "medium_buffalo") amount *= 1000;
+            else if (buttonId === "large_buffalo") amount *= 2000;
+            else if (buttonId === "plan_buffalo") {
+              return await buttonHandlers.handleBuyGheePlanQuantity(
+                userPhone,
+                buttonId
+              );
             } else if (buttonId == "custom_buffalo") {
-
               const state = await State.findOne({ userPhone });
               if (state) {
                 state.userState = "awaiting_custom_amount_buffalo";
@@ -783,16 +720,15 @@ exports.receiveMessage = async (req, res) => {
                 buttons: [
                   {
                     id: "old_address",
-                    title: "Yes Same Address"
+                    title: "Yes Same Address",
                   },
                   {
                     id: "new_address",
-                    title: "New Address"
-                  }
-                ]
+                    title: "New Address",
+                  },
+                ],
               };
               return await sendMessage(userPhone, buttonMessage);
-              
             }
             const message = {
               text: "Please provide your address.",
@@ -802,10 +738,7 @@ exports.receiveMessage = async (req, res) => {
               await state.save();
             }
             return await sendMessage(userPhone, message);
-            
-          }
-
-          else if (buttonId.includes("_address")) {
+          } else if (buttonId.includes("_address")) {
             const state = await State.findOne({ userPhone });
             if (buttonId === "edit_address") {
               state.useradd = "awaiting_edit_address";
@@ -815,7 +748,6 @@ exports.receiveMessage = async (req, res) => {
               };
               console.log(state.useradd);
               return await sendMessage(userPhone, message);
-              
             } else if (buttonId === "same_address") {
               state.useradd = "awaiting_same_address";
               await state.save();
@@ -825,29 +757,27 @@ exports.receiveMessage = async (req, res) => {
               await sendMessage(userPhone, message);
               console.log(state.useradd);
               return await handleAddressInput("same address", userPhone);
-
             }
-            
-          }
-
-          else if (buttonId === "buy_ghee") {
-            return await buttonHandlers.handleBuyGhee(userPhone, buttonId);
-            
+          } else if (buttonId === "buy_ghee") {
+            return await buttonHandlers.handleBuyGhee(userPhone);
           } else if (buttonId === "customer_support") {
             // Call the handler for "Customer Support"
             return await buttonHandlers.handleCustomerSupport(userPhone);
-            
           } else if (buttonId === "know_about_us") {
             // Call the handler for "B2B"
             return await buttonHandlers.handleknowaboutus(userPhone);
-            
           } else if (buttonId === "view_plans") {
-            const user = await User.findOne({ phone: userPhone })
+            const user = await User.findOne({ phone: userPhone });
             deliveryDate = user.deliveryDate;
 
-
             const msg = {
-              text: `Your Plan is ${user.subscriptionType} Ghee having Quantity ${user.subscriptionQuantity} which was started on ${user.subscriptionStartDate.toDateString()} and which is scheduled to deliver on or Around ${deliveryDate.toDateString()} and the Amount is ${user.subscriptionAmount} `,
+              text: `Your Plan is ${
+                user.subscriptionType
+              } Ghee having Quantity ${
+                user.subscriptionQuantity
+              } which was started on ${user.subscriptionStartDate.toDateString()} and which is scheduled to deliver on or Around ${deliveryDate.toDateString()} and the Amount is ${
+                user.subscriptionAmount
+              } `,
               buttons: [
                 { id: "edit_date", title: "edit date" },
                 { id: "edit_quantity", title: "edit quantity" },
@@ -859,66 +789,46 @@ exports.receiveMessage = async (req, res) => {
               text: "do you want to cancel the subscription??",
               buttons: [
                 { id: "cancel_subscription", title: "cancel subscription" },
-              ]
-            }
+              ],
+            };
             return await sendMessage(userPhone, msg2);
-            
-          }
-
-          else if (buttonId === "yes_cancel") {
+          } else if (buttonId === "yes_cancel") {
             state.useredit = "awaiting_cancel_subscription";
-            await state.save()
+            await state.save();
             const msg = {
               text: "If you want to cancel your subscription. then write 'cancel'.",
             };
             return await sendMessage(userPhone, msg);
-
-          }
-          else if (buttonId === "no_cancel") {
+          } else if (buttonId === "no_cancel") {
             const msg = {
               text: "Not cancelling Your Subscription. Type 'Hi' to get Help!!!",
             };
             return await sendMessage(userPhone, msg);
-
           }
         }
 
         return; // Acknowledge receipt of the button interaction
-      } 
-
-      else {
+      } else {
         // Default message if no recognized text
-        state.userState = null;
-        state.useradd = null;
-        state.planType = null;
-        state.useredit = null;
-        state.username = null;
-        state.userAmount = null;
-        await state.save();
+        resetUserState(userPhone);
         console.log(messages);
         return await sendMessage(userPhone, {
           text: "Click if you need any type if help!!",
           buttons: [{ id: "help", title: "Need help!!" }],
         });
-
       }
-
     }
 
     return;
   } catch (error) {
     console.error("Error processing the message:", error);
     return res.sendStatus(500); // Internal server error if something goes wrong
-    
   }
 };
 
 async function handleAddress(userPhone) {
   const state = await State.findOne({ userPhone });
-  if (
-    state.planType === "plan_buffalo" ||
-    state.planType === "plan_A2"
-  ) {
+  if (state.planType === "plan_buffalo" || state.planType === "plan_A2") {
     message = {
       text: "Thank you for providing your address! Now, let us know the day on which you want to get delivered Ghee of Every month(1-31).",
     };
@@ -928,10 +838,7 @@ async function handleAddress(userPhone) {
     state.useradd = "awaiting_subscription_date";
     await state.save();
     return await sendMessage(userPhone, message);
-    
   } else {
-    state.useradd = null;
-    await state.save();
     message = {
       text: "Thank you for providing your address! We will deliver your Order ASAP",
     };
@@ -942,7 +849,6 @@ async function handleAddress(userPhone) {
       await createPayment_buffalo(userPhone, state.userAmount);
     state.planType = null;
     return await state.save();
-    
   }
 }
 
@@ -958,7 +864,6 @@ async function handleCustomAmountInput_A2(messageText, userPhone) {
       text: "Please enter a valid amount.",
     };
     return await sendMessage(userPhone, errorMessage);
-    
   }
   const user = await User.findOne({ phone: userPhone });
   const state = await State.findOne({ userPhone });
@@ -973,17 +878,15 @@ async function handleCustomAmountInput_A2(messageText, userPhone) {
       buttons: [
         {
           id: "old_address",
-          title: "Yes Same Address"
+          title: "Yes Same Address",
         },
         {
           id: "new_address",
-          title: "New Address"
-        }
-      ]
+          title: "New Address",
+        },
+      ],
     };
     return await sendMessage(userPhone, buttonMessage);
-
-    
   }
   const message = {
     text: "Please provide your address.",
@@ -993,8 +896,6 @@ async function handleCustomAmountInput_A2(messageText, userPhone) {
     await state.save();
   }
   return await sendMessage(userPhone, message);
-  
-
 }
 
 async function handleCustomAmountInput_buffalo(messageText, userPhone) {
@@ -1007,8 +908,6 @@ async function handleCustomAmountInput_buffalo(messageText, userPhone) {
       text: "Please enter a valid amount.",
     };
     return await sendMessage(userPhone, errorMessage);
-
-    
   }
   const user = await User.findOne({ phone: userPhone });
   const state = await State.findOne({ userPhone });
@@ -1024,16 +923,15 @@ async function handleCustomAmountInput_buffalo(messageText, userPhone) {
       buttons: [
         {
           id: "old_address",
-          title: "Yes Same Address"
+          title: "Yes Same Address",
         },
         {
           id: "new_address",
-          title: "New Address"
-        }
-      ]
+          title: "New Address",
+        },
+      ],
     };
     return await sendMessage(userPhone, buttonMessage);
-    
   }
   const message = {
     text: "Please provide your address.",
@@ -1043,9 +941,6 @@ async function handleCustomAmountInput_buffalo(messageText, userPhone) {
     await state.save();
   }
   return await sendMessage(userPhone, message);
-  
-
-
 }
 
 // Custom amount input handler for Buffalo Ghee
@@ -1059,7 +954,6 @@ async function handleCustomAmountInput_plan_buffalo(messageText, userPhone) {
       text: "Please enter a valid amount divisible by 500.",
     };
     return await sendMessage(userPhone, errorMessage);
-    
   }
   const user = await User.findOne({ phone: userPhone });
   const state = await State.findOne({ userPhone });
@@ -1075,16 +969,15 @@ async function handleCustomAmountInput_plan_buffalo(messageText, userPhone) {
       buttons: [
         {
           id: "old_address",
-          title: "Yes Same Address"
+          title: "Yes Same Address",
         },
         {
           id: "new_address",
-          title: "New Address"
-        }
-      ]
+          title: "New Address",
+        },
+      ],
     };
     return await sendMessage(userPhone, buttonMessage);
-    
   }
   const message = {
     text: "Please provide your address for Subscription.",
@@ -1094,8 +987,6 @@ async function handleCustomAmountInput_plan_buffalo(messageText, userPhone) {
     await state.save();
   }
   return await sendMessage(userPhone, message);
-  
-
 }
 
 // Custom amount input handler for A2 Cow Ghee
@@ -1109,7 +1000,6 @@ async function handleCustomAmountInput_plan_A2(messageText, userPhone) {
       text: "Please enter a valid amount divisible by 500.",
     };
     return await sendMessage(userPhone, errorMessage);
-    
   }
   const user = await User.findOne({ phone: userPhone });
   const state = await State.findOne({ userPhone });
@@ -1125,16 +1015,15 @@ async function handleCustomAmountInput_plan_A2(messageText, userPhone) {
       buttons: [
         {
           id: "old_address",
-          title: "Yes Same Address"
+          title: "Yes Same Address",
         },
         {
           id: "new_address",
-          title: "New Address"
-        }
-      ]
+          title: "New Address",
+        },
+      ],
     };
     return await sendMessage(userPhone, buttonMessage);
-    
   }
   const message = {
     text: "Please provide your address for Subscription.",
@@ -1144,8 +1033,6 @@ async function handleCustomAmountInput_plan_A2(messageText, userPhone) {
     await state.save();
   }
   return await sendMessage(userPhone, message);
-  
-
 }
 
 // Initialize Razorpay with your API credentials
@@ -1153,7 +1040,6 @@ const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
-
 
 async function createPayment_A2(userPhone, amount) {
   const description = "Purchase of Ghee";
@@ -1168,8 +1054,16 @@ async function createPayment_A2(userPhone, amount) {
       text: `Please complete your purchase here: ${paymentLink}`,
     };
 
+    const state = await State.findOne({ userPhone });
+    state.userState = null;
+    state.useradd = null;
+    state.planType = null;
+    state.useredit = null;
+    state.username = null;
+    state.userAmount = null;
+    await state.save();
+
     return await sendMessage(userPhone, message);
-    
   } catch (error) {
     console.error("Error sending payment link:", error);
     return;
@@ -1189,8 +1083,16 @@ async function createPayment_buffalo(userPhone, amount) {
       text: `Please complete your purchase here: ${paymentLink}`,
     };
 
+    const state = await State.findOne({ userPhone });
+    state.userState = null;
+    state.useradd = null;
+    state.planType = null;
+    state.useredit = null;
+    state.username = null;
+    state.userAmount = null;
+    await state.save();
+
     return await sendMessage(userPhone, message);
-    
   } catch (error) {
     console.error("Error sending payment link:", error);
     return;
@@ -1210,7 +1112,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
       notes: {
         phone: userPhone,
         description: description,
-        amount: 350 * amountMultiplier / 500
+        amount: (350 * amountMultiplier) / 500,
       },
     });
 
@@ -1224,15 +1126,13 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     if (user) {
       user.subscription = true;
       user.subscriptionQuantity = subscription.quantity;
-      user.subscriptionType = "A2 Cow" //future problem may arise coz of space
+      user.subscriptionType = "A2 Cow"; //future problem may arise coz of space
       user.subscriptionAmount = subscription.notes.amount;
     }
-
 
     const reminderDate = new Date(user.deliveryDate);
     reminderDate.setMonth(reminderDate.getMonth() + 1); // Advance by one month
     reminderDate.setDate(reminderDate.getDate() - 7);
-
 
     // Save the calculated reminder date
     user.nextReminderDate = reminderDate;
@@ -1240,18 +1140,30 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
 
     // Send subscription confirmation message to the user
     const message = {
-      text: `You have now subscribed to Our Monthly Plan of A2 Cow Ghee. Your subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${user.address} on or around ${user.deliveryDate.toDateString()}. Please complete your payment here to activate: ${subscription.short_url}`,
+      text: `You have now subscribed to Our Monthly Plan of A2 Cow Ghee. Your subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${
+        user.address
+      } on or around ${user.deliveryDate.toDateString()}. Please complete your payment here to activate: ${
+        subscription.short_url
+      }`,
     };
     await sendMessage(userPhone, message);
 
+    const state = await State.findOne({ userPhone });
+    state.userState = null;
+    state.useradd = null;
+    state.planType = null;
+    state.useredit = null;
+    state.username = null;
+    state.userAmount = null;
+    await state.save();
+
     // Notify the admin of subscription and payment link creation
-    const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER'; // Replace with your admin phone or load from env
+    const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
     const adminMessage = {
       text: `Subscription created for ${userPhone}. Payment link: ${subscription.short_url}. Subscription ID: ${subscription.id}`,
     };
     console.log("Subscription created with ID:", subscription.id);
     return await sendMessage(adminPhone, adminMessage);
-
   } catch (error) {
     console.error("Error creating subscription for A2 Cow Ghee:", error);
 
@@ -1262,15 +1174,15 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     await sendMessage(userPhone, errorMessage);
 
     // Notify the admin of subscription creation failure
-    const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER'; // Replace with your admin phone or load from env
+    const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
     const adminMessage = {
-      text: `Alert: Subscription creation failed for ${userPhone}. Error: ${error.response ? error.response.data.description : error.message}`,
+      text: `Alert: Subscription creation failed for ${userPhone}. Error: ${
+        error.response ? error.response.data.description : error.message
+      }`,
     };
     return await sendMessage(adminPhone, adminMessage);
-
   }
 }
-
 
 async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
   const description = "Monthly Subscription of Buffalo Ghee";
@@ -1285,7 +1197,7 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
       notes: {
         phone: userPhone,
         description: description,
-        amount: 400 * amountMultiplier / 500
+        amount: (400 * amountMultiplier) / 500,
       },
     });
 
@@ -1299,10 +1211,9 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
     if (user) {
       user.subscription = true;
       user.subscriptionQuantity = subscription.quantity;
-      user.subscriptionType = "Buffalo"
+      user.subscriptionType = "Buffalo";
       user.subscriptionAmount = subscription.notes.amount;
     }
-
 
     const reminderDate = new Date(user.deliveryDate);
     reminderDate.setMonth(reminderDate.getMonth() + 1); // Advance by one month
@@ -1314,19 +1225,30 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
 
     // Send subscription confirmation message to the user
     const message = {
-      text: `You have now subscribed to Our Monthly Plan of Buffalo Ghee. Your subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${user.address} on or around ${user.deliveryDate.toDateString()}. Please complete your payment here to activate: ${subscription.short_url}`,
+      text: `You have now subscribed to Our Monthly Plan of Buffalo Ghee. Your subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${
+        user.address
+      } on or around ${user.deliveryDate.toDateString()}. Please complete your payment here to activate: ${
+        subscription.short_url
+      }`,
     };
     await sendMessage(userPhone, message);
 
+    const state = await State.findOne({ userPhone });
+    state.userState = null;
+    state.useradd = null;
+    state.planType = null;
+    state.useredit = null;
+    state.username = null;
+    state.userAmount = null;
+    await state.save();
+
     // Notify the admin of subscription and payment link creation
-    const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER'; // Replace with your admin phone or load from env
+    const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
     const adminMessage = {
       text: `Subscription created for ${userPhone}. Payment link: ${subscription.short_url}. Subscription ID: ${subscription.id}`,
     };
     console.log("Subscription created with ID:", subscription.id);
     return await sendMessage(adminPhone, adminMessage);
-
-
   } catch (error) {
     console.error("Error creating subscription for Buffalo Ghee:", error);
 
@@ -1337,16 +1259,15 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
     await sendMessage(userPhone, errorMessage);
 
     // Notify the admin of subscription creation failure
-    const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER'; // Replace with your admin phone or load from env
+    const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
     const adminMessage = {
-      text: `Alert: Subscription creation failed for ${userPhone}. Error: ${error.response ? error.response.data.description : error.message}`,
+      text: `Alert: Subscription creation failed for ${userPhone}. Error: ${
+        error.response ? error.response.data.description : error.message
+      }`,
     };
     return await sendMessage(adminPhone, adminMessage);
-
   }
 }
-
-
 
 // Handle address input
 async function handleAddressInput(messageText, userPhone) {
@@ -1382,7 +1303,6 @@ async function handleAddressInput(messageText, userPhone) {
     };
 
     return await sendMessage(userPhone, rewriteAddress);
-    
   }
 
   if (
@@ -1392,10 +1312,7 @@ async function handleAddressInput(messageText, userPhone) {
     let message;
     console.log(user.address);
 
-    if (
-      state.planType === "plan_buffalo" ||
-      state.planType === "plan_A2"
-    ) {
+    if (state.planType === "plan_buffalo" || state.planType === "plan_A2") {
       message = {
         text: "Thank you for providing your address! Now, let us know the day on which you want to deliver your order (1-31)",
       };
@@ -1405,7 +1322,6 @@ async function handleAddressInput(messageText, userPhone) {
       state.useradd = "awaiting_subscription_date";
       await state.save();
       return await sendMessage(userPhone, message);
-      
     } else {
       state.useradd = null;
       message = {
@@ -1418,13 +1334,10 @@ async function handleAddressInput(messageText, userPhone) {
         await createPayment_buffalo(userPhone, state.userAmount);
       state.planType = null;
       return await state.save();
-      
     }
   }
-
   return;
 }
-
 
 // Handle subscription date input
 async function handleSubscriptionDateInput(messageText, userPhone) {
@@ -1436,16 +1349,20 @@ async function handleSubscriptionDateInput(messageText, userPhone) {
       text: "Please enter a valid day of the month (e.g., 1-31).",
     };
     return await sendMessage(userPhone, errorMessage);
-    
   }
 
   // Find the user in the database
   const user = await User.findOne({ phone: userPhone });
   const state = await State.findOne({ userPhone });
+  state.useradd = null;
   if (user) {
     // Determine the next delivery date based on the entered day
     const today = new Date();
-    let deliveryDate = new Date(today.getFullYear(), today.getMonth(), dayOfMonth);
+    let deliveryDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      dayOfMonth
+    );
 
     // If the chosen day has already passed this month, set delivery to next month
     if (deliveryDate < today) {
@@ -1474,5 +1391,4 @@ async function handleSubscriptionDateInput(messageText, userPhone) {
   }
   state.planType = null;
   return await state.save();
-  
 }

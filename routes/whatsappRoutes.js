@@ -10,6 +10,8 @@ const State = require("../models/State");
 
 
 
+
+
 // GET request for webhook verification
 router.get('/webhook', (req, res) => {
   const verifyToken = process.env.VERIFY_TOKEN; // Token in .env file
@@ -32,11 +34,70 @@ router.get('/webhook', (req, res) => {
 
 
 
-// POST request to handle messages
-router.post('/webhook', whatsappController.receiveMessage);
+
+// Store processed message timestamps (you can use a database or in-memory storage)
+const processedMessages = new Map();
+
+// Define a threshold in milliseconds (e.g., 5 minutes)
+const MESSAGE_PROCESS_THRESHOLD = 5 * 60 * 1000; // 5 minutes
+
+const MIN_TIMESTAMP_DIFF = 5 * 60 * 1000; // 5 minutes threshold in milliseconds
+
+router.post('/webhook', (req, res) => {
+    try {
+        const payload = req.body;
+
+        // Log the full payload for debugging purposes
+        console.log('Webhook Payload:', JSON.stringify(payload, null, 2));
+
+        // Extract relevant data from the payload
+        const changes = payload.entry?.[0]?.changes?.[0]?.value;
+
+        // Check if the event contains actual messages
+        if (changes?.messages && Array.isArray(changes.messages)) {
+            const messages = changes.messages;
+
+            // Get current timestamp
+            const currentTimestamp = Date.now(); // Get the current timestamp in milliseconds
+
+            // Check each message in the messages array
+            messages.forEach((message) => {
+                console.log('Processing message:', message);
+
+                // Ensure this is a user-generated message
+                if (message.type && message.from) {
+                    // Extract timestamp from the message
+                    const messageTimestamp = parseInt(message.timestamp, 10) * 1000; // Convert to milliseconds
+
+                    // Check if the timestamp difference is within an acceptable range (e.g., 5 minutes)
+                    const timestampDifference = currentTimestamp - messageTimestamp;
+
+                    // If the timestamp difference is too large, consider it as a duplicate/random message
+                    if (timestampDifference > MIN_TIMESTAMP_DIFF) {
+                        console.log('Skipping message with old timestamp:', message);
+                        return; // Skip processing this message
+                    }
+
+                    console.log('User message detected, calling receiveMessage');
+                    whatsappController.receiveMessage(req, res); // Call your controller
+                } else {
+                    console.log('Skipping non-user message event');
+                }
+            });
+
+            res.status(200).send('Message processed');
+        } else {
+            console.log('No valid messages in the payload, ignoring event');
+            res.status(200).send('No valid messages to process');
+        }
+    } catch (error) {
+        console.error('Webhook Error:', error.message);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 
-// In your server.js or routes file
+
 
 
 router.get('/payment-status', async (req, res) => {

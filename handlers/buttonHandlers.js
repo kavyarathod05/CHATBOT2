@@ -2,7 +2,7 @@ const { sendMessage } = require('../utils/whatsappAPI');
 const User = require('../models/User');  // Import your User model
 
 // Handle Buy Ghee selection
-exports.handleBuyGhee = async (userPhone, buttonId) => {
+exports.handleBuyGhee = async (userPhone) => {
   const buttonMessage = {
     text: "Please choose the variety",
     buttons: [
@@ -119,11 +119,6 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
 
 
 exports.handleCustomerSupport = async (userPhone) => {
-  // Check if the user has already received the support message
-  if (userSupportStatus[userPhone]) {
-    console.log("Support message already sent to this user.");
-    return;
-  }
 
   // Send initial support message
   const supportMessage = {
@@ -141,10 +136,7 @@ exports.handleCustomerSupport = async (userPhone) => {
       }
     ]
   };
-  await sendMessage(userPhone, buttonMessage);
-
-  // Mark the user as having received the support message
-  userSupportStatus[userPhone] = true;
+  return await sendMessage(userPhone, buttonMessage);
   
 };
 
