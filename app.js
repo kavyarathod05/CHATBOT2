@@ -30,8 +30,8 @@ const PhoneNumber = require('./models/phoneNumber');
 // });
 
 // Start cron jobs for subscription reminders
-// const scheduleSubscriptionReminders = require('./reminder/scheduler.js');
-// scheduleSubscriptionReminders();
+const scheduleSubscriptionReminders = require('./reminder/scheduler.js');
+scheduleSubscriptionReminders();
 
 // Routes
 const whatsappRoutes = require('./routes/whatsappRoutes');
