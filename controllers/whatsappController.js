@@ -68,6 +68,7 @@ exports.receiveMessage = async (req, res) => {
         console.log(`New State added: ${userPhone}`);
       }
 
+
       // Clear the existing timeout for this user if any
       if (userTimeouts.has(userPhone)) {
         clearTimeout(userTimeouts.get(userPhone));

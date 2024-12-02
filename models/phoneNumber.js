@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 // Define the PhoneNumber schema
 const phoneNumber= new mongoose.Schema({
-  userPhone: { type: String, required:true, ref:'User' }, 
+  userPhone: { type: String, required:true }, 
   isMessageSent: { type: Boolean, default: false },  // New field to track if message is sent
 
 });
