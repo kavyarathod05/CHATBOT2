@@ -1,39 +1,32 @@
 // routes/whatsappRoutes.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const whatsappController = require('../controllers/whatsappController');
-const crypto = require('crypto');
+const whatsappController = require("../controllers/whatsappController");
+const crypto = require("crypto");
 const { sendMessage } = require("../utils/whatsappAPI");
 const User = require("../models/User"); // Adjust the path if necessar
 const State = require("../models/State");
 // const State = require('../models/State');
 
-
-
-
-
 // GET request for webhook verification
-router.get('/webhook', (req, res) => {
+router.get("/webhook", (req, res) => {
   const verifyToken = process.env.VERIFY_TOKEN; // Token in .env file
-  const mode = req.query['hub.mode'];
-  const token = req.query['hub.verify_token'];
-  const challenge = req.query['hub.challenge'];
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
 
-  console.log('Mode:', mode);
-  console.log('Token received:', token);
-  console.log('Challenge:', challenge);
+  console.log("Mode:", mode);
+  console.log("Token received:", token);
+  console.log("Challenge:", challenge);
 
-  if (mode === 'subscribe' && token === verifyToken) {
+  if (mode === "subscribe" && token === verifyToken) {
     console.log("WEBHOOK_VERIFIED");
-    res.status(200).send(challenge); 
+    res.status(200).send(challenge);
   } else {
     console.log("Verification failed - tokens do not match");
-    res.sendStatus(403); 
+    res.sendStatus(403);
   }
 });
-
-
-
 
 // Store processed message timestamps (you can use a database or in-memory storage)
 const processedMessages = new Map();
@@ -43,71 +36,72 @@ const MESSAGE_PROCESS_THRESHOLD = 5 * 60 * 1000; // 5 minutes
 
 const MIN_TIMESTAMP_DIFF = 5 * 60 * 1000; // 5 minutes threshold in milliseconds
 
-router.post('/webhook', (req, res) => {
-    try {
-        const payload = req.body;
+router.post("/webhook", (req, res) => {
+  try {
+    const payload = req.body;
 
-        // Log the full payload for debugging purposes
-        console.log('Webhook Payload:', JSON.stringify(payload, null, 2));
+    // Log the full payload for debugging purposes
+    console.log("Webhook Payload:", JSON.stringify(payload, null, 2));
 
-        // Extract relevant data from the payload
-        const changes = payload.entry?.[0]?.changes?.[0]?.value;
+    // Extract relevant data from the payload
+    const changes = payload.entry?.[0]?.changes?.[0]?.value;
 
-        // Check if the event contains actual messages
-        if (changes?.messages && Array.isArray(changes.messages)) {
-            const messages = changes.messages;
+    // Check if the event contains actual messages
+    if (changes?.messages && Array.isArray(changes.messages)) {
+      const messages = changes.messages;
 
-            // Get current timestamp
-            const currentTimestamp = Date.now(); // Get the current timestamp in milliseconds
+      // Get current timestamp
+      const currentTimestamp = Date.now(); // Get the current timestamp in milliseconds
 
-            // Check each message in the messages array
-            messages.forEach((message) => {
-                console.log('Processing message:', message);
+      // Check each message in the messages array
+      messages.forEach((message) => {
+        console.log("Processing message:", message);
 
-                // Ensure this is a user-generated message
-                if (message.type && message.from) {
-                    // Extract timestamp from the message
-                    const messageTimestamp = parseInt(message.timestamp, 10) * 1000; // Convert to milliseconds
+        // Ensure this is a user-generated message
+        if (message.type && message.from) {
+          // Extract timestamp from the message
+          const messageTimestamp = parseInt(message.timestamp, 10) * 1000; // Convert to milliseconds
 
-                    // Check if the timestamp difference is within an acceptable range (e.g., 5 minutes)
-                    const timestampDifference = currentTimestamp - messageTimestamp;
+          // Check if the timestamp difference is within an acceptable range (e.g., 5 minutes)
+          const timestampDifference = currentTimestamp - messageTimestamp;
 
-                    // If the timestamp difference is too large, consider it as a duplicate/random message
-                    if (timestampDifference > MIN_TIMESTAMP_DIFF) {
-                        console.log('Skipping message with old timestamp:', message);
-                        return; // Skip processing this message
-                    }
+          // If the timestamp difference is too large, consider it as a duplicate/random message
+          if (timestampDifference > MIN_TIMESTAMP_DIFF) {
+            console.log("Skipping message with old timestamp:", message);
+            return; // Skip processing this message
+          }
 
-                    console.log('User message detected, calling receiveMessage');
-                    whatsappController.receiveMessage(req, res); // Call your controller
-                } else {
-                    console.log('Skipping non-user message event');
-                }
-            });
-
-            res.status(200).send('Message processed');
+          console.log("User message detected, calling receiveMessage");
+          whatsappController.receiveMessage(req, res); // Call your controller
         } else {
-            console.log('No valid messages in the payload, ignoring event');
-            res.status(200).send('No valid messages to process');
+          console.log("Skipping non-user message event");
         }
-    } catch (error) {
-        console.error('Webhook Error:', error.message);
-        res.status(500).send('Internal Server Error');
+      });
+
+      res.status(200).send("Message processed");
+    } else {
+      console.log("No valid messages in the payload, ignoring event");
+      res.status(200).send("No valid messages to process");
     }
+  } catch (error) {
+    console.error("Webhook Error:", error.message);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
-
-
-
-
-router.get('/payment-status', async (req, res) => {
+router.get("/payment-status", async (req, res) => {
   console.log("it is working");
-  
-  const { razorpay_payment_id, razorpay_order_id, razorpay_signature, userPhone } = req.query;
-  
+
+  const {
+    razorpay_payment_id,
+    razorpay_order_id,
+    razorpay_signature,
+    userPhone,
+  } = req.query;
+
   // Validate required parameters
   if (!razorpay_order_id || !userPhone) {
-    return res.status(400).send('Missing required parameters');
+    return res.status(400).send("Missing required parameters");
   }
 
   try {
@@ -119,24 +113,25 @@ router.get('/payment-status', async (req, res) => {
       await sendMessage(userPhone, failureMessage);
 
       // Notify admin of failed payment
-      const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER';
+      const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminFailureMessage = {
         text: `Alert: Payment failed for user ${userPhone}. No payment ID was received.`,
       };
       await sendMessage(adminPhone, adminFailureMessage);
 
-      console.log('Payment failed for user:', userPhone);
-      return res.status(400).send('Payment failed');
+      console.log("Payment failed for user:", userPhone);
+      return res.status(400).send("Payment failed");
     }
 
     // Generate signature to verify Razorpay's callback authenticity
-    const generatedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+    const generatedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-      .digest('hex');
+      .digest("hex");
 
     // Verify the signature
     if (generatedSignature !== razorpay_signature) {
-      return res.status(400).send('Invalid signature');
+      return res.status(400).send("Invalid signature");
     }
 
     // Update user's payment status to reflect successful payment
@@ -146,7 +141,6 @@ router.get('/payment-status', async (req, res) => {
       { new: true }
     );
 
-    
     // Notify user of successful payment
     const successMessage = {
       text: `Payment successful! Thank you for your purchase!`,
@@ -154,47 +148,58 @@ router.get('/payment-status', async (req, res) => {
     await sendMessage(userPhone, successMessage);
 
     // Notify admin of successful payment
-    const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER';
+    const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
     const adminSuccessMessage = {
       text: `Payment successful for ${userPhone}. Payment ID: ${razorpay_payment_id}.`,
     };
     await sendMessage(adminPhone, adminSuccessMessage);
 
-    console.log('Payment successful with ID:', razorpay_payment_id);
-    res.status(200).send('Payment processed');
+    console.log("Payment successful with ID:", razorpay_payment_id);
+    res.status(200).send("Payment processed");
   } catch (error) {
-    console.error('Error handling payment status:', error);
-    res.status(500).send('Server error processing payment');
+    console.error("Error handling payment status:", error);
+    res.status(500).send("Server error processing payment");
   }
 });
 
-
-router.post('/payment-success', async (req, res) => {
+router.post("/payment-success", async (req, res) => {
   const secret = process.env.VERIFY_TOKEN;
 
   // Verify the signature to authenticate Razorpay's webhook
-  const receivedSignature = req.headers['x-razorpay-signature'];
+  const receivedSignature = req.headers["x-razorpay-signature"];
   const generatedSignature = crypto
-    .createHmac('sha256', secret)
+    .createHmac("sha256", secret)
     .update(JSON.stringify(req.body))
-    .digest('hex');
+    .digest("hex");
 
   if (generatedSignature !== receivedSignature) {
-    return res.status(400).send('Invalid signature');
+    return res.status(400).send("Invalid signature");
   }
 
   const event = req.body.event;
-  const paymentData = req.body.payload.payment ? req.body.payload.payment.entity : null;
-  const subscriptionData = req.body.payload.subscription ? req.body.payload.subscription.entity : null;
-  const userPhone = paymentData ? paymentData.contact : subscriptionData ? subscriptionData.notes.phone : null;
-  const amount = paymentData ? paymentData.amount / 100 : subscriptionData ? subscriptionData.notes.amount / 100 : null; // Convert paise to rupees
+  const paymentData = req.body.payload.payment
+    ? req.body.payload.payment.entity
+    : null;
+  const subscriptionData = req.body.payload.subscription
+    ? req.body.payload.subscription.entity
+    : null;
+  const userPhone = paymentData
+    ? paymentData.replace(/^\+/, "") // Remove leading `+` // Remove leading `+`
+    : subscriptionData
+    ? subscriptionData.notes.replace(/^\+/, "") 
+    : null;
+  const amount = paymentData
+    ? paymentData.amount / 100
+    : subscriptionData
+    ? subscriptionData.notes.amount / 100
+    : null; // Convert paise to rupees
 
   if (!userPhone) {
-    return res.status(400).send('User phone number missing');
+    return res.status(400).send("User phone number missing");
   }
 
   try {
-    if (event === 'payment.captured') {
+    if (event === "payment.captured") {
       // Handle successful one-time payment
       const user = await User.findOneAndUpdate(
         { phone: userPhone },
@@ -202,7 +207,16 @@ router.post('/payment-success', async (req, res) => {
         { new: true }
       );
 
+      if (!user) {
+        console.error(`User with phone number ${userPhone} not found.`);
+        return res.status(404).send("User not found");
+      }
+
+      // Update the single order payment status
       user.singleorderPaymentStatus = true;
+
+      // Save the updated user to the database if necessary
+      await user.save();
 
       // Send success message to user
       const successMessage = {
@@ -210,11 +224,20 @@ router.post('/payment-success', async (req, res) => {
       };
       await sendMessage(userPhone, successMessage);
 
-      console.log('Payment success notification sent to user:', userPhone);
+      console.log("Payment success notification sent to user:", userPhone);
 
-    } else if (event === 'payment.failed') {
+      //Send success message to admin
+      const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
+      const adminSuccessMessage = {
+        text: `Payment successful for ${userPhone}. Payment ID: ${paymentData.id}.`,
+      };
+      await sendMessage(adminPhone, adminSuccessMessage);
+
+      console.log("Payment successful with ID:",paymentData.id );
+    return res.status(200).send("Payment processed");
+    } else if (event === "payment.failed") {
       // Handle failed one-time payment
-      const failureReason = paymentData.error_description || 'Unknown error';
+      const failureReason = paymentData.error_description || "Unknown error";
 
       // Send failure message to user
       const failureMessage = {
@@ -223,15 +246,19 @@ router.post('/payment-success', async (req, res) => {
       await sendMessage(userPhone, failureMessage);
 
       // Notify the admin of the payment failure
-      const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER';
+      const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminMessage = {
         text: `Alert: Payment of ₹${amount} failed for ${userPhone}. Reason: ${failureReason}`,
       };
       await sendMessage(adminPhone, adminMessage);
 
-      console.log('Payment failure notification sent to admin and user:', userPhone);
+      console.log(
+        "Payment failure notification sent to admin and user:",
+        userPhone
+      );
+      return res.status(200).send("Payment failure handeled");
 
-    } else if (event === 'subscription.charged') {
+    } else if (event === "subscription.charged") {
       // Handle successful subscription charge
       const user = await User.findOneAndUpdate(
         { phone: userPhone },
@@ -246,11 +273,17 @@ router.post('/payment-success', async (req, res) => {
       };
       await sendMessage(userPhone, successMessage);
 
-      console.log('Subscription charge success notification sent to user:', userPhone);
+      console.log(
+        "Subscription charge success notification sent to user:",
+        userPhone
+      );
+      return res.status(200).send("sub charged");
 
-    } else if (event === 'subscription.payment_failed') {
+    } else if (event === "subscription.payment_failed") {
       // Handle failed subscription payment
-      const failureReason = paymentData ? paymentData.error_description : 'Payment failure during subscription renewal';
+      const failureReason = paymentData
+        ? paymentData.error_description
+        : "Payment failure during subscription renewal";
 
       // Send failure message to user
       const failureMessage = {
@@ -259,21 +292,23 @@ router.post('/payment-success', async (req, res) => {
       await sendMessage(userPhone, failureMessage);
 
       // Notify admin of the subscription payment failure
-      const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER';
+      const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminMessage = {
         text: `Alert: Subscription renewal payment of ₹${amount} failed for ${userPhone}. Reason: ${failureReason}`,
       };
-      console.log('Subscription payment failure notification sent to admin and user:', userPhone);
+      console.log(
+        "Subscription payment failure notification sent to admin and user:",
+        userPhone
+      );
       return await sendMessage(adminPhone, adminMessage);
-
+    
     }
 
-    res.status(200).send('Webhook received');
+    res.status(200).send("Webhook received");
   } catch (error) {
-    console.error('Error handling payment webhook:', error);
-    res.status(500).send('Server error processing payment');
+    console.error("Error handling payment webhook:", error);
+    res.status(500).send("Server error processing payment");
   }
 });
 
 module.exports = router;
-

@@ -24,9 +24,7 @@ const PhoneNumber = require('./models/phoneNumber');
 
 // Schedule the task to run every day at 10:00 AM (adjust the time as needed)
 cron.schedule('0 10 * * *', async () => {
-    console.log('Starting daily broadcast message...');
     await sendBroadcastMessage();
-    console.log('Daily broadcast message sent!');
 });
 
 // Start cron jobs for subscription reminders
@@ -38,7 +36,6 @@ const whatsappRoutes = require('./routes/whatsappRoutes');
 app.use('/', whatsappRoutes); // Webhook for receiving WhatsApp messages
 
 app.get('/', (req, res) => {
-    console.log("abcd");
     res.status(200).send("Hello from Nani Belona Ghee!!");
 })
 
@@ -71,10 +68,8 @@ async function sendTemplateMessage(phoneNumber) {
             }
         );
 
-        console.log(`Message sent to ${phoneNumber}:`, response.data);
         return true;
     } catch (error) {
-        console.error(`Failed to send message to ${phoneNumber}:`, error.response?.data || error.message);
         return false;
     }
 }
@@ -84,8 +79,6 @@ async function sendBroadcastMessage() {
     try {
         // Fetch all phone numbers that haven't received the message
         const phoneNumbers = await PhoneNumber.find({ isMessageSent: false });
-        console.log(phoneNumbers);
-        console.log(`Found ${phoneNumbers.length} phone numbers to send messages.`);
 
         // Loop through and send the message
         for (const record of phoneNumbers) {
@@ -95,14 +88,11 @@ async function sendBroadcastMessage() {
             // If message is sent successfully, update the database
             if (success) {
                 await PhoneNumber.updateOne({ userPhone: phoneNumber }, { $set: { isMessageSent: true } });
-                console.log(`Message successfully sent to ${phoneNumber}`);
             } else {
-                console.log(`Failed to send message to ${phoneNumber}`);
             }
         }
         
     } catch (error) {
-        console.error('Error sending broadcast messages:', error);
     }
     return;
 }

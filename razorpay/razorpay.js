@@ -12,7 +12,6 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
 
   // Calculate the amount by dividing by 500, then convert to paise (for Razorpay)
   const calculatedAmount = Math.round(amountEntered / 500) * 100; // Amount in paise
-  console.log(`Calculated Amount (paise): ${calculatedAmount}`);
 
   const user = await User.findOne({phone:userPhone})
   user.userOrderAmount = calculatedAmount;
@@ -40,7 +39,6 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
     );
 
     const paymentLink = response.data.short_url;
-    console.log('Payment link created successfully:', paymentLink);
 
     // Send success notification to the admin
     const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER';
@@ -51,7 +49,6 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
 
     return paymentLink;
   } catch (error) {
-    console.error('Error creating payment link:', error.response ? error.response.data : error.message);
 
     // Send error message to the admin
     const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER';

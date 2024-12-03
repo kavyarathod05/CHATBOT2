@@ -16,7 +16,6 @@ exports.handleBuyGhee = async (userPhone) => {
       }
     ]
   };
-  console.log(buttonMessage);
   return await sendMessage(userPhone, buttonMessage);
 };
 
