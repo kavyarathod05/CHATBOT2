@@ -521,11 +521,11 @@ exports.receiveMessage = async (req, res) => {
                 buttons: [
                   {
                     id: "old_address",
-                    title: "Yes, Keep It",
+                    title: "old address",
                   },
                   {
                     id: "new_address",
-                    title: "Use New Address",
+                    title: "New Address",
                   },
                 ],
               };
@@ -576,11 +576,11 @@ exports.receiveMessage = async (req, res) => {
                 buttons: [
                   {
                     id: "old_address",
-                    title: "Yes, Keep This Address",
+                    title: "Old address",
                   },
                   {
                     id: "new_address",
-                    title: "Use a New Address",
+                    title: "New Address",
                   },
                 ],
               };
@@ -625,11 +625,11 @@ exports.receiveMessage = async (req, res) => {
                 buttons: [
                   {
                     id: "old_address",
-                    title: "Yes, Keep This Address",
+                    title: "Old Address",
                   },
                   {
                     id: "new_address",
-                    title: "Enter New Address",
+                    title: "New Address",
                   },
                 ],
               };
@@ -680,11 +680,11 @@ exports.receiveMessage = async (req, res) => {
                 buttons: [
                   {
                     id: "old_address",
-                    title: "Yes, Keep This Address",
+                    title: "Old Address",
                   },
                   {
                     id: "new_address",
-                    title: "Enter New Address",
+                    title: "New Address",
                   },
                 ],
               };
@@ -837,11 +837,11 @@ async function handleCustomAmountInput_A2(messageText, userPhone) {
       buttons: [
         {
           id: "old_address",
-          title: "Yes, Same Address",
+          title: "Same Address",
         },
         {
           id: "new_address",
-          title: "Use New Address",
+          title: "New Address",
         },
       ],
     };
@@ -881,11 +881,11 @@ async function handleCustomAmountInput_buffalo(messageText, userPhone) {
       buttons: [
         {
           id: "old_address",
-          title: "Yes, Same Address",
+          title: "Same Address",
         },
         {
           id: "new_address",
-          title: "Use New Address",
+          title: "New Address",
         },
       ],
     };
@@ -925,11 +925,11 @@ async function handleCustomAmountInput_plan_buffalo(messageText, userPhone) {
       buttons: [
         {
           id: "old_address",
-          title: "Yes, Same Address",
+          title: "Same Address",
         },
         {
           id: "new_address",
-          title: "Use New Address",
+          title: "New Address",
         },
       ],
     };
