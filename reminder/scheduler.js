@@ -4,10 +4,8 @@ const { sendMessage } = require("../utils/whatsappAPI"); // Assuming sendMessage
 
 // Define the cron job function
 function scheduleSubscriptionReminders() {
-  console.log("Scheduler working");
   cron.schedule('0 9 * * * ', async () => { // Runs daily at 9 AM
-    console.log("Running daily subscription reminder job");
-    console.log("Scheduler working");
+   
     try {
       const today = new Date();
       const users = await User.find({
@@ -31,7 +29,6 @@ function scheduleSubscriptionReminders() {
         return await user.save();
       }
     } catch (error) {
-      console.error("Error sending reminders:", error);
     }
     return;
   });

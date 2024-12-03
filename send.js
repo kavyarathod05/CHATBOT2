@@ -39,10 +39,8 @@ async function sendMessage(phoneNumber, templateName, dynamicValue) {
       }
     );
 
-    console.log(`Message sent to ${phoneNumber}:`, response.data);
     return true;
   } catch (error) {
-    console.error(`Failed to send message to ${phoneNumber}:`, error.response?.data || error.message);
     return false;
   }
 }

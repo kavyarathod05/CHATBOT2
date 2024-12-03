@@ -4,7 +4,7 @@ const User = require('../models/User');  // Import your User model
 // Handle Buy Ghee selection
 exports.handleBuyGhee = async (userPhone) => {
   const buttonMessage = {
-    text: "Please choose the variety",
+    text: "✨ Please choose the variety of Ghee you would like to purchase: ✨",
     buttons: [
       {
         id: "A2_ghee",
@@ -16,7 +16,6 @@ exports.handleBuyGhee = async (userPhone) => {
       }
     ]
   };
-  console.log(buttonMessage);
   return await sendMessage(userPhone, buttonMessage);
 };
 
@@ -25,7 +24,7 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
   // Handle A2_ghee selection
   if (buttonId === "A2_ghee") {
     const quantityMessage = {
-      text: "You selected A2 Cow Ghee! Please choose the quantity you'd like to purchase:",
+      text: "🎉 You selected A2 Cow Ghee! Please choose the quantity you'd like to purchase:",
       buttons: [
         {
           id: "small_A2",
@@ -42,7 +41,7 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
       ]
     };
     const customOrderMessage = {
-      text: "If you'd like to order a custom quantity, please choose this Option",
+      text: "✍️ If you'd like to order a custom quantity, please select this option:",
       buttons: [
         {
           id: "custom_A2",
@@ -52,7 +51,7 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
     };
 
     const planOrderMessage = {
-      text:" if you like to subscribe our monthly plan then click here ",
+      text: "🎉 Subscribe to our monthly plan and enjoy **5% off** + **NO delivery fee**! 🚚✨ Click here to learn more!",
       buttons: [
         {
           id: "plan_A2",
@@ -71,7 +70,7 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
   // Handle buffalo selection
   if (buttonId === "buffalo") {
     const quantityMessage = {
-      text: "You selected Buffalo Ghee! Please choose the quantity you'd like to purchase:",
+      text: "🎉 You selected Buffalo Ghee! Please choose the quantity you'd like to purchase:",
       buttons: [
         {
           id: "small_buffalo",
@@ -89,7 +88,7 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
       
     };
     const customOrderMessage = {
-      text: "If you'd like to order a custom quantity, please choose this Option",
+      text: "✍️ If you'd like to order a custom quantity, please select this option:",
       buttons: [
         {
           id: "custom_buffalo",
@@ -99,7 +98,7 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
     };
 
     const planOrderMessage = {
-      text: " if you like to subscribe our monthly plan then click here ",
+      text: "🌟 Want to subscribe to our monthly plan? Click here to know more:",
       buttons: [
         {
           id: "plan_buffalo",
@@ -122,13 +121,13 @@ exports.handleCustomerSupport = async (userPhone) => {
 
   // Send initial support message
   const supportMessage = {
-    text: "Our support team is here to assist you. We will contact you within 24 hours."
+    text: "💬 Our support team is here to assist you. We will contact you within 24 hours."
   };
   await sendMessage(userPhone, supportMessage);
 
   // Send button options for support
   const buttonMessage = {
-    text: "Please click to continue",
+    text: "👇 Please click below to continue:",
     buttons: [
       {
         id: "help",
@@ -144,7 +143,7 @@ exports.handleCustomerSupport = async (userPhone) => {
 // Handle B2B selection
 exports.handleknowaboutus = async (userPhone) => {
   const b2bMessage = {
-    text: "this is nani bilona ghee and all",
+    text: "🔍 Learn more about Nani Bilona Ghee and our processes:",
     buttons:[
       {id: "ghee_prep", title: "ghee is prepared"},
       {id:"faq", title:"FAQs"},
@@ -153,7 +152,7 @@ exports.handleknowaboutus = async (userPhone) => {
   };
   await sendMessage(userPhone, b2bMessage);
   const msg={
-    text:"press to continue",
+    text: "👉 Press below to continue:",
     buttons:[
       {id:"helpp", title:"continue"}
     ]
@@ -167,7 +166,7 @@ exports.handleknowaboutus = async (userPhone) => {
 exports.handleBuyGheePlanQuantity = async(userPhone,buttonId) => {
   if (buttonId === "plan_A2") {
     const quantityMessage = {
-      text: "You selected A2 Cow Ghee! Please choose the quantity you'd like to purchase:",
+      text: "🎉 You selected A2 Cow Ghee! Please choose the quantity you'd like to purchase:",
       buttons: [
         {
           id: "small_planA2",
@@ -184,7 +183,7 @@ exports.handleBuyGheePlanQuantity = async(userPhone,buttonId) => {
       ]
     };
     const customOrderMessage = {
-      text: "If you'd like to order a custom quantity, please choose this Option",
+      text: "✍️ If you'd like to order a custom quantity, please select this option:",
       buttons: [
         {
           id: "custom_planA2",
@@ -203,7 +202,7 @@ exports.handleBuyGheePlanQuantity = async(userPhone,buttonId) => {
   // Handle buffalo selection
   if (buttonId === "plan_buffalo") {
     const quantityMessage = {
-      text: "You selected Buffalo Ghee! Please choose the quantity you'd like to purchase:",
+      text: "🎉 You selected Buffalo Ghee! Please choose the quantity you'd like to purchase:",
       buttons: [
         {
           id: "small_planbuffalo",
@@ -221,7 +220,7 @@ exports.handleBuyGheePlanQuantity = async(userPhone,buttonId) => {
       
     };
     const customOrderMessage = {
-      text: "if you like to subscribe our monthly plan then click here",
+      text: "✍️ If you'd like to order a custom quantity, please select this option:",
       buttons: [
         {
           id: "custom_planbuffalo",

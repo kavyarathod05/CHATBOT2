@@ -31,7 +31,6 @@ exports.sendMessage = async (phone, content) => {
         },
       };
       await axios.post(url, textData, { headers });
-      console.log('Text message sent successfully');
     }
 
     // Send media messages if content.media exists and is an array
@@ -47,7 +46,6 @@ exports.sendMessage = async (phone, content) => {
           },
         };
         await axios.post(url, mediaData, { headers });
-        console.log(`${media.type.charAt(0).toUpperCase() + media.type.slice(1)} message sent successfully`);
       }
     }
 
@@ -76,16 +74,13 @@ exports.sendMessage = async (phone, content) => {
       };
 
       await axios.post(url, interactiveMessage, { headers });
-      console.log('Interactive button message sent successfully');
     }
     return;
   } catch (error) {
     // Log error details for debugging
     if (error.response) {
-      console.error('Error data:', error.response.data);
       
     } else {
-      console.error('Error sending message:', error.message);
     }
   }
   return;
