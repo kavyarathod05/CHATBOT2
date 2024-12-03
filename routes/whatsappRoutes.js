@@ -155,7 +155,7 @@ router.get("/payment-status", async (req, res) => {
     await sendMessage(adminPhone, adminSuccessMessage);
 
     console.log("Payment successful with ID:", razorpay_payment_id);
-    res.status(200).send("Payment processed");
+     res.status(200).send("Payment processed");
   } catch (error) {
     console.error("Error handling payment status:", error);
     res.status(500).send("Server error processing payment");
@@ -184,7 +184,7 @@ router.post("/payment-success", async (req, res) => {
     ? req.body.payload.subscription.entity
     : null;
   const userPhone = paymentData
-    ? paymentData.replace(/^\+/, "") // Remove leading `+` // Remove leading `+`
+    ? paymentData.contact.replace(/^\+/, "") // Remove leading `+` // Remove leading `+`
     : subscriptionData
     ? subscriptionData.notes.replace(/^\+/, "") 
     : null;
