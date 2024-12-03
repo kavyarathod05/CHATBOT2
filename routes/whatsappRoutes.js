@@ -15,15 +15,11 @@ router.get("/webhook", (req, res) => {
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
-  console.log("Mode:", mode);
-  console.log("Token received:", token);
-  console.log("Challenge:", challenge);
+  
 
   if (mode === "subscribe" && token === verifyToken) {
-    console.log("WEBHOOK_VERIFIED");
     res.status(200).send(challenge);
   } else {
-    console.log("Verification failed - tokens do not match");
     res.sendStatus(403);
   }
 });
@@ -41,7 +37,6 @@ router.post("/webhook", (req, res) => {
     const payload = req.body;
 
     // Log the full payload for debugging purposes
-    console.log("Webhook Payload:", JSON.stringify(payload, null, 2));
 
     // Extract relevant data from the payload
     const changes = payload.entry?.[0]?.changes?.[0]?.value;
@@ -55,7 +50,6 @@ router.post("/webhook", (req, res) => {
 
       // Check each message in the messages array
       messages.forEach((message) => {
-        console.log("Processing message:", message);
 
         // Ensure this is a user-generated message
         if (message.type && message.from) {
@@ -67,30 +61,24 @@ router.post("/webhook", (req, res) => {
 
           // If the timestamp difference is too large, consider it as a duplicate/random message
           if (timestampDifference > MIN_TIMESTAMP_DIFF) {
-            console.log("Skipping message with old timestamp:", message);
             return; // Skip processing this message
           }
 
-          console.log("User message detected, calling receiveMessage");
           whatsappController.receiveMessage(req, res); // Call your controller
         } else {
-          console.log("Skipping non-user message event");
         }
       });
 
       res.status(200).send("Message processed");
     } else {
-      console.log("No valid messages in the payload, ignoring event");
       res.status(200).send("No valid messages to process");
     }
   } catch (error) {
-    console.error("Webhook Error:", error.message);
     res.status(500).send("Internal Server Error");
   }
 });
 
 router.get("/payment-status", async (req, res) => {
-  console.log("it is working");
 
   const {
     razorpay_payment_id,
@@ -119,7 +107,6 @@ router.get("/payment-status", async (req, res) => {
       };
       await sendMessage(adminPhone, adminFailureMessage);
 
-      console.log("Payment failed for user:", userPhone);
       return res.status(400).send("Payment failed");
     }
 
@@ -154,12 +141,11 @@ router.get("/payment-status", async (req, res) => {
     };
     await sendMessage(adminPhone, adminSuccessMessage);
 
-    console.log("Payment successful with ID:", razorpay_payment_id);
      res.status(200).send("Payment processed");
   } catch (error) {
-    console.error("Error handling payment status:", error);
     res.status(500).send("Server error processing payment");
   }
+  
 });
 
 router.post("/payment-success", async (req, res) => {
@@ -208,7 +194,6 @@ router.post("/payment-success", async (req, res) => {
       );
 
       if (!user) {
-        console.error(`User with phone number ${userPhone} not found.`);
         return res.status(404).send("User not found");
       }
 
@@ -224,7 +209,6 @@ router.post("/payment-success", async (req, res) => {
       };
       await sendMessage(userPhone, successMessage);
 
-      console.log("Payment success notification sent to user:", userPhone);
 
       //Send success message to admin
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
@@ -233,7 +217,6 @@ router.post("/payment-success", async (req, res) => {
       };
       await sendMessage(adminPhone, adminSuccessMessage);
 
-      console.log("Payment successful with ID:",paymentData.id );
     return res.status(200).send("Payment processed");
     } else if (event === "payment.failed") {
       // Handle failed one-time payment
@@ -252,10 +235,7 @@ router.post("/payment-success", async (req, res) => {
       };
       await sendMessage(adminPhone, adminMessage);
 
-      console.log(
-        "Payment failure notification sent to admin and user:",
-        userPhone
-      );
+    
       return res.status(200).send("Payment failure handeled");
 
     } else if (event === "subscription.charged") {
@@ -272,11 +252,7 @@ router.post("/payment-success", async (req, res) => {
         text: `Subscription renewal successful for ₹${amount}. Thank you for continuing with our service!`,
       };
       await sendMessage(userPhone, successMessage);
-
-      console.log(
-        "Subscription charge success notification sent to user:",
-        userPhone
-      );
+      
       return res.status(200).send("sub charged");
 
     } else if (event === "subscription.payment_failed") {
@@ -296,17 +272,15 @@ router.post("/payment-success", async (req, res) => {
       const adminMessage = {
         text: `Alert: Subscription renewal payment of ₹${amount} failed for ${userPhone}. Reason: ${failureReason}`,
       };
-      console.log(
-        "Subscription payment failure notification sent to admin and user:",
-        userPhone
-      );
-      return await sendMessage(adminPhone, adminMessage);
-    
+      
+       await sendMessage(adminPhone, adminMessage);
+      return res.status(200).send("Subscription payment failed handled");  // Only one response here
+
     }
 
+    
     res.status(200).send("Webhook received");
   } catch (error) {
-    console.error("Error handling payment webhook:", error);
     res.status(500).send("Server error processing payment");
   }
 });

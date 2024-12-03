@@ -39,7 +39,7 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
     );
 
     const paymentLink = response.data.short_url;
-
+    
     // Send success notification to the admin
     const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER';
     const successMessage = {
