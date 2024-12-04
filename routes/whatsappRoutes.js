@@ -175,10 +175,6 @@ router.post("/payment-success", async (req, res) => {
     ? subscriptionData.notes.amount / 100
     : null; // Convert paise to rupees
 
-  const address = user.address;
-  const subscriptionType = user.subscriptionType;
-  const subscrptionStartDatee = user.subscriptionStartDate;
-  const nextremdate = user.nextReminderDate;
   if (!userPhone) {
     return res.status(400).send("User phone number missing");
   }
@@ -241,7 +237,10 @@ router.post("/payment-success", async (req, res) => {
         { subscriptionId: subscriptionData.id }, // Store or update subscription ID
         { new: true }
       );
-
+      const address = user.address;
+      const subscriptionType = user.subscriptionType;
+      const subscrptionStartDatee = user.subscriptionStartDate;
+      const nextremdate = user.nextReminderDate;
       user.subscriptionPaymentStatus = true;
 
       const successMessage = {
@@ -251,7 +250,7 @@ router.post("/payment-success", async (req, res) => {
 
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminSuccessMessage = {
-        text: `✅ Payment received!\n User with ID: ${userId} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscriptionType} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of:\n ₹${amount} for subscription ${subscriptionId}.\n Its Next Remainder Date is ${subscriptionType}\n`,
+        text: `✅ Payment received!\n User with ID: ${userId} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of:\n ₹${amount} for subscription ${subscriptionId}.\n Its Next Remainder Date is ${nextremdate}\n`,
       };
       await sendMessage(adminPhone, adminSuccessMessage);
       return res.status(200).send("sub charged");
