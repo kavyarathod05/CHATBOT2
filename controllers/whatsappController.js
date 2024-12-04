@@ -106,12 +106,22 @@ exports.receiveMessage = async (req, res) => {
             },
             {
               type: "video", // Video type for media
-              url:"videoURL"
+              url:videoURL,
             }
           ],
           buttons: [{ id: "help", title: "Need Help!" }],
         };
+        const videoData = {
 
+          media: [
+          
+            {
+              type: "video", // Video type for media
+              url:videoURL,
+            }
+          ],
+          
+        };
         // Send the message and handle potential errors
         try {
           await sendMessage(userPhone, messageData);
