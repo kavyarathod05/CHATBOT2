@@ -95,7 +95,7 @@ exports.receiveMessage = async (req, res) => {
         const imageUrl =
           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQXaekK87HoROClCOCn3UAEwvmxcHSOdTKqg&s"; // Replace with your image URL
 
-        const videoURL= "https://drive.google.com/file/d/1B1Zy5JjDE-0qZZ7b9hJ1tPgdm0rJUnVr/view?usp=sharing";
+        const videoURL= require("../video/kj.mp4")
         // Message content to send to the user
         const messageData = {
           text: welcomeText,
@@ -104,10 +104,6 @@ exports.receiveMessage = async (req, res) => {
               type: "image", // Image type for media
               url: imageUrl, // Image URL to be sent
             },
-            {
-              type: "video", // Video type for media
-              url:videoURL,
-            }
           ],
           buttons: [{ id: "help", title: "Need Help!" }],
         };
