@@ -244,7 +244,7 @@ router.post("/payment-success", async (req, res) => {
       user.subscriptionPaymentStatus = true;
 
       const successMessage = {
-        text: `Subscription renewal successful for ₹${amount}. Thank you for continuing with our service!`,
+        text: `Subscription done . Thank you for continuing with our service!`,
       };
       await sendMessage(userPhone, successMessage);
 
