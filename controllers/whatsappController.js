@@ -95,6 +95,7 @@ exports.receiveMessage = async (req, res) => {
         const imageUrl =
           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQXaekK87HoROClCOCn3UAEwvmxcHSOdTKqg&s"; // Replace with your image URL
 
+        const videoURL= "https://drive.google.com/file/d/1B1Zy5JjDE-0qZZ7b9hJ1tPgdm0rJUnVr/view?usp=sharing";
         // Message content to send to the user
         const messageData = {
           text: welcomeText,
@@ -103,6 +104,10 @@ exports.receiveMessage = async (req, res) => {
               type: "image", // Image type for media
               url: imageUrl, // Image URL to be sent
             },
+            {
+              type: "video", // Video type for media
+              url:"videoURL"
+            }
           ],
           buttons: [{ id: "help", title: "Need Help!" }],
         };
@@ -353,7 +358,7 @@ exports.receiveMessage = async (req, res) => {
               buttons: [
                 { id: "buy_ghee", title: "Order Ghee" },
                 { id: "customer_support", title: "Help & Support" },
-                { id: "know_about_us", title: "B2B Services" },
+                { id: "know_about_us", title: "Know More" },
               ],
             };
 
@@ -1056,7 +1061,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
   try {
     // Create the subscription using Razorpay
     const subscription = await razorpayInstance.subscriptions.create({
-      plan_id: process.env.PLAN_ID_A2,
+      plan_id: process.env.SUBSCRIPTION_ID_A2,
       customer_notify: 1,
       total_count: 12, // Example: 12-month subscription
       quantity: amountMultiplier / 500,
@@ -1070,7 +1075,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     // Update the user record with subscription details
     const user = await User.findOneAndUpdate(
       { phone: userPhone },
-      { planId: process.env.PLAN_ID_A2 },
+      { planId: process.env.SUBSCRIPTION_ID_A2 },
       { new: true }
     );
 
@@ -1140,7 +1145,7 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
   try {
     // Create the subscription using Razorpay
     const subscription = await razorpayInstance.subscriptions.create({
-      plan_id: process.env.PLAN_ID_BUFFALO,
+      plan_id: process.env.SUBSCRIPTION_ID_BUFFALO,
       customer_notify: 1, // This will still notify the customer (default behavior)
       total_count: 12, // Example: 12-month subscription
       quantity: amountMultiplier / 500,
@@ -1154,7 +1159,7 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
     // Update the user record with subscription details
     const user = await User.findOneAndUpdate(
       { phone: userPhone },
-      { planId: process.env.PLAN_ID_BUFFALO },
+      { planId: process.env.SUBSCRIPTION_ID_BUFFALO },
       { new: true }
     );
 

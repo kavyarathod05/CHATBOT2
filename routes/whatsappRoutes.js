@@ -15,8 +15,6 @@ router.get("/webhook", (req, res) => {
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
-  
-
   if (mode === "subscribe" && token === verifyToken) {
     res.status(200).send(challenge);
   } else {
@@ -50,7 +48,6 @@ router.post("/webhook", (req, res) => {
 
       // Check each message in the messages array
       messages.forEach((message) => {
-
         // Ensure this is a user-generated message
         if (message.type && message.from) {
           // Extract timestamp from the message
@@ -79,7 +76,6 @@ router.post("/webhook", (req, res) => {
 });
 
 router.get("/payment-status", async (req, res) => {
-
   const {
     razorpay_payment_id,
     razorpay_order_id,
@@ -141,11 +137,10 @@ router.get("/payment-status", async (req, res) => {
     };
     await sendMessage(adminPhone, adminSuccessMessage);
 
-     res.status(200).send("Payment processed");
+    res.status(200).send("Payment processed");
   } catch (error) {
     res.status(500).send("Server error processing payment");
   }
-  
 });
 
 router.post("/payment-success", async (req, res) => {
@@ -172,7 +167,7 @@ router.post("/payment-success", async (req, res) => {
   const userPhone = paymentData
     ? paymentData.contact.replace(/^\+/, "") // Remove leading `+` // Remove leading `+`
     : subscriptionData
-    ? subscriptionData.notes.replace(/^\+/, "") 
+    ? subscriptionData.notes.replace(/^\+/, "")
     : null;
   const amount = paymentData
     ? paymentData.amount / 100
@@ -180,6 +175,10 @@ router.post("/payment-success", async (req, res) => {
     ? subscriptionData.notes.amount / 100
     : null; // Convert paise to rupees
 
+  const address = user.address;
+  const subscriptionType = user.subscriptionType;
+  const subscrptionStartDatee = user.subscriptionStartDate;
+  const nextremdate = user.nextReminderDate;
   if (!userPhone) {
     return res.status(400).send("User phone number missing");
   }
@@ -209,7 +208,6 @@ router.post("/payment-success", async (req, res) => {
       };
       await sendMessage(userPhone, successMessage);
 
-
       //Send success message to admin
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminSuccessMessage = {
@@ -217,7 +215,7 @@ router.post("/payment-success", async (req, res) => {
       };
       await sendMessage(adminPhone, adminSuccessMessage);
 
-    return res.status(200).send("Payment processed");
+      return res.status(200).send("Payment processed");
     } else if (event === "payment.failed") {
       // Handle failed one-time payment
       const failureReason = paymentData.error_description || "Unknown error";
@@ -235,9 +233,7 @@ router.post("/payment-success", async (req, res) => {
       };
       await sendMessage(adminPhone, adminMessage);
 
-    
       return res.status(200).send("Payment failure handeled");
-
     } else if (event === "subscription.charged") {
       // Handle successful subscription charge
       const user = await User.findOneAndUpdate(
@@ -252,9 +248,13 @@ router.post("/payment-success", async (req, res) => {
         text: `Subscription renewal successful for ₹${amount}. Thank you for continuing with our service!`,
       };
       await sendMessage(userPhone, successMessage);
-      
-      return res.status(200).send("sub charged");
 
+      const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
+      const adminSuccessMessage = {
+        text: `✅ Payment received!\n User with ID: ${userId} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscriptionType} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of:\n ₹${amount} for subscription ${subscriptionId}.\n Its Next Remainder Date is ${subscriptionType}\n`,
+      };
+      await sendMessage(adminPhone, adminSuccessMessage);
+      return res.status(200).send("sub charged");
     } else if (event === "subscription.payment_failed") {
       // Handle failed subscription payment
       const failureReason = paymentData
@@ -272,13 +272,11 @@ router.post("/payment-success", async (req, res) => {
       const adminMessage = {
         text: `Alert: Subscription renewal payment of ₹${amount} failed for ${userPhone}. Reason: ${failureReason}`,
       };
-      
-       await sendMessage(adminPhone, adminMessage);
-      return res.status(200).send("Subscription payment failed handled");  // Only one response here
 
+      await sendMessage(adminPhone, adminMessage);
+      return res.status(200).send("Subscription payment failed handled"); // Only one response here
     }
 
-    
     res.status(200).send("Webhook received");
   } catch (error) {
     res.status(500).send("Server error processing payment");
