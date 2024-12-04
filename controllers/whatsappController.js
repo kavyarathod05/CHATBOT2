@@ -122,8 +122,11 @@ exports.receiveMessage = async (req, res) => {
           ],
           
         };
+        
         // Send the message and handle potential errors
         try {
+       //   await sendMessage(userPhone, videoData);
+
           await sendMessage(userPhone, messageData);
           return res.status(200); // Return response if needed for further processing
         } catch (error) {
