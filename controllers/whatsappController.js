@@ -110,7 +110,7 @@ exports.receiveMessage = async (req, res) => {
           buttons: [{ id: "help", title: "Need Help!" }],
         };
         const msg={
-          text: "hi",
+          
           media:[
             {
               type: "video",
@@ -1070,7 +1070,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
   try {
     // Create the subscription using Razorpay
     const subscription = await razorpayInstance.subscriptions.create({
-      plan_id: process.env.PLAN_ID_A2,
+      plan_id: process.env.SUBSCRIPTION_ID_A2,
       customer_notify: 1,
       total_count: 12, // Example: 12-month subscription
       quantity: amountMultiplier / 500,
@@ -1084,7 +1084,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     // Update the user record with subscription details
     const user = await User.findOneAndUpdate(
       { phone: userPhone },
-      { planId: process.env.PLAN_ID_A2 },
+      { planId: process.env.SUBSCRIPTION_ID_A2 },
       { new: true }
     );
 
@@ -1154,7 +1154,7 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
   try {
     // Create the subscription using Razorpay
     const subscription = await razorpayInstance.subscriptions.create({
-      plan_id: process.env.PLAN_ID_BUFFALO,
+      plan_id: process.env.SUBSCRIPTION_ID_BUFFALO,
       customer_notify: 1, // This will still notify the customer (default behavior)
       total_count: 12, // Example: 12-month subscription
       quantity: amountMultiplier / 500,
@@ -1168,7 +1168,7 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
     // Update the user record with subscription details
     const user = await User.findOneAndUpdate(
       { phone: userPhone },
-      { planId: process.env.PLAN_ID_BUFFALO },
+      { planId: process.env.SUBSCRIPTION_ID_BUFFALO },
       { new: true }
     );
 
