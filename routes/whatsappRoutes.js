@@ -167,7 +167,7 @@ router.post("/payment-success", async (req, res) => {
   const userPhone = paymentData
     ? paymentData.contact.replace(/^\+/, "") // Remove leading `+` // Remove leading `+`
     : subscriptionData
-    ? subscriptionData.notes.replace(/^\+/, "")
+    ? subscriptionData.notes = (subscriptionData.notes || "").toString().replace(/^\+/, "")
     : null;
   const amount = paymentData
     ? paymentData.amount / 100
