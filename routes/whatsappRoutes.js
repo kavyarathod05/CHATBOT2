@@ -242,7 +242,7 @@ router.post("/payment-success", async (req, res) => {
       const subscrptionStartDatee = user.subscriptionStartDate;
       const nextremdate = user.nextReminderDate;
       user.subscriptionPaymentStatus = true;
-
+ await user.save();
       const successMessage = {
         text: `Subscription done . Thank you for continuing with our service!`,
       };
