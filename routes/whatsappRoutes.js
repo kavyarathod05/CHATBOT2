@@ -75,73 +75,74 @@ router.post("/webhook", (req, res) => {
   }
 });
 
-router.get("/payment-status", async (req, res) => {
-  const {
-    razorpay_payment_id,
-    razorpay_order_id,
-    razorpay_signature,
-    userPhone,
-  } = req.query;
+// router.get("/payment-status", async (req, res) => {
+//   const {
+//     razorpay_payment_id,
+//     razorpay_order_id,
+//     razorpay_signature,
+//     userPhone,
+//   } = req.query;
 
-  // Validate required parameters
-  if (!razorpay_order_id || !userPhone) {
-    return res.status(400).send("Missing required parameters");
-  }
+//   // Validate required parameters
+//   if (!razorpay_order_id || !userPhone) {
+//     return res.status(400).send("Missing required parameters");
+//   }
 
-  try {
-    // Check if payment failed (i.e., no payment ID or signature provided)
-    if (!razorpay_payment_id || !razorpay_signature) {
-      const failureMessage = {
-        text: `Your payment attempt was unsuccessful. Please try again or contact support if the issue persists.`,
-      };
-      await sendMessage(userPhone, failureMessage);
+//   try {
+//     // Check if payment failed (i.e., no payment ID or signature provided)
+//     if (!razorpay_payment_id || !razorpay_signature) {
+//       const failureMessage = {
+//         text: `Your payment attempt was unsuccessful. Please try again or contact support if the issue persists.`,
+//       };
+//       await sendMessage(userPhone, failureMessage);
 
-      // Notify admin of failed payment
-      const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
-      const adminFailureMessage = {
-        text: `Alert: Payment failed for user ${userPhone}. No payment ID was received.`,
-      };
-      await sendMessage(adminPhone, adminFailureMessage);
+//       // Notify admin of failed payment
+//       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
+//       const adminFailureMessage = {
+//         text: `Alert: Payment failed for user ${userPhone}. No payment ID was received.`,
+//       };
+//       await sendMessage(adminPhone, adminFailureMessage);
 
-      return res.status(400).send("Payment failed");
-    }
+//       return res.status(400).send("Payment failed");
+//     }
 
-    // Generate signature to verify Razorpay's callback authenticity
-    const generatedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-      .digest("hex");
+//     // Generate signature to verify Razorpay's callback authenticity
+//     const generatedSignature = crypto
+//       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+//       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+//       .digest("hex");
 
-    // Verify the signature
-    if (generatedSignature !== razorpay_signature) {
-      return res.status(400).send("Invalid signature");
-    }
+//     // Verify the signature
+//     if (generatedSignature !== razorpay_signature) {
+//       return res.status(400).send("Invalid signature");
+//     }
 
-    // Update user's payment status to reflect successful payment
-    const user = await User.findOneAndUpdate(
-      { phone: userPhone },
-      { userOrderPaymentID: razorpay_payment_id }, // Update with relevant field for payment ID
-      { new: true }
-    );
+//     // Update user's payment status to reflect successful payment
+//     const user = await User.findOneAndUpdate(
+//       { phone: userPhone },
+//       { userOrderPaymentID: razorpay_payment_id }, // Update with relevant field for payment ID
+//       { new: true }
+//     );
 
-    // Notify user of successful payment
-    const successMessage = {
-      text: `Payment successful! Thank you for your purchase!`,
-    };
-    await sendMessage(userPhone, successMessage);
+//     // Notify user of successful payment
+//     const successMessage = {
+//       text: `Payment successful! Thank you for your purchase!`,
+//     };
+//     await sendMessage(userPhone, successMessage);
 
-    // Notify admin of successful payment
-    const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
-    const adminSuccessMessage = {
-      text: `Payment successful for ${userPhone}. Payment ID: ${razorpay_payment_id}.`,
-    };
-    await sendMessage(adminPhone, adminSuccessMessage);
+//     // Notify admin of successful payment
+//     const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
+//     const adminSuccessMessage = {
+//       text: `Payment successful for ${userPhone}. Payment ID: ${razorpay_payment_id}.`,
+//     };
+//     await sendMessage(adminPhone, adminSuccessMessage);
 
-    res.status(200).send("Payment processed");
-  } catch (error) {
-    res.status(500).send("Server error processing payment");
-  }
-});
+//     res.status(200).send("Payment processed");
+//   } catch (error) {
+//     res.status(500).send("Server error processing payment");
+//   }
+// });
+
 
 router.post("/payment-success", async (req, res) => {
   const secret = process.env.VERIFY_TOKEN;
@@ -230,7 +231,98 @@ router.post("/payment-success", async (req, res) => {
       await sendMessage(adminPhone, adminMessage);
 
       return res.status(200).send("Payment failure handeled");
-    } else if (event === "subscription.charged") {
+    }
+    //  else if (event === "subscription.charged") {
+    //   // Handle successful subscription charge
+    //   const user = await User.findOneAndUpdate(
+    //     { phone: userPhone },
+    //     { subscriptionId: subscriptionData.id }, // Store or update subscription ID
+    //     { new: true }
+    //   );
+    //   const address = user.address;
+    //   const subscriptionType = user.subscriptionType;
+    //   const subscrptionStartDatee = user.subscriptionStartDate;
+    //   const nextremdate = user.nextReminderDate;
+    //   user.subscriptionPaymentStatus = true;
+    //   await user.save();
+      
+    //   const successMessage = {
+    //     text: `Subscription done . Thank you for continuing with our service!`,
+    //   };
+    //   await sendMessage(userPhone, successMessage);
+
+    //   const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
+    //   const adminSuccessMessage = {
+    //     text: `✅ Payment received!\n User with ID: ${userId} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of:\n ₹${amount} for subscription ${subscriptionId}.\n Its Next Remainder Date is ${nextremdate}\n`,
+    //   };
+    //   await sendMessage(adminPhone, adminSuccessMessage);
+    //   return res.status(200).send("sub charged");
+    // } else if (event === "subscription.payment_failed") {
+    //   // Handle failed subscription payment
+    //   const failureReason = paymentData
+    //     ? paymentData.error_description
+    //     : "Payment failure during subscription renewal";
+
+    //   // Send failure message to user
+    //   const failureMessage = {
+    //     text: `Subscription renewal payment of ₹${amount} failed. Please update your payment method. Reason: ${failureReason}`,
+    //   };
+    //   await sendMessage(userPhone, failureMessage);
+
+    //   // Notify admin of the subscription payment failure
+    //   const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
+    //   const adminMessage = {
+    //     text: `Alert: Subscription renewal payment of ₹${amount} failed for ${userPhone}. Reason: ${failureReason}`,
+    //   };
+
+    //   await sendMessage(adminPhone, adminMessage);
+    //   return res.status(200).send("Subscription payment failed handled"); // Only one response here
+    // }
+
+    res.status(200).send("Webhook received");
+  } catch (error) {
+    res.status(500).send("Server error processing payment");
+  }
+});
+
+router.post("/sub-success", async (req, res) => {
+  const secret = process.env.VERIFY_TOKEN;
+
+  // Verify the signature to authenticate Razorpay's webhook
+  const receivedSignature = req.headers["x-razorpay-signature"];
+  const generatedSignature = crypto
+    .createHmac("sha256", secret)
+    .update(JSON.stringify(req.body))
+    .digest("hex");
+
+  if (generatedSignature !== receivedSignature) {
+    return res.status(400).send("Invalid signature");
+  }
+
+  const event = req.body.event;
+  const paymentData = req.body.payload.payment
+    ? req.body.payload.payment.entity
+    : null;
+  const subscriptionData = req.body.payload.subscription
+    ? req.body.payload.subscription.entity
+    : null;
+  const userPhone = paymentData
+    ? paymentData.contact.replace(/^\+/, "") // Remove leading `+` // Remove leading `+`
+    : subscriptionData
+    ? subscriptionData.notes = (subscriptionData.notes || "").toString().replace(/^\+/, "")
+    : null;
+  const amount = paymentData
+    ? paymentData.amount / 100
+    : subscriptionData
+    ? subscriptionData.notes.amount / 100
+    : null; // Convert paise to rupees
+
+  if (!userPhone) {
+    return res.status(400).send("User phone number missing");
+  }
+
+  try {
+  if (event === "subscription.charged") {
       // Handle successful subscription charge
       const user = await User.findOneAndUpdate(
         { phone: userPhone },
@@ -242,7 +334,8 @@ router.post("/payment-success", async (req, res) => {
       const subscrptionStartDatee = user.subscriptionStartDate;
       const nextremdate = user.nextReminderDate;
       user.subscriptionPaymentStatus = true;
- await user.save();
+      await user.save();
+      
       const successMessage = {
         text: `Subscription done . Thank you for continuing with our service!`,
       };
@@ -250,7 +343,7 @@ router.post("/payment-success", async (req, res) => {
 
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminSuccessMessage = {
-        text: `✅ Payment received!\n User with ID: ${userId} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of:\n ₹${amount} for subscription ${subscriptionId}.\n Its Next Remainder Date is ${nextremdate}\n`,
+        text: `✅ Payment received!\n User with payment ID : ${paymentData.id} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${amount} for subscription ${subscriptionData.id}.\n Its Next Remainder Date is ${nextremdate}\n`,
       };
       await sendMessage(adminPhone, adminSuccessMessage);
       return res.status(200).send("sub charged");
