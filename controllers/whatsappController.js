@@ -745,10 +745,10 @@ exports.receiveMessage = async (req, res) => {
             const msg = {
               text: `📦 Your current plan is: ${
                 user.subscriptionType
-              } Ghee with a quantity of ${user.subscriptionQuantity}.\n
+              } Ghee with a quantity of ${(user.subscriptionQuantity)*500} ml.\n
             Started on: ${user.subscriptionStartDate.toDateString()}\n
             Scheduled delivery: ${deliveryDate.toDateString()}\n
-            Total amount: $${user.subscriptionAmount}`,
+            Total amount: ₹${user.subscriptionAmount}`,
               buttons: [
                 { id: "edit_date", title: "Edit Date" },
                 { id: "edit_quantity", title: "Edit Qty" },
