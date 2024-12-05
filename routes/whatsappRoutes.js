@@ -168,13 +168,13 @@ router.post("/payment-success", async (req, res) => {
   const userPhone = paymentData
     ? paymentData.contact.replace(/^\+/, "") // Remove leading `+` // Remove leading `+`
     : subscriptionData
-    ? subscriptionData.notes = (subscriptionData.notes || "").toString().replace(/^\+/, "")
-    : null;
+      ? subscriptionData.notes = (subscriptionData.notes || "").toString().replace(/^\+/, "")
+      : null;
   const amount = paymentData
     ? paymentData.amount / 100
     : subscriptionData
-    ? subscriptionData.notes.amount / 100
-    : null; // Convert paise to rupees
+      ? subscriptionData.notes.amount / 100
+      : null; // Convert paise to rupees
 
   if (!userPhone) {
     return res.status(400).send("User phone number missing");
@@ -245,7 +245,7 @@ router.post("/payment-success", async (req, res) => {
     //   const nextremdate = user.nextReminderDate;
     //   user.subscriptionPaymentStatus = true;
     //   await user.save();
-      
+
     //   const successMessage = {
     //     text: `Subscription done . Thank you for continuing with our service!`,
     //   };
@@ -309,20 +309,20 @@ router.post("/sub-success", async (req, res) => {
   const userPhone = paymentData
     ? paymentData.contact.replace(/^\+/, "") // Remove leading `+` // Remove leading `+`
     : subscriptionData
-    ? subscriptionData.notes = (subscriptionData.notes || "").toString().replace(/^\+/, "")
-    : null;
+      ? subscriptionData.notes = (subscriptionData.notes || "").toString().replace(/^\+/, "")
+      : null;
   const amount = paymentData
     ? paymentData.amount / 100
     : subscriptionData
-    ? subscriptionData.notes.amount / 100
-    : null; // Convert paise to rupees
+      ? subscriptionData.notes.amount / 100
+      : null; // Convert paise to rupees
 
   if (!userPhone) {
     return res.status(400).send("User phone number missing");
   }
 
   try {
-  if (event === "subscription.charged") {
+    if (event === "subscription.charged") {
       // Handle successful subscription charge
       const user = await User.findOneAndUpdate(
         { phone: userPhone },
@@ -335,7 +335,7 @@ router.post("/sub-success", async (req, res) => {
       const nextremdate = user.nextReminderDate;
       user.subscriptionPaymentStatus = true;
       await user.save();
-      
+
       const successMessage = {
         text: `Subscription done . Thank you for continuing with our service!`,
       };
@@ -352,6 +352,10 @@ router.post("/sub-success", async (req, res) => {
       const failureReason = paymentData
         ? paymentData.error_description
         : "Payment failure during subscription renewal";
+
+      const user = await User.findOne({ phone: userPhone })
+      user.subscriptionPaymentStatus = false;
+      await user.save();
 
       // Send failure message to user
       const failureMessage = {
