@@ -340,6 +340,7 @@ exports.receiveMessage = async (req, res) => {
               user.subscription = false;
               user.subscriptionId = "";
               user.planId = "";
+              user.subscriptionPaymentStatus = false;
               return await user.save();
             } catch (error) {}
           } else {
@@ -418,11 +419,6 @@ exports.receiveMessage = async (req, res) => {
             state.useredit = "awaiting_edit_quantity";
             return await state.save();
           } else if (buttonId === "cancel_subscription") {
-            const msg = {
-              text: "⚠️ Are you sure you want to confirm your cancellation?",
-            };
-
-            await sendMessage(userPhone, msg);
             const message = {
               text: "❗ Are you sure you want to cancel your subscription?",
               buttons: [
