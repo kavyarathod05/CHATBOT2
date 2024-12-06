@@ -260,15 +260,13 @@ exports.receiveMessage = async (req, res) => {
         }
         const user = await User.findOneAndUpdate(
           { phone: userPhone }, // Filter: find user by phone number
-          { subscriptionQuantity: newQuantity }, // Update: set the new address value
+          { subscriptionQuantity: newQuantity/500 }, // Update: set the new address value
           { new: true } // Option to return the updated user document
         );
         //   const user = await User.findOne({ phone: userPhone });
 
         if (user) {
           // Update the date in your database
-          user.subscriptionQuantity = newQuantity;
-          await user.save();
           const subscriptionDate = user.subscriptionStartDate;
       
           try {
