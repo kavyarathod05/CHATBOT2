@@ -163,10 +163,10 @@ exports.receiveMessage = async (req, res) => {
         return await state.save();
       }
       if (state.useredit === "awaiting_edit_date") {
-        const subscriptionDate = new Date(messageText);
+        const newDeliveryDate = new Date(messageText);
 
         // Validate the date format
-        if (isNaN(subscriptionDate.getTime())) {
+        if (isNaN(newDeliveryDate.getTime())) {
           const errorMessage = {
             text: "Please enter a valid date (e.g., YYYY-MM-DD).",
           };
@@ -178,44 +178,43 @@ exports.receiveMessage = async (req, res) => {
 
         if (user) {
           // Update the date in your database
-          user.subscriptionStartDate = subscriptionDate;
+          user.deliveryDate = newDeliveryDate;
           await user.save();
 
           try {
-            // Step 1: Cancel the old subscription if it exists
-            if (user.subscriptionId) {
-              await razorpayInstance.subscriptions.cancel(user.subscriptionId);
-            }
+            // // Step 1: Cancel the old subscription if it exists
+            // if (user.subscriptionId) {
+            //   await razorpayInstance.subscriptions.cancel(user.subscriptionId);
+            // }
 
-            // Step 2: Create a new subscription with the updated date
-            const newSubscription = await razorpayInstance.subscriptions.create(
-              {
-                plan_id: user.planId, // Use the existing plan ID from the user data
-                customer_notify: 1,
-                total_count: 12, // Example: 12-month subscription
-                quantity: user.amountMultiplier / 500, // Adjust based on user data
-                start_at: Math.floor(subscriptionDate.getTime() / 1000), // UNIX timestamp
-                notes: {
-                  phone: user.phone,
-                  description: "Subscription with updated start date",
-                },
-              }
-            );
+            // // Step 2: Create a new subscription with the updated date
+            // const newSubscription = await razorpayInstance.subscriptions.create(
+            //   {
+            //     plan_id: user.planId, // Use the existing plan ID from the user data
+            //     customer_notify: 1,
+            //     total_count: 12, // Example: 12-month subscription
+            //     quantity: user.amountMultiplier / 500, // Adjust based on user data
+            //     start_at: Math.floor(subscriptionDate.getTime() / 1000), // UNIX timestamp
+            //     notes: {
+            //       phone: user.phone,
+            //       description: "Subscription with updated start date",
+            //     },
+            //   }
+            // );
 
-            // Save the new subscription ID in the user's document
-            user.subscriptionId = newSubscription.id;
-            await user.save();
+            // // Save the new subscription ID in the user's document
+            // user.subscriptionId = newSubscription.id;
+            // await user.save();
 
             // Step 3: Confirm success
             const message = {
               text: `🎉 Your subscription has been successfully updated!\n 
-              Your new start date is ${subscriptionDate.toDateString()}.\n
-              Complete your payment here: [${newSubscription.short_url}] 💳`,
+              Your new start date is ${newDeliveryDate.toDateString()}.`,
             };
             return await sendMessage(userPhone, message);
           } catch (error) {
             const errorMessage = {
-              text: "❌ Subscription update failed.\nPlease try again later. 🙏",
+              text: "❌ Date update failed.\nPlease try again later. 🙏",
             };
             return await sendMessage(userPhone, errorMessage);
           }
