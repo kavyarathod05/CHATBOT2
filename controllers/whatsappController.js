@@ -270,21 +270,25 @@ exports.receiveMessage = async (req, res) => {
           user.subscriptionQuantity = newQuantity;
           await user.save();
           const subscriptionDate = user.subscriptionStartDate;
-
+      
           try {
             // Step 1: Cancel the old subscription if it exists
             if (user.subscriptionId) {
               await razorpayInstance.subscriptions.cancel(user.subscriptionId);
             }
-
+            if(user.planId){
+             console.log(user.planId);
+              
+            }
+             
             // Step 2: Create a new subscription with the updated date
             const newSubscription = await razorpayInstance.subscriptions.create(
               {
                 plan_id: user.planId, // Use the existing plan ID from the user data
                 customer_notify: 1,
                 total_count: 12, // Example: 12-month subscription
-                quantity: newQuantity / 500, // Adjust based on user data
-                start_at: Math.floor(subscriptionDate.getTime() / 1000), // UNIX timestamp
+                 quantity: newQuantity / 500, // Adjust based on user data
+             //   start_at: Math.floor(subscriptionDate.getTime() / 1000), // UNIX timestamp
                 notes: {
                   phone: user.phone,
                   description: "Subscription with updated start date",
@@ -307,6 +311,8 @@ exports.receiveMessage = async (req, res) => {
             const errorMessage = {
               text: "❌ Failed to update the quantity.\nPlease try again later.",
             };
+            console.log(error);
+            
             return await sendMessage(userPhone, errorMessage);
           }
         } else {
