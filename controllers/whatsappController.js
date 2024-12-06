@@ -166,13 +166,13 @@ exports.receiveMessage = async (req, res) => {
         const newDeliveryDate = new Date(messageText);
 
         // Validate the date format
-        if (isNaN(newDeliveryDate.getTime())) {
+        if (isNaN(newDeliveryDate.getTime()) || newDeliveryDate < new Date().setHours(0, 0, 0, 0)) {
           const errorMessage = {
-            text: "Please enter a valid date (e.g., YYYY-MM-DD).",
+              text: "🚫 Please enter a valid future date (e.g., YYYY-MM-DD).",
           };
           return await sendMessage(userPhone, errorMessage);
-          // Return here to stop further processing if date is invalid
-        }
+      }
+      
 
         const user = await User.findOne({ phone: userPhone });
 
@@ -275,10 +275,6 @@ exports.receiveMessage = async (req, res) => {
             // Step 1: Cancel the old subscription if it exists
             if (user.subscriptionId) {
               await razorpayInstance.subscriptions.cancel(user.subscriptionId);
-            }
-            if(user.planId){
-             console.log(user.planId);
-              
             }
              
             // Step 2: Create a new subscription with the updated date
@@ -750,10 +746,10 @@ exports.receiveMessage = async (req, res) => {
             const msg = {
               text: `📦 Your current plan is: ${
                 user.subscriptionType
-              } Ghee with a quantity of ${user.subscriptionQuantity}.\n
+              } Ghee with a quantity of ${(user.subscriptionQuantity)*500}ml.\n
             Started on: ${user.subscriptionStartDate.toDateString()}\n
             Scheduled delivery: ${deliveryDate.toDateString()}\n
-            Total amount: $${user.subscriptionAmount}`,
+            Total amount: ₹ ${user.subscriptionAmount}`,
               buttons: [
                 { id: "edit_date", title: "Edit Date" },
                 { id: "edit_quantity", title: "Edit Qty" },
