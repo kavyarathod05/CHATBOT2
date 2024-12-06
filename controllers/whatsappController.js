@@ -208,8 +208,8 @@ exports.receiveMessage = async (req, res) => {
 
             // Step 3: Confirm success
             const message = {
-              text: `🎉 Your subscription has been successfully updated!\n 
-              Your new start date is ${newDeliveryDate.toDateString()}.`,
+              text: `🎉 Delivery Date Of your Order has been successfully updated!\n 
+              Your new Delivery date is ${newDeliveryDate.toDateString()}.`,
             };
             return await sendMessage(userPhone, message);
           } catch (error) {
