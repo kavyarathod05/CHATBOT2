@@ -166,13 +166,15 @@ exports.receiveMessage = async (req, res) => {
         const newDeliveryDate = new Date(messageText);
 
         // Validate the date format
-        if (isNaN(newDeliveryDate.getTime())) {
+
+        if (isNaN(newDeliveryDate.getTime()) || newDeliveryDate < new Date().setHours(0, 0, 0, 0)) {
+
           const errorMessage = {
-            text: "Please enter a valid date (e.g., YYYY-MM-DD).",
+              text: "🚫 Please enter a valid future date (e.g., YYYY-MM-DD).",
           };
           return await sendMessage(userPhone, errorMessage);
-          // Return here to stop further processing if date is invalid
-        }
+      }
+      
 
         const user = await User.findOne({ phone: userPhone });
 
@@ -209,7 +211,7 @@ exports.receiveMessage = async (req, res) => {
             // Step 3: Confirm success
             const message = {
               text: `🎉 Delivery Date Of your Order has been successfully updated!\n 
-              Your new Delivery date is ${newDeliveryDate.toDateString()}.`,
+              Your new Delivery date is ${user.deliveryDate.toDateString()}.`,
             };
             return await sendMessage(userPhone, message);
           } catch (error) {
@@ -260,31 +262,29 @@ exports.receiveMessage = async (req, res) => {
         }
         const user = await User.findOneAndUpdate(
           { phone: userPhone }, // Filter: find user by phone number
-          { quantity: newQuantity }, // Update: set the new address value
+          { subscriptionQuantity: newQuantity/500 }, // Update: set the new address value
           { new: true } // Option to return the updated user document
         );
         //   const user = await User.findOne({ phone: userPhone });
 
         if (user) {
           // Update the date in your database
-          user.userOrderQuantity = newQuantity;
-          await user.save();
           const subscriptionDate = user.subscriptionStartDate;
-
+      
           try {
             // Step 1: Cancel the old subscription if it exists
             if (user.subscriptionId) {
               await razorpayInstance.subscriptions.cancel(user.subscriptionId);
             }
-
+             
             // Step 2: Create a new subscription with the updated date
             const newSubscription = await razorpayInstance.subscriptions.create(
               {
                 plan_id: user.planId, // Use the existing plan ID from the user data
                 customer_notify: 1,
                 total_count: 12, // Example: 12-month subscription
-                quantity: newQuantity / 500, // Adjust based on user data
-                start_at: Math.floor(subscriptionDate.getTime() / 1000), // UNIX timestamp
+                 quantity: newQuantity / 500, // Adjust based on user data
+             //   start_at: Math.floor(subscriptionDate.getTime() / 1000), // UNIX timestamp
                 notes: {
                   phone: user.phone,
                   description: "Subscription with updated start date",
@@ -307,6 +307,8 @@ exports.receiveMessage = async (req, res) => {
             const errorMessage = {
               text: "❌ Failed to update the quantity.\nPlease try again later.",
             };
+            console.log(error);
+            
             return await sendMessage(userPhone, errorMessage);
           }
         } else {
@@ -744,10 +746,10 @@ exports.receiveMessage = async (req, res) => {
             const msg = {
               text: `📦 Your current plan is: ${
                 user.subscriptionType
-              } Ghee with a quantity of ${user.subscriptionQuantity}.\n
+              } Ghee with a quantity of ${(user.subscriptionQuantity)*500}ml.\n
             Started on: ${user.subscriptionStartDate.toDateString()}\n
             Scheduled delivery: ${deliveryDate.toDateString()}\n
-            Total amount: $${user.subscriptionAmount}`,
+            Total amount: ₹ ${user.subscriptionAmount}`,
               buttons: [
                 { id: "edit_date", title: "Edit Date" },
                 { id: "edit_quantity", title: "Edit Qty" },
