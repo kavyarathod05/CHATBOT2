@@ -166,7 +166,9 @@ exports.receiveMessage = async (req, res) => {
         const newDeliveryDate = new Date(messageText);
 
         // Validate the date format
+
         if (isNaN(newDeliveryDate.getTime()) || newDeliveryDate < new Date().setHours(0, 0, 0, 0)) {
+
           const errorMessage = {
               text: "🚫 Please enter a valid future date (e.g., YYYY-MM-DD).",
           };
