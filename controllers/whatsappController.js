@@ -308,7 +308,10 @@ exports.receiveMessage = async (req, res) => {
               text: "❌ Failed to update the quantity.\nPlease try again later.",
             };
             console.log(error);
+<<<<<<< Updated upstream
             
+=======
+>>>>>>> Stashed changes
             return await sendMessage(userPhone, errorMessage);
           }
         } else {
