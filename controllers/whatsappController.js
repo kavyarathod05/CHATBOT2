@@ -89,24 +89,29 @@ exports.receiveMessage = async (req, res) => {
 
         // Construct the welcome message text
         const welcomeText =
-          "👋 Hello! Welcome to Nani's Bilona Ghee. How can we help you today? 😊";
+          "💛 Welcome to Nani's Bilona Ghee! ";
 
         // URL for the welcome image
         const imageUrl =
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQXaekK87HoROClCOCn3UAEwvmxcHSOdTKqg&s"; // Replace with your image URL
-          const videoUrl = "https://rnfsl-117-250-157-213.a.free.pinggy.link/video/kj.mp4"; // Use the correct path served by Express
+          // "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQXaekK87HoROClCOCn3UAEwvmxcHSOdTKqg&s"; // Replace with your image URL
+          "https://i.ibb.co/KL0fmWL/2.jpg";
+          const videoUrl ="https://www.nanibilonaghee.com/videos/sahiwal.mp4"; // Use the correct path served by Express
           // Message content to send to the user
-        const messageData = {
-          text: welcomeText,
-          media: [
-            {
-              type: "image", // Image type for media
-              url: imageUrl, // Image URL to be sent
+        // const messageData = {
+        //   text: welcomeText,
+        //   media: [
+        //     {
+        //       type: "image", // Image type for media
+        //       url: imageUrl, // Image URL to be sent
             
-            },
+        //     },
          
 
-          ],
+        //   ],
+        //   buttons: [{ id: "help", title: "Need Help!" }],
+        // };
+        const messageData = {
+          text: welcomeText,
           buttons: [{ id: "help", title: "Need Help!" }],
         };
         const msg={
@@ -121,8 +126,7 @@ exports.receiveMessage = async (req, res) => {
 
         // Send the message and handle potential errors
         try {
-          await sendMessage(userPhone, msg);
-
+          //await sendMessage(userPhone, msg);
           await sendMessage(userPhone, messageData);
           return res.status(200); // Return response if needed for further processing
         } catch (error) {
@@ -136,8 +140,8 @@ exports.receiveMessage = async (req, res) => {
         await state.save();
         await user.save();
         const message = {
-          text: `Hello ${user.name}!! Click to continue 😊`,
-          buttons: [{ id: "help", title: "Continue" }],
+          text: `We’re so happy to have you with us! 💛 Nani is excited to share the purest ghee with you`,
+          buttons: [{ id: "help", title: "Get started!" }],
         };
         return await sendMessage(userPhone, message);
       }
@@ -308,10 +312,8 @@ exports.receiveMessage = async (req, res) => {
               text: "❌ Failed to update the quantity.\nPlease try again later.",
             };
             console.log(error);
-<<<<<<< Updated upstream
             
-=======
->>>>>>> Stashed changes
+
             return await sendMessage(userPhone, errorMessage);
           }
         } else {
@@ -368,11 +370,12 @@ exports.receiveMessage = async (req, res) => {
             const user = await User.findOne({ phone: userPhone });
 
             const message1 = {
-              text: `Hello ${user.name}! 👋 How can we assist you today?`,
+              text: `Hey ${user.name}! 😊 We’re so happy to have you with us! 💛 Nani is excited to share the purest ghee with you
+`,
               buttons: [
-                { id: "buy_ghee", title: "Order Ghee" },
+                { id: "buy_ghee", title: "Order Your Ghee" },
                 { id: "customer_support", title: "Help & Support" },
-                { id: "know_about_us", title: "B2B Services" },
+                { id: "know_about_us", title: "Meet Nani’s Legacy" },
               ],
             };
 
@@ -382,7 +385,7 @@ exports.receiveMessage = async (req, res) => {
             };
 
             const message3 = {
-              text: "Please enter your name to continue. 😊",
+              text: "Hey there! 😊 Could you share your name with us to get started? 💛",
             };
 
             // Send the messages sequentially
@@ -454,15 +457,17 @@ exports.receiveMessage = async (req, res) => {
             return await state.save();
           } else if (buttonId === "ghee_prep") {
             const msg = {
-              text: "Videos",
+
+              text: `At Nani's Bilona Ghee, we use the finest A2 hormone-free milk from Sahiwal cows, known for their strength and high-quality milk. 🐄 We follow the traditional Ayurvedic Bilona method to churn curd into rich butter (makhan), which is carefully heated to create pure, golden ghee. 🌟 Experience the richness and authenticity of our ghee, made with love and tradition. 💛 \n Video:https://www.youtube.com/watch?v=WBI_MhkNVKA&ab_channel=nani%27sbilonaghee`,
+
             };
             await sendMessage(userPhone, msg);
             const buttonMessage = {
-              text: "✨ Click below to continue and get started!",
+              text: "✨ Click here to go back",
               buttons: [
                 {
                   id: "help",
-                  title: "Continue",
+                  title: "🔙",
                 },
               ],
             };
@@ -470,7 +475,7 @@ exports.receiveMessage = async (req, res) => {
             return await sendMessage(userPhone, buttonMessage);
           } else if (buttonId === "faq") {
             const msg1 = {
-              text: "faq",
+              text: '*Q1: What makes Nani’s Bilona Ghee different from other ghee brands?* \n *Ans*: Nani’s Bilona Ghee is made using the traditional Ayurvedic Bilona method with A2 hormone-free milk from Sahiwal cows. 🐄 This ensures purity, rich flavor, and maximum health benefits, preserving the authenticity and love of homemade ghee. 🌟\n\n *Q2: What are the health benefits of consuming Bilona ghee?*\n *Ans*: Bilona ghee is rich in vitamins A, D, E, and K, boosts immunity, aids digestion, and supports brain health. 🧠 It’s also lactose-free and keto-friendly, making it ideal for a balanced lifestyle. 🏋️‍♀️\n\n *Q3: Is Nani’s Bilona Ghee certified for quality?* \n *Ans*: Yes, our ghee is made in a certified facility, ensuring the highest standards of purity and quality. 🌼 Taste the assurance of goodness with every spoonful. Order now! 🛒',
             };
 
             await sendMessage(userPhone, msg1);
@@ -479,7 +484,7 @@ exports.receiveMessage = async (req, res) => {
               buttons: [
                 {
                   id: "help",
-                  title: "Continue",
+                  title: "🔙 ",
                 },
               ],
             };
@@ -494,7 +499,7 @@ exports.receiveMessage = async (req, res) => {
               buttons: [
                 {
                   id: "help",
-                  title: "Continue",
+                  title: "🔙 ",
                 },
               ],
             };
@@ -556,8 +561,8 @@ exports.receiveMessage = async (req, res) => {
             }
             return await sendMessage(userPhone, message);
           } else if (buttonId.includes("_A2")) {
-            let amount = 350;
-            if (buttonId === "small_A2") amount *= 500;
+            let amount = 1;
+            if (buttonId === "small_A2") amount ;
             else if (buttonId === "medium_A2") amount *= 1000;
             else if (buttonId === "large_A2") amount *= 2000;
             else if (buttonId === "plan_A2") {
@@ -1105,9 +1110,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
 
     // Send subscription confirmation message to the user
     const message = {
-      text: `You have now subscribed to Our Monthly Plan of A2 Cow Ghee. 🎉\n\nYour subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${
-        user.address
-      } 📦\n\nYour first delivery is expected on or around ${user.deliveryDate.toDateString()}.\n\nPlease complete your payment here to activate: ${
+      text: `You have now subscribed to Our Monthly Plan of A2 Cow Ghee. 🎉\n\nYour subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${user.address} 📦\n\nYour first delivery is expected on or around ${user.deliveryDate.toDateString()}.\n\nPlease complete your payment here to activate: ${
         subscription.short_url
       } 💳`,
     };

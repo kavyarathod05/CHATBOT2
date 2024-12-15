@@ -12,7 +12,7 @@ exports.handleBuyGhee = async (userPhone) => {
       },
       {
         id: "buffalo",
-        title: "Buffalo Ghee"
+        title: "Indian Buffalo Ghee"
       }
     ]
   };
@@ -24,22 +24,23 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
   // Handle A2_ghee selection
   if (buttonId === "A2_ghee") {
     const quantityMessage = {
-      text: "🎉 You selected A2 Cow Ghee! Please choose the quantity you'd like to purchase:",
+      text: "🎉 You selected A2 Cow Ghee! Please choose the quantity you'd like to purchase:\n Delivery Fee applicable:\n Below Orders of 3L ₹150\n Orders above 3L ₹250",
       buttons: [
         {
           id: "small_A2",
-          title: "Small (500g)"
+          title: "500ml-₹899"
         },
         {
           id: "medium_A2",
-          title: "Medium (1kg)"
+          title: "1L-₹1699"
         },
         {
           id: "large_A2",
-          title: "Large (2kg)"
+          title: "5L-₹8250"
         },
       ]
     };
+    
     const customOrderMessage = {
       text: "✍️ If you'd like to order a custom quantity, please select this option:",
       buttons: [
@@ -70,23 +71,24 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
   // Handle buffalo selection
   if (buttonId === "buffalo") {
     const quantityMessage = {
-      text: "🎉 You selected Buffalo Ghee! Please choose the quantity you'd like to purchase:",
+      text: "🎉 You selected Buffalo Ghee! Please choose the quantity you'd like to purchase: \n Delivery Fee applicable:\n Below Orders of 3L ₹150\n Orders above 3L ₹250",
       buttons: [
         {
           id: "small_buffalo",
-          title: "Small (500g)"
+          title: "500ml- ₹799"
         },
         {
           id: "medium_buffalo",
-          title: "Medium (1kg)"
+          title: "1L-₹1499"
         },
         {
           id: "large_buffalo",
-          title: "Large (2kg)"
+          title: "5L-₹7250"
         }
       ],
       
     };
+
     const customOrderMessage = {
       text: "✍️ If you'd like to order a custom quantity, please select this option:",
       buttons: [
@@ -102,7 +104,7 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
       buttons: [
         {
           id: "plan_buffalo",
-          title: "subscribe"
+          title: "Monthly Plan"
         },
       ]
     }
@@ -119,11 +121,17 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
 
 exports.handleCustomerSupport = async (userPhone) => {
 
+  const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; 
+  
+  const adminMessage = {
+    text: `Customer Support required for : ${userPhone}.`,
+  };
+
+
   // Send initial support message
   const supportMessage = {
     text: "💬 Our support team is here to assist you. We will contact you within 24 hours."
   };
-  await sendMessage(userPhone, supportMessage);
 
   // Send button options for support
   const buttonMessage = {
@@ -135,6 +143,9 @@ exports.handleCustomerSupport = async (userPhone) => {
       }
     ]
   };
+
+  await sendMessage(adminPhone, adminMessage);
+  await sendMessage(userPhone, supportMessage);
   return await sendMessage(userPhone, buttonMessage);
   
 };
@@ -143,18 +154,22 @@ exports.handleCustomerSupport = async (userPhone) => {
 // Handle B2B selection
 exports.handleknowaboutus = async (userPhone) => {
   const b2bMessage = {
-    text: "🔍 Learn more about Nani Bilona Ghee and our processes:",
-    buttons:[
-      {id: "ghee_prep", title: "ghee is prepared"},
-      {id:"faq", title:"FAQs"},
-      {id:"contact", title:"Contact Us"},
+    text: `Growing up in the peaceful *village* of Pilimandhopri, Haryana, my fondest memories are from my nani’s kitchen. 🍽️ Her churma, made with love and homemade cow ghee, was always the highlight of family visits. 🐄
+  As I grew older, I realized the incredible health benefits of ghee and its importance in our culture. 🌟 Inspired by my childhood and nani's wisdom, I created Nani’s Bilona Ghee to share the purity and love of her kitchen with the world.
+  At Nani's Bilona Ghee, we promise to preserve tradition, promote wellness, and deliver only the highest quality ghee. 🌼 Join us in this delicious journey! 🧑‍🍳
+  – Amandeep Sigar, Founder of Nani’s Bilona Ghee`,
+    buttons: [
+      { id: "ghee_prep", title: "Ghee making" },
+      { id: "faq", title: "FAQs" },
+      // { id: "contact", title: "Contact Us" }
     ]
   };
+  
   await sendMessage(userPhone, b2bMessage);
   const msg={
     text: "👉 Press below to continue:",
     buttons:[
-      {id:"helpp", title:"continue"}
+      {id:"helpp", title:"Continue"}
     ]
   }
   return await sendMessage(userPhone, msg);
@@ -166,24 +181,24 @@ exports.handleknowaboutus = async (userPhone) => {
 exports.handleBuyGheePlanQuantity = async(userPhone,buttonId) => {
   if (buttonId === "plan_A2") {
     const quantityMessage = {
-      text: "🎉 You selected A2 Cow Ghee! Please choose the quantity you'd like to purchase:",
+      text: "🎉 You've made a great choice with A2 Cow Ghee! 🌟 Now, select the quantity you'd like to purchase—*NO delivery charges applied!* 🚚",
       buttons: [
         {
           id: "small_planA2",
-          title: "Small (500g)"
+          title: `500ml 1̶0̶4̶9̶ ₹854`
         },
         {
           id: "medium_planA2",
-          title: "Medium (1kg)"
+          title: `1L 1̶8̶4̶9̶ ₹1788`
         },
         {
           id: "large_planA2",
-          title: "Large (2kg)"
+          title: `5L 8̶5̶0̶0̶ ₹7837`
         },
       ]
     };
     const customOrderMessage = {
-      text: "✍️ If you'd like to order a custom quantity, please select this option:",
+      text: "✍️ If you'd like to order a custom quantity, please select this option: ",
       buttons: [
         {
           id: "custom_planA2",
@@ -202,19 +217,19 @@ exports.handleBuyGheePlanQuantity = async(userPhone,buttonId) => {
   // Handle buffalo selection
   if (buttonId === "plan_buffalo") {
     const quantityMessage = {
-      text: "🎉 You selected Buffalo Ghee! Please choose the quantity you'd like to purchase:",
+      text: "🎉 You've made a great choice with Indian Buffalo Ghee! 🌟 Now, select the quantity you'd like to purchase—*NO delivery charges applied!* 🚚",
       buttons: [
         {
           id: "small_planbuffalo",
-          title: "Small (500g)"
+          title: "500ml 9̶4̶9̶ ₹759"
         },
         {
           id: "medium_planbuffalo",
-          title: "Medium (1kg)"
+          title: "1L 1̶6̶4̶9̶ ₹1424"
         },
         {
           id: "large_planbuffalo",
-          title: "Large (2kg)"
+          title: "5L 7̶5̶0̶0̶ ₹6887"
         }
       ],
       
