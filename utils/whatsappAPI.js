@@ -59,7 +59,7 @@ exports.sendMessage = async (phone, content) => {
         interactive: {
           type: 'button',
           body: {
-            text: content.buttons.text ,  // Default text if none provided
+            text: content.buttons.text || 'Choose an option below:',  // Default text if none provided
           },
           action: {
             buttons: content.buttons.map((button) => ({

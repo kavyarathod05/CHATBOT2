@@ -183,6 +183,7 @@ router.post("/payment-success", async (req, res) => {
   try {
     if (event === "payment.captured") {
       // Handle successful one-time payment
+      const { name, address } = user;
       const user = await User.findOneAndUpdate(
         { phone: userPhone },
         { userOrderPaymentID: paymentData.id }, // Store the successful payment ID
@@ -201,14 +202,14 @@ router.post("/payment-success", async (req, res) => {
 
       // Send success message to user
       const successMessage = {
-        text: `Payment successful! Thank you for your purchase of ₹${amount}.`,
-      };
+        text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your purchase! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* Nani's Bilona Ghee\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Delivery Info:*\nYour order will be delivered within **4-5 business days**. 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n✨ Stay healthy, stay happy! ✨`,      };
       await sendMessage(userPhone, successMessage);
 
       //Send success message to admin
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminSuccessMessage = {
-        text: `Payment successful for ${userPhone}. Payment ID: ${paymentData.id}.`,
+        text: `✅ *Payment Alert!*\n\n📞 *Customer Phone:* ${userPhone}\n💳 *Amount Paid:* ₹${amount}\n🛍️ *Item:* Nani's Bilona Ghee\n📍 *Delivery Address:* ${address}\n\n📦 Order will be delivered within 4-5 business days.\n\n✨ *Payment ID:* ${paymentData.id}\n\n💼 Please process the order promptly.`
+
       };
       await sendMessage(adminPhone, adminSuccessMessage);
 
@@ -216,17 +217,18 @@ router.post("/payment-success", async (req, res) => {
     } else if (event === "payment.failed") {
       // Handle failed one-time payment
       const failureReason = paymentData.error_description || "Unknown error";
-
+      const user= User.findOne({phone:userPhone});
+      const address= user;
       // Send failure message to user
       const failureMessage = {
-        text: `Payment failed for ₹${amount}. Please try again. Reason: ${failureReason}`,
+        text: `❌ *Payment Failed* ❌\n\nHi *${name}*,\n\nWe regret to inform you that your payment of ₹${amount} could not be processed. 😔\n\n📜 *Order Summary:*\n🛍️ *Item:* Nani's Bilona Ghee\n📍 *Delivery Address:* ${address}\n⚠️ *Reason:* ${failureReason}\n\n🔄 You can retry the payment or contact us for assistance.\n\n💛 We're here to help you enjoy the goodness of Nani's Bilona Ghee! 🌟`,
       };
       await sendMessage(userPhone, failureMessage);
 
       // Notify the admin of the payment failure
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminMessage = {
-        text: `Alert: Payment of ₹${amount} failed for ${userPhone}. Reason: ${failureReason}`,
+        text: `❌ *Payment Failure Alert!*\n\n📞 *Customer Phone:* ${userPhone}\n💳 *Attempted Amount:* ₹${amount}\n📦 *Delivery Address:* ${address}\n⚠️ *Failure Reason:* ${failureReason}\n\n💼 *Payment ID:* ${paymentData.id}\n\nPlease review and follow up with the customer for resolution.`,
       };
       await sendMessage(adminPhone, adminMessage);
 
@@ -337,13 +339,13 @@ router.post("/sub-success", async (req, res) => {
       await user.save();
 
       const successMessage = {
-        text: `Subscription done . Thank you for continuing with our service!`,
+        text: `✅✅ *Payment Received!* 🎉\n\n📄 *Payment Details:*\n——————————————\n💳 *📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${subscrptionStartDatee}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${amount}\n\n🔔 *Next Reminder Date:* ${nextremdate}\n\n🛍️ Thank you for processing this payment for *Subscription ID:* ${subscriptionData.id}.\n——————————————\n✨ Please ensure smooth handling of the subscription.`,
       };
       await sendMessage(userPhone, successMessage);
 
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminSuccessMessage = {
-        text: `✅ Payment received!\n User with payment ID : ${paymentData.id} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${amount} for subscription ${subscriptionData.id}.\n Its Next Remainder Date is ${nextremdate}\n`,
+        text: `✅✅ Payment received!\n User with payment ID : ${paymentData.id} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${amount} for subscription ${subscriptionData.id}.\n Its Next Remainder Date is ${nextremdate}\n`,
       };
       await sendMessage(adminPhone, adminSuccessMessage);
       return res.status(200).send("sub charged");

@@ -11,7 +11,7 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
   };
 
   // Calculate the amount by dividing by 500, then convert to paise (for Razorpay)
-  const calculatedAmount = Math.round(amountEntered / 500) * 100; // Amount in paise
+  const calculatedAmount = Math.round(amountEntered) * 100; // Amount in paise
 
   const user = await User.findOne({phone:userPhone})
   user.userOrderAmount = calculatedAmount;
