@@ -124,7 +124,6 @@ exports.handleCustomerSupport = async (userPhone) => {
   const adminMessage = {
     text: `Customer Support required for : ${userPhone}.`,
   };
-  await sendMessage(adminPhone, adminMessage);
 
 
   // Send initial support message
@@ -145,7 +144,6 @@ exports.handleCustomerSupport = async (userPhone) => {
 
   await sendMessage(adminPhone, adminMessage);
   await sendMessage(userPhone, supportMessage);
-
   return await sendMessage(userPhone, buttonMessage);
   
 };
