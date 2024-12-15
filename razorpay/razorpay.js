@@ -14,7 +14,7 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
   const calculatedAmount = Math.round(amountEntered) * 100; // Amount in paise
 
   const user = await User.findOne({phone:userPhone})
-  user.userOrderAmount = calculatedAmount;
+  user.userOrderAmount = calculatedAmount/100;
   user.save()
 
   try {

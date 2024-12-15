@@ -24,19 +24,19 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
   // Handle A2_ghee selection
   if (buttonId === "A2_ghee") {
     const quantityMessage = {
-      text: "🎉 You selected A2 Cow Ghee! Please choose the quantity you'd like to purchase:\n Delivery Fee applicable:\n Below Orders of 3L ₹150\n Orders above 3L ₹250",
+      text: "🎉 You selected A2 Cow Ghee! Please choose the quantity you'd like to purchase:\n Delivery Fee :\n ₹150 for orders upto 3L\n ₹250 for orders above 3L",
       buttons: [
         {
           id: "small_A2",
-          title: "500ml-₹899"
+          title: "500ml - ₹899 "
         },
         {
           id: "medium_A2",
-          title: "1L-₹1699"
+          title: "1L - ₹1699"
         },
         {
           id: "large_A2",
-          title: "5L-₹8250"
+          title: "5L - ₹8250"
         },
       ]
     };
@@ -71,19 +71,19 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
   // Handle buffalo selection
   if (buttonId === "buffalo") {
     const quantityMessage = {
-      text: "🎉 You selected Buffalo Ghee! Please choose the quantity you'd like to purchase: \n Delivery Fee applicable:\n Below Orders of 3L ₹150\n Orders above 3L ₹250",
+      text: "🎉 You selected Buffalo Ghee! Please choose the quantity you'd like to purchase: \n Delivery Fee :\n ₹150 for orders upto 3L\n ₹250 for orders above 3L",
       buttons: [
         {
           id: "small_buffalo",
-          title: "500ml- ₹799"
+          title: "500ml - ₹799"
         },
         {
           id: "medium_buffalo",
-          title: "1L-₹1499"
+          title: "1L - ₹1499"
         },
         {
           id: "large_buffalo",
-          title: "5L-₹7250"
+          title: "5L - ₹7250"
         }
       ],
       
@@ -100,7 +100,7 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
     };
 
     const planOrderMessage = {
-      text: "🌟 Want to subscribe to our monthly plan? Click here to know more:",
+      text: "🎉 Subscribe to our monthly plan and enjoy **5% off** + **NO delivery fee**! 🚚✨ Click here to learn more!",
       buttons: [
         {
           id: "plan_buffalo",
@@ -135,11 +135,10 @@ exports.handleCustomerSupport = async (userPhone) => {
 
   // Send button options for support
   const buttonMessage = {
-    text: "👇 Please click below to continue:",
     buttons: [
       {
         id: "help",
-        title: "Continue"
+        title: "Go Back ◀"
       }
     ]
   };
@@ -167,9 +166,8 @@ exports.handleknowaboutus = async (userPhone) => {
   
   await sendMessage(userPhone, b2bMessage);
   const msg={
-    text: "👉 Press below to continue:",
     buttons:[
-      {id:"helpp", title:"Continue"}
+      {id:"helpp", title:"Go Back ◀"}
     ]
   }
   return await sendMessage(userPhone, msg);
@@ -181,19 +179,19 @@ exports.handleknowaboutus = async (userPhone) => {
 exports.handleBuyGheePlanQuantity = async(userPhone,buttonId) => {
   if (buttonId === "plan_A2") {
     const quantityMessage = {
-      text: "🎉 You've made a great choice with A2 Cow Ghee! 🌟 Now, select the quantity you'd like to purchase—*NO delivery charges applied!* 🚚",
+      text: `🎉 You've made a great choice with *A2 Cow Ghee*! 🌟\n\nSelect the quantity you'd like to purchase— *NO delivery charges applied* 🚚\n\n💡 Plus, enjoy *monthly ghee delivery* without any hustle. We've got you covered! 🛍️`,
       buttons: [
         {
           id: "small_planA2",
-          title: `500ml 1̶0̶4̶9̶ ₹854`
+          title: `500ml 1̶0̶4̶9̶  ₹854`
         },
         {
           id: "medium_planA2",
-          title: `1L 1̶8̶4̶9̶ ₹1788`
+          title: `1L 1̶8̶4̶9̶  ₹1614`
         },
         {
           id: "large_planA2",
-          title: `5L 8̶5̶0̶0̶ ₹7837`
+          title: `5L 8̶5̶0̶0̶  ₹7837`
         },
       ]
     };
@@ -217,19 +215,19 @@ exports.handleBuyGheePlanQuantity = async(userPhone,buttonId) => {
   // Handle buffalo selection
   if (buttonId === "plan_buffalo") {
     const quantityMessage = {
-      text: "🎉 You've made a great choice with Indian Buffalo Ghee! 🌟 Now, select the quantity you'd like to purchase—*NO delivery charges applied!* 🚚",
+      text: `🎉 You've made a great choice with *Indian Buffalo Ghee*! 🌟\n\nSelect the quantity you'd like to purchase— *NO delivery charges applied* 🚚\n\n💡 Plus, enjoy *monthly ghee delivery* without any hustle. We've got you covered! 🛍️`,
       buttons: [
         {
           id: "small_planbuffalo",
-          title: "500ml 9̶4̶9̶ ₹759"
+          title: "500ml 9̶4̶9̶  ₹759"
         },
         {
           id: "medium_planbuffalo",
-          title: "1L 1̶6̶4̶9̶ ₹1424"
+          title: "1L 1̶6̶4̶9̶  ₹1424"
         },
         {
           id: "large_planbuffalo",
-          title: "5L 7̶5̶0̶0̶ ₹6887"
+          title: "5L 7̶5̶0̶0̶  ₹6887"
         }
       ],
       
