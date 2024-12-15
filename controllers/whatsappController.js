@@ -1109,9 +1109,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
 
     // Send subscription confirmation message to the user
     const message = {
-      text: `You have now subscribed to Our Monthly Plan of A2 Cow Ghee. 🎉\n\nYour subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${
-        user.address
-      } 📦\n\nYour first delivery is expected on or around ${user.deliveryDate.toDateString()}.\n\nPlease complete your payment here to activate: ${
+      text: `You have now subscribed to Our Monthly Plan of A2 Cow Ghee. 🎉\n\nYour subscription will start on ${user.subscriptionStartDate.toDateString()} and will be delivered to the address: ${user.address} 📦\n\nYour first delivery is expected on or around ${user.deliveryDate.toDateString()}.\n\nPlease complete your payment here to activate: ${
         subscription.short_url
       } 💳`,
     };

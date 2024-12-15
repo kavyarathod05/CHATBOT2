@@ -143,7 +143,6 @@ router.post("/webhook", (req, res) => {
 //   }
 // });
 
-
 router.post("/payment-success", async (req, res) => {
   const secret = process.env.VERIFY_TOKEN;
 
@@ -168,13 +167,15 @@ router.post("/payment-success", async (req, res) => {
   const userPhone = paymentData
     ? paymentData.contact.replace(/^\+/, "") // Remove leading `+` // Remove leading `+`
     : subscriptionData
-      ? subscriptionData.notes = (subscriptionData.notes || "").toString().replace(/^\+/, "")
-      : null;
+    ? (subscriptionData.notes = (subscriptionData.notes || "")
+        .toString()
+        .replace(/^\+/, ""))
+    : null;
   const amount = paymentData
     ? paymentData.amount / 100
     : subscriptionData
-      ? subscriptionData.notes.amount / 100
-      : null; // Convert paise to rupees
+    ? subscriptionData.notes.amount / 100
+    : null; // Convert paise to rupees
 
   if (!userPhone) {
     return res.status(400).send("User phone number missing");
@@ -202,14 +203,14 @@ router.post("/payment-success", async (req, res) => {
 
       // Send success message to user
       const successMessage = {
-        text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your purchase! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* Nani's Bilona Ghee\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Delivery Info:*\nYour order will be delivered within **4-5 business days**. 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n✨ Stay healthy, stay happy! ✨`,      };
+        text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your purchase! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* Nani's Bilona Ghee\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Delivery Info:*\nYour order will be delivered within **4-5 business days**. 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n✨ Stay healthy, stay happy! ✨`,
+      };
       await sendMessage(userPhone, successMessage);
 
       //Send success message to admin
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminSuccessMessage = {
-        text: `✅ *Payment Alert!*\n\n📞 *Customer Phone:* ${userPhone}\n💳 *Amount Paid:* ₹${amount}\n🛍️ *Item:* Nani's Bilona Ghee\n📍 *Delivery Address:* ${address}\n\n📦 Order will be delivered within 4-5 business days.\n\n✨ *Payment ID:* ${paymentData.id}\n\n💼 Please process the order promptly.`
-
+        text: `✅ *Payment Alert!*\n\n📞 *Customer Phone:* ${userPhone}\n💳 *Amount Paid:* ₹${amount}\n🛍️ *Item:* Nani's Bilona Ghee\n📍 *Delivery Address:* ${address}\n\n📦 Order will be delivered within 4-5 business days.\n\n✨ *Payment ID:* ${paymentData.id}\n\n💼 Please process the order promptly.`,
       };
       await sendMessage(adminPhone, adminSuccessMessage);
 
@@ -217,8 +218,8 @@ router.post("/payment-success", async (req, res) => {
     } else if (event === "payment.failed") {
       // Handle failed one-time payment
       const failureReason = paymentData.error_description || "Unknown error";
-      const user= User.findOne({phone:userPhone});
-      const address= user;
+      const user = User.findOne({ phone: userPhone });
+      const {name, address}= user;
       // Send failure message to user
       const failureMessage = {
         text: `❌ *Payment Failed* ❌\n\nHi *${name}*,\n\nWe regret to inform you that your payment of ₹${amount} could not be processed. 😔\n\n📜 *Order Summary:*\n🛍️ *Item:* Nani's Bilona Ghee\n📍 *Delivery Address:* ${address}\n⚠️ *Reason:* ${failureReason}\n\n🔄 You can retry the payment or contact us for assistance.\n\n💛 We're here to help you enjoy the goodness of Nani's Bilona Ghee! 🌟`,
@@ -311,13 +312,15 @@ router.post("/sub-success", async (req, res) => {
   const userPhone = paymentData
     ? paymentData.contact.replace(/^\+/, "") // Remove leading `+` // Remove leading `+`
     : subscriptionData
-      ? subscriptionData.notes = (subscriptionData.notes || "").toString().replace(/^\+/, "")
-      : null;
+    ? (subscriptionData.notes = (subscriptionData.notes || "")
+        .toString()
+        .replace(/^\+/, ""))
+    : null;
   const amount = paymentData
     ? paymentData.amount / 100
     : subscriptionData
-      ? subscriptionData.notes.amount / 100
-      : null; // Convert paise to rupees
+    ? subscriptionData.notes.amount / 100
+    : null; // Convert paise to rupees
 
   if (!userPhone) {
     return res.status(400).send("User phone number missing");
@@ -339,7 +342,7 @@ router.post("/sub-success", async (req, res) => {
       await user.save();
 
       const successMessage = {
-        text: `✅✅ *Payment Received!* 🎉\n\n📄 *Payment Details:*\n——————————————\n💳 *📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${subscrptionStartDatee}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${amount}\n\n🔔 *Next Reminder Date:* ${nextremdate}\n\n🛍️ Thank you for processing this payment for *Subscription ID:* ${subscriptionData.id}.\n——————————————\n✨ Please ensure smooth handling of the subscription.`,
+        text: `✅✅ *Payment Received!* 🎉\n\n📄 *Payment Details:*\n——————————————\n💳 *Payment ID:* ${paymentData.id}\n📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${subscrptionStartDatee}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${amount}\n\n🔔 *Next Reminder Date:* ${nextremdate}\n\n🛍️ Thank you for processing this payment for *Subscription ID:* ${subscriptionData.id}.\n——————————————\n✨ Please ensure smooth handling of the subscription.`,
       };
       await sendMessage(userPhone, successMessage);
 
@@ -355,7 +358,7 @@ router.post("/sub-success", async (req, res) => {
         ? paymentData.error_description
         : "Payment failure during subscription renewal";
 
-      const user = await User.findOne({ phone: userPhone })
+      const user = await User.findOne({ phone: userPhone });
       user.subscriptionPaymentStatus = false;
       await user.save();
 
