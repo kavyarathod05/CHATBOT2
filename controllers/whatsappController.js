@@ -93,8 +93,9 @@ exports.receiveMessage = async (req, res) => {
 
         // URL for the welcome image
         const imageUrl =
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQXaekK87HoROClCOCn3UAEwvmxcHSOdTKqg&s"; // Replace with your image URL
-          const videoUrl = "https://rnfsl-117-250-157-213.a.free.pinggy.link/video/kj.mp4"; // Use the correct path served by Express
+          // "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQXaekK87HoROClCOCn3UAEwvmxcHSOdTKqg&s"; // Replace with your image URL
+          "https://i.ibb.co/KL0fmWL/2.jpg";
+          const videoUrl ="https://www.nanibilonaghee.com/videos/sahiwal.mp4"; // Use the correct path served by Express
           // Message content to send to the user
         const messageData = {
           text: welcomeText,
@@ -369,7 +370,7 @@ exports.receiveMessage = async (req, res) => {
               buttons: [
                 { id: "buy_ghee", title: "Order Ghee" },
                 { id: "customer_support", title: "Help & Support" },
-                { id: "know_about_us", title: "B2B Services" },
+                { id: "know_about_us", title: "About Us" },
               ],
             };
 
