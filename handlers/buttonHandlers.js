@@ -118,16 +118,19 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
 
 
 exports.handleCustomerSupport = async (userPhone) => {
+
   const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; 
+  
   const adminMessage = {
     text: `Customer Support required for : ${userPhone}.`,
   };
   await sendMessage(adminPhone, adminMessage);
+
+
   // Send initial support message
   const supportMessage = {
     text: "💬 Our support team is here to assist you. We will contact you within 24 hours."
   };
-  await sendMessage(userPhone, supportMessage);
 
   // Send button options for support
   const buttonMessage = {
@@ -139,6 +142,9 @@ exports.handleCustomerSupport = async (userPhone) => {
       }
     ]
   };
+
+  await sendMessage(adminPhone, adminMessage);
+  await sendMessage(userPhone, supportMessage);
 
   return await sendMessage(userPhone, buttonMessage);
   
