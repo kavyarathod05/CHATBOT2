@@ -74,74 +74,17 @@ router.post("/webhook", (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+router.get('/payment-done', (req, res) => {
+  const { razorpay_payment_id } = req.query;
 
-// router.get("/payment-status", async (req, res) => {
-//   const {
-//     razorpay_payment_id,
-//     razorpay_order_id,
-//     razorpay_signature,
-//     userPhone,
-//   } = req.query;
+  // Customize the WhatsApp message link
+  const whatsappNumber = "91904058161"; // Replace with your target number
+  const message = encodeURIComponent(`Thank you for your payment! Your Razorpay ID: ${razorpay_payment_id}`);
+  const whatsappRedirectURL = `https://wa.me/${whatsappNumber}?text=${message}`;
 
-//   // Validate required parameters
-//   if (!razorpay_order_id || !userPhone) {
-//     return res.status(400).send("Missing required parameters");
-//   }
-
-//   try {
-//     // Check if payment failed (i.e., no payment ID or signature provided)
-//     if (!razorpay_payment_id || !razorpay_signature) {
-//       const failureMessage = {
-//         text: `Your payment attempt was unsuccessful. Please try again or contact support if the issue persists.`,
-//       };
-//       await sendMessage(userPhone, failureMessage);
-
-//       // Notify admin of failed payment
-//       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
-//       const adminFailureMessage = {
-//         text: `Alert: Payment failed for user ${userPhone}. No payment ID was received.`,
-//       };
-//       await sendMessage(adminPhone, adminFailureMessage);
-
-//       return res.status(400).send("Payment failed");
-//     }
-
-//     // Generate signature to verify Razorpay's callback authenticity
-//     const generatedSignature = crypto
-//       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-//       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-//       .digest("hex");
-
-//     // Verify the signature
-//     if (generatedSignature !== razorpay_signature) {
-//       return res.status(400).send("Invalid signature");
-//     }
-
-//     // Update user's payment status to reflect successful payment
-//     const user = await User.findOneAndUpdate(
-//       { phone: userPhone },
-//       { userOrderPaymentID: razorpay_payment_id }, // Update with relevant field for payment ID
-//       { new: true }
-//     );
-
-//     // Notify user of successful payment
-//     const successMessage = {
-//       text: `Payment successful! Thank you for your purchase!`,
-//     };
-//     await sendMessage(userPhone, successMessage);
-
-//     // Notify admin of successful payment
-//     const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
-//     const adminSuccessMessage = {
-//       text: `Payment successful for ${userPhone}. Payment ID: ${razorpay_payment_id}.`,
-//     };
-//     await sendMessage(adminPhone, adminSuccessMessage);
-
-//     res.status(200).send("Payment processed");
-//   } catch (error) {
-//     res.status(500).send("Server error processing payment");
-//   }
-// });
+  // Redirect user to WhatsApp
+  res.redirect(whatsappRedirectURL);
+});
 
 router.post("/payment-success", async (req, res) => {
   const secret = process.env.VERIFY_TOKEN;
