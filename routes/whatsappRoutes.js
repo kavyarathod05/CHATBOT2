@@ -125,7 +125,7 @@ router.post("/payment-success", async (req, res) => {
   }
 
   try {
-    if (event === "payment_link.paid") {
+    if (event === "payment.captured") {
       // Handle successful one-time payment
       const user = await User.findOneAndUpdate(
         { phone: userPhone },
@@ -229,6 +229,8 @@ router.post("/payment-success", async (req, res) => {
     res.status(200).send("Webhook received");
   } catch (error) {
     res.status(500).send("Server error processing payment");
+    console.log(error);
+    
   }
 });
 
