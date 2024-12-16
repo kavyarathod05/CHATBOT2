@@ -19,7 +19,6 @@ exports.handleBuyGhee = async (userPhone) => {
   return await sendMessage(userPhone, buttonMessage);
 };
 
-
 exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
   // Handle A2_ghee selection
   if (buttonId === "A2_ghee") {

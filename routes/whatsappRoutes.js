@@ -317,9 +317,9 @@ router.post("/sub-success", async (req, res) => {
         .replace(/^\+/, ""))
     : null;
   const amount = paymentData
-    ? paymentData.amount / 100
+    ? paymentData.amount 
     : subscriptionData
-    ? subscriptionData.notes.amount / 100
+    ? subscriptionData.notes.amount 
     : null; // Convert paise to rupees
 
   if (!userPhone) {
@@ -342,7 +342,7 @@ router.post("/sub-success", async (req, res) => {
       await user.save();
 
       const successMessage = {
-        text: `✅✅ *Payment Received!* 🎉\n\n📄 *Payment Details:*\n——————————————\n💳 *Payment ID:* ${paymentData.id}\n📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${subscrptionStartDatee}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${amount}\n\n🔔 *Next Reminder Date:* ${nextremdate}\n\n🛍️ Thank you for processing this payment for *Subscription ID:* ${subscriptionData.id}.\n——————————————\n✨ Please ensure smooth handling of the subscription.`,
+        text: `✅✅ *Payment Received!* 🎉\n\n📄 *Payment Details:*\n——————————————\n 📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.deliveryDate}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${amount}\n\n🔔 *Next Reminder Date:* ${nextremdate}\n\n🛍️ Thank you for processing this payment for *Subscription ID:* ${subscriptionData.id}.\n——————————————\n✨ Please ensure smooth handling of the subscription.`,
       };
       await sendMessage(userPhone, successMessage);
 

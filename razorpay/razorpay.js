@@ -43,7 +43,7 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
     // Send success notification to the admin
     const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER';
     const successMessage = {
-      text: `Payment link created successfully for ${userPhone}. Link: ${paymentLink}`,
+      text: `💳 Payment link created for *${userPhone}*:\n🔗 *${paymentLink}*\nThank you! 😊`,
     };
     await sendMessage(adminPhone, successMessage);
 
