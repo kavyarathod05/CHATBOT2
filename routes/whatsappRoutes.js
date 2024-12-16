@@ -182,14 +182,15 @@ router.post("/payment-success", async (req, res) => {
   }
 
   try {
-    if (event === "payment.captured") {
+    if (event === "payment_link.paid") {
       // Handle successful one-time payment
-      const { name, address } = user;
       const user = await User.findOneAndUpdate(
         { phone: userPhone },
         { userOrderPaymentID: paymentData.id }, // Store the successful payment ID
         { new: true }
       );
+      const name= user.name;
+      const address= user.address;
 
       if (!user) {
         return res.status(404).send("User not found");
@@ -342,7 +343,7 @@ router.post("/sub-success", async (req, res) => {
       await user.save();
 
       const successMessage = {
-        text: `✅✅ *Payment Received!* 🎉\n\n📄 *Payment Details:*\n——————————————\n 📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.deliveryDate}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${amount}\n\n🔔 *Next Reminder Date:* ${nextremdate}\n\n🛍️ Thank you for processing this payment for *Subscription ID:* ${subscriptionData.id}.\n——————————————\n✨ Please ensure smooth handling of the subscription.`,
+        text: `✅✅ *Payment Received!* 🎉\n\n📄 *Payment Details:*\n——————————————\n 📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.deliveryDate.toDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${amount}\n\n🔔 *Next Reminder Date:* ${nextremdate.toDateString()}\n\n🛍️ Thank you for processing this payment for *Subscription ID:* ${subscriptionData.id}.\n——————————————\n✨ Please ensure smooth handling of the subscription.`,
       };
       await sendMessage(userPhone, successMessage);
 

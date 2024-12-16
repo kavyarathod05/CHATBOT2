@@ -378,6 +378,8 @@ exports.receiveMessage = async (req, res) => {
                 notes: {
                   phone: user.phone,
                   description: "Subscription with updated start date",
+                  amount: newQuantity > 5000 ? (Math.round(Price / 100)*100) : Price,
+
                 },
               }
             );
@@ -1099,7 +1101,7 @@ async function handleCustomAmountInput_plan_buffalo(messageText, userPhone) {
   await state.save();
   if (user.address) {
     const buttonMessage = {
-      text: `📍 Want to continue with your current address: ${user.address}?  *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
+      text: `📍 Want to continue with your current address: ${user.address}?  *Address Format:*\nName:\nHouse No/Street:\nCity:\nState:\nPincode:`,
       buttons: [
         {
           id: "old_address",
@@ -1143,7 +1145,7 @@ async function handleCustomAmountInput_plan_A2(messageText, userPhone) {
   await state.save();
   if (user.address) {
     const buttonMessage = {
-      text: `📍 Want to continue with your current address: ${user.address}?  *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
+      text: `📍 Want to continue with your current address: ${user.address}?  *Address Format:*\nName:\nHouse No/Street:\nCity:\nState:\nPincode:`,
       buttons: [
         {
           id: "old_address",
@@ -1274,7 +1276,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
       notes: {
         phone: userPhone,
         description: description,
-        amount: Price / 100,
+        amount: amountMultiplier > 5000 ? (Math.round(Price / 100)*100) : Price,
       },
     });
 
@@ -1305,9 +1307,9 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
       amountMultiplier > 5000 ? Math.round(Price / 100) * 100 : Price;
     // Send subscription confirmation message to the user
     const message = {
-      text: `You have now subscribed to **Our Monthly Plan of A2 Cow Ghee. 🎉**\n\n` +
+      text: `You have now subscribed to **Our Monthly Plan of A2 Cow Ghee. 🎉**\n` +
             `Your subscription will start on **${user.subscriptionStartDate.toDateString()}** and will be delivered to the address: **${user.address}** 📦\n\n` +
-            `Your first delivery is expected on or around **${user.deliveryDate.toDateString()}**.\n\n` +
+            `Your first delivery is expected on or around **${user.deliveryDate.toDateString()}**.\n` +
             `**Total Price: ₹${newPrice}**\n\n` +
             `Please complete your payment here to activate: **${subscription.short_url} 💳**\n\n` +
             `**Note:** Payment confirmation and details will be sent to you within **3-5 minutes**. Please hold on. 🙏`,
@@ -1397,7 +1399,7 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
       notes: {
         phone: userPhone,
         description: description,
-        amount: Price/100,
+        amount: amountMultiplier > 5000 ? (Math.round(Price / 100)*100) : Price,
       },
     });
 
@@ -1431,8 +1433,8 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
       
         text: `You have now subscribed to **Our Monthly Plan of Indian Buffalo Ghee. 🎉**\n\n` +
               `Your subscription will start on **${user.subscriptionStartDate.toDateString()}** and will be delivered to the address: **${user.address}** 📦\n\n` +
-              `Your first delivery is expected on or around **${user.deliveryDate.toDateString()}**.\n\n` +
-              `**Total Price: ₹${newPrice}**\n\n` +
+              `Your first delivery is expected on or around **${user.deliveryDate.toDateString()}**.\n` +
+              `**Total Price: ₹${newPrice}**\n` +
               `Please complete your payment here to activate: **${subscription.short_url} 💳**\n\n` +
               `**Note:** Payment confirmation and details will be sent to you within **3-5 minutes**. Please hold on. 🙏`
       
@@ -1494,7 +1496,7 @@ async function handleAddressInput(messageText, userPhone) {
     state.useradd = null;
     await state.save();
     const rewriteAddress = {
-      text: `📍 Want to continue with your address: ${user.address}?\n\nOr would you like to edit your address? ✏️  *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
+      text: `📍 Want to continue with your address: ${user.address}?\n\nOr would you like to edit your address? ✏️  *Address Format:*\nName:\nHouse No/Street:\nCity:\nState:\nPincode:`,
       buttons: [
         {
           id: "edit_address",
@@ -1548,7 +1550,7 @@ async function handleSubscriptionDateInput(messageText, userPhone) {
   const dayOfMonth = parseInt(messageText, 10);
 
   // Validate that the input is a valid day of the month (1-31)
-  if (isNaN(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31) {
+  if (isNaN(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 29) {
     const errorMessage = {
       text: "Please enter a valid day of the month (e.g., 1-28).",
     };
