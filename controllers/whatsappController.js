@@ -1185,7 +1185,7 @@ async function createPayment_A2(userPhone, amount) {
     );
     const user=  await User.findOne({phone:userPhone});
     const message = {
-      text: `Complete your purchase of *${user.userOrderQuantity}* units 🛒,\n amount to be paid: *₹${amount}* 💳. You can pay here: ${paymentLink}`,
+      text: `Complete your purchase of *${user.userOrderQuantity}* ml 🛒,\n amount to be paid: *₹${amount}* 💳. You can pay here: ${paymentLink}`,
     };
 
     const state = await State.findOne({ userPhone });
@@ -1213,7 +1213,7 @@ async function createPayment_buffalo(userPhone, amount) {
     );
     const user= await User.findOne({phone:userPhone});
     const message = {
-      text: `Complete your purchase of *${user.userOrderQuantity}* units 🛒, amount to be paid: *₹${amount}* 💳. You can pay here: ${paymentLink}`,
+      text: `Complete your purchase of *${user.userOrderQuantity}* ml 🛒, amount to be paid: *₹${amount}* 💳. You can pay here: ${paymentLink}`,
     };
 
     const state = await State.findOne({ userPhone });

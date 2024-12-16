@@ -265,7 +265,7 @@ router.post("/sub-success", async (req, res) => {
   const amount = paymentData
     ? paymentData.amount 
     : subscriptionData
-    ? subscriptionData.notes.amount 
+    ? subscriptionData.notes.amount/100 
     : null; // Convert paise to rupees
 
   if (!userPhone) {
@@ -294,7 +294,7 @@ router.post("/sub-success", async (req, res) => {
 
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminSuccessMessage = {
-        text: `✅✅ Payment received!\n User with payment ID : ${paymentData.id} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${amount} for subscription ${subscriptionData.id}.\n Its Next Remainder Date is ${nextremdate}\n`,
+        text: `✅✅ Payment received!\n User with payment ID : ${paymentData.id} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee.toDateString()} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${amount} for subscription ${subscriptionData.id}.\n Its Next Remainder Date is ${nextremdate.toDateString()}\n`,
       };
       await sendMessage(adminPhone, adminSuccessMessage);
       return res.status(200).send("sub charged");
