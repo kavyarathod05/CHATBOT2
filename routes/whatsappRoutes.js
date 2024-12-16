@@ -288,13 +288,13 @@ router.post("/sub-success", async (req, res) => {
       await user.save();
 
       const successMessage = {
-        text: `✅✅ *Payment Received!* 🎉\n\n📄 *Payment Details:*\n——————————————\n 📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.deliveryDate.toDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${amount}\n\n🔔 *Next Reminder Date:* ${nextremdate.toDateString()}\n\n🛍️ Thank you for processing this payment for *Subscription ID:* ${subscriptionData.id}.\n——————————————\n✨ Please ensure smooth handling of the subscription.`,
+        text: `✅✅ *Payment Received!* 🎉\n\n📄 *Payment Details:*\n——————————————\n 📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.deliveryDate.toDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${amount/100}\n\n🔔 *Next Reminder Date:* ${nextremdate.toDateString()}\n\n🛍️ Thank you for processing this payment for *Subscription ID:* ${subscriptionData.id}.\n——————————————\n✨ Please ensure smooth handling of the subscription.`,
       };
       await sendMessage(userPhone, successMessage);
 
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminSuccessMessage = {
-        text: `✅✅ Payment received!\n User with payment ID : ${paymentData.id} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee.toDateString()} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${amount} for subscription ${subscriptionData.id}.\n Its Next Remainder Date is ${nextremdate.toDateString()}\n`,
+        text: `✅✅ Payment received!\n User with payment ID : ${paymentData.id} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee.toDateString()} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${amount/100} for subscription ${subscriptionData.id}.\n Its Next Remainder Date is ${nextremdate.toDateString()}\n`,
       };
       await sendMessage(adminPhone, adminSuccessMessage);
       return res.status(200).send("sub charged");
