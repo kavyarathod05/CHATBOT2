@@ -74,12 +74,14 @@ router.post("/webhook", (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-router.get('/payment-done', (req, res) => {
+router.get("/payment-done", (req, res) => {
   const { razorpay_payment_id } = req.query;
 
   // Customize the WhatsApp message link
   const whatsappNumber = "91904058161"; // Replace with your target number
-  const message = encodeURIComponent(`Thank you for your payment! Your Razorpay ID: ${razorpay_payment_id}`);
+  const message = encodeURIComponent(
+    `Thank you for your payment! Your Razorpay ID: ${razorpay_payment_id}`
+  );
   const whatsappRedirectURL = `https://wa.me/${whatsappNumber}?text=${message}`;
 
   // Redirect user to WhatsApp
@@ -132,8 +134,8 @@ router.post("/payment-success", async (req, res) => {
         { userOrderPaymentID: paymentData.id }, // Store the successful payment ID
         { new: true }
       );
-      const name= user.name;
-      const address= user.address;
+      const name = user.name;
+      const address = user.address;
 
       if (!user) {
         return res.status(404).send("User not found");
@@ -147,10 +149,9 @@ router.post("/payment-success", async (req, res) => {
 
       // Send success message to user
       const successMessage = {
-        text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your purchase! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* Nani's Bilona Ghee\n🔢 *Quantity:* ${user.userOrderQuantity}ml\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Delivery Info:*\nYour order will be delivered within **4-5 business days**. 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n📞 *Customer Support:* ${process.env.CUSTOMER_SUPPORT_CONTACT}\n\n✨ Stay healthy, stay happy! ✨`
+        text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your purchase! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* Nani's Bilona Ghee\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Delivery Info:*\nYour order will be delivered within **4-5 business days**. 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n📞 *Customer Support:* ${process.env.CUSTOMER_SUPPORT_CONTACT}\n\n✨ Stay healthy, stay happy! ✨`,
       };
-      
-      
+
       await sendMessage(userPhone, successMessage);
 
       //Send success message to admin
@@ -165,7 +166,7 @@ router.post("/payment-success", async (req, res) => {
       // Handle failed one-time payment
       const failureReason = paymentData.error_description || "Unknown error";
       const user = User.findOne({ phone: userPhone });
-      const {name, address}= user;
+      const { name, address } = user;
       // Send failure message to user
       const failureMessage = {
         text: `❌ *Payment Failed* ❌\n\nHi *${name}*,\n\nWe regret to inform you that your payment of ₹${amount} could not be processed. 😔\n\n📜 *Order Summary:*\n🛍️ *Item:* Nani's Bilona Ghee\n📍 *Delivery Address:* ${address}\n⚠️ *Reason:* ${failureReason}\n\n🔄 You can retry the payment or contact us for assistance.\n\n💛 We're here to help you enjoy the goodness of Nani's Bilona Ghee! 🌟`,
@@ -232,7 +233,6 @@ router.post("/payment-success", async (req, res) => {
   } catch (error) {
     res.status(500).send("Server error processing payment");
     console.log(error);
-    
   }
 });
 
@@ -265,9 +265,9 @@ router.post("/sub-success", async (req, res) => {
         .replace(/^\+/, ""))
     : null;
   const amount = paymentData
-    ? paymentData.amount 
+    ? paymentData.amount
     : subscriptionData
-    ? subscriptionData.notes.amount/100 
+    ? subscriptionData.notes.amount / 100
     : null; // Convert paise to rupees
 
   if (!userPhone) {
@@ -290,14 +290,26 @@ router.post("/sub-success", async (req, res) => {
       await user.save();
 
       const successMessage = {
-        text: `🪔✨ *Subscription Activated!!* 🎉\nPure ghee, delivered with care, right to your doorstep! 🧈\n📄 *Payment Details:*\n——————————————\n📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.deliveryDate.toDateString()}\n🚚 *Delivery Date:* Around ${user.deliveryDate.toDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${amount/100}\n\n——————————————\n✨\n*You can view your plan and edit its details anytime by typing 'Hi' and clicking on *View Your Plans*.\n\nFor customer support, contact: ${process.env.CUSTOMER_SUPPORT_CONTACT}`
-
+        text: `🪔✨ *Subscription Activated!!* 🎉\nPure ghee, delivered with care, right to your doorstep! 🧈\n📄 *Payment Details:*\n——————————————\n📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.deliveryDate.toDateString()}\n🚚 *Delivery Date:* Around ${user.deliveryDate.toDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${
+          amount / 100
+        }\n📦 *Subscription Quantity:* ${
+          user.subscriptionQuantity
+        }ml\n\n——————————————\n✨\n*You can view your plan and edit its details anytime by typing 'Hi' and clicking on *View Your Plans*.\n\nFor customer support, contact: ${
+          process.env.CUSTOMER_SUPPORT_CONTACT
+        }`,
       };
+
       await sendMessage(userPhone, successMessage);
 
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminSuccessMessage = {
-        text: `✅✅ Payment received!\n User with payment ID : ${paymentData.id} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee.toDateString()}\n *Delivery Date:* ${user.deliveryDate.toDateString()} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${amount/100} for subscription ${subscriptionData.id}.\n Its Next Remainder Date is ${nextremdate.toDateString()}\n`,
+        text: `✅✅ Payment received!\n User with payment ID : ${
+          paymentData.id
+        } \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee.toDateString()}\n *Delivery Date:* ${user.deliveryDate.toDateString()} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${
+          amount / 100
+        } for subscription ${
+          subscriptionData.id
+        }.\n Its Next Remainder Date is ${nextremdate.toDateString()}\n`,
       };
       await sendMessage(adminPhone, adminSuccessMessage);
       return res.status(200).send("sub charged");

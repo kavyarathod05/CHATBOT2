@@ -612,7 +612,7 @@ exports.receiveMessage = async (req, res) => {
               }
 
               const message = {
-                text: "💰 Enter the amount you'd like to order (must be divisible by 500).",
+                text: "🍯 Please enter the amount you'd like to order in ml(must be divisible by 500).",
               };
 
               return await sendMessage(userPhone, message);
@@ -667,7 +667,7 @@ exports.receiveMessage = async (req, res) => {
               }
 
               const message = {
-                text: "💸 Enter the amount you'd like to order (must be divisible by 500).",
+                text: "🍯 Please enter the amount you'd like to order in ml(must be divisible by 500).",
               };
 
               return await sendMessage(userPhone, message);
@@ -723,7 +723,7 @@ exports.receiveMessage = async (req, res) => {
               }
 
               const message = {
-                text: "🍯 Please enter the amount you'd like to order in m;(must be divisible by 500).",
+                text: "🍯 Please enter the amount you'd like to order in ml(must be divisible by 500).",
               };
 
               return await sendMessage(userPhone, message);
