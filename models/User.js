@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   userOrderQuantity: { type: String, required: false },
   userOrderPaymentID: { type: String, required: false },
   userOrderAmount:{type:String, default:null},
+  userOrderType:{type:String, default:null},
   singleorderPaymentStatus:{type:Boolean,default:false},
   subscriptionPaymentStatus:{type:Boolean,default:false},
   subscription: { type: Boolean, default : false},
