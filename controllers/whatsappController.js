@@ -674,9 +674,9 @@ exports.receiveMessage = async (req, res) => {
             }
             const user = await User.findOne({ phone: userPhone });
             const state = await State.findOne({ userPhone });
-            if (amount === 1049) user.userOrderQuantity = "500ml A2";
-            else if (amount === 1849) user.userOrderQuantity = "1L A2";
-            else if (amount === 8500) user.userOrderQuantity = "5L A2";
+            if (amount === 1049) user.userOrderQuantity = "500";
+            else if (amount === 1849) user.userOrderQuantity = "1000";
+            else if (amount === 8500) user.userOrderQuantity = "5000";
 
             state.userAmount = amount;
             state.planType = "A2";
@@ -789,10 +789,9 @@ exports.receiveMessage = async (req, res) => {
             }
             const user = await User.findOne({ phone: userPhone });
             const state = await State.findOne({ userPhone });
-            if (amount === 949) user.userOrderQuantity = "500ml A2";
-            else if (amount === 1649) user.userOrderQuantity = "1L A2";
-            else if (amount === 7500) user.userOrderQuantity = "5L A2";
-
+            if (amount === 949) user.userOrderQuantity = "500";
+            else if (amount === 1649) user.userOrderQuantity = "1000";
+            else if (amount === 7500) user.userOrderQuantity = "5000";
             state.userAmount = amount;
             state.planType = "buffalo";
             await state.save();
@@ -1197,7 +1196,7 @@ if (userOrderQuantity >= 6000) {
 
     const message = {
       text: `🧾 *Your Bill Details*:\n
-    Product Quantity: *${userOrderQuantity}ml*\n
+    Product Quantity: *${userOrderQuantity}ml* A2 Cow ghee\n
     Product Cost: *₹${productCost.toFixed(2)}*\n
     Delivery Fee: *₹${deliveryFee.toFixed(2)}*\n
     ------------------------------------------\n
@@ -1248,7 +1247,7 @@ if (userOrderQuantity >= 6000) {
     const productCost = baseAmount - deliveryFee;
 
     const message = {
-      text: `🧾 *Your Bill Details*:\nProduct Quantity:Indian Buffalo Ghee *${userOrderQuantity}ml*\nProduct Cost: *₹${productCost.toFixed(2)}*\nDelivery Fee: *₹${deliveryFee.toFixed(2)}*\n——————————————\n*Total Amount: ₹${baseAmount.toFixed(2)}*\n——————————————\nYou can pay here: ${paymentLink}`,
+      text: `🧾 *Your Bill Details*:\nProduct Quantity:Indian Buffalo Ghee *${userOrderQuantity}ml* Indian Buffalo Ghee\nProduct Cost: *₹${productCost.toFixed(2)}*\nDelivery Fee: *₹${deliveryFee.toFixed(2)}*\n——————————————\n*Total Amount: ₹${baseAmount.toFixed(2)}*\n——————————————\nYou can pay here: ${paymentLink}`,
     };
     const state = await State.findOne({ userPhone });
     state.userState = null;
@@ -1341,12 +1340,12 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
       amountMultiplier > 5000 ? Math.round(Price / 100) * 100 : Price;
     // Send subscription confirmation message to the user
     const message = {
-      text: `You have now subscribed to **Our Monthly Plan of A2 Cow Ghee. 🎉**\n` +
-            `Your subscription will start on **${user.subscriptionStartDate.toDateString()}** and will be delivered to the address: **${user.address}** 📦\n\n` +
-            `Your first delivery is expected on or around **${user.deliveryDate.toDateString()}**.\n` +
-            `**Total Price: ₹${newPrice}**\n\n` +
-            `Please complete your payment here to activate: **${subscription.short_url} 💳**\n\n` +
-            `**Note:** Payment confirmation and details will be sent to you within **3-5 minutes**. Please hold on. 🙏`,
+      text: `You have now subscribed to **Our Monthly Plan of A2 Cow Ghee. 🎉**\n`
+      `\nYour subscription will start on **${user.subscriptionStartDate.toDateString()}**. Every month, ₹${newPrice} will be automatically deducted from your bank account on the subscription date. 💳\n\n` +
+      `Your first delivery is expected on or around **${user.deliveryDate.toDateString()}**. 📦\n\n` +
+      `**Total Price: ₹${newPrice}**\n\n` +
+      `Please complete your payment here to activate your subscription: **${subscription.short_url}**\n\n` +
+      `**Note:** Payment confirmation and details will be sent to you within **3-5 minutes**. Please hold on. 🙏`
     }
     await sendMessage(userPhone, message);
 
