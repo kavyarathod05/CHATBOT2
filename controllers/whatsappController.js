@@ -71,7 +71,7 @@ exports.receiveMessage = async (req, res) => {
       const timeout = setTimeout(async () => {
         await resetUserState(userPhone);
         const timeoutMessage = {
-          text: "⏳ *Oops, your session timed out!* Don’t worry, just type 'Hi' to restart! 🚀",
+          text: "⏳ *Oops, your session timed out!* Don’t worry, just type 'Hi' to restart! ",
         };
         await sendMessage(userPhone, timeoutMessage);
         userTimeouts.delete(userPhone); // Clean up the map
@@ -807,7 +807,7 @@ exports.receiveMessage = async (req, res) => {
               const buttonMessage = {
                 text: `📍 Would you like to continue with this address for delivery?\n\n🏡 *Address:* ${
                   user.address
-                }\n *Delivery fees Applied\n\n✅ `,
+                }\n  `,
                 buttons: [
                   {
                     id: "old_address",
@@ -989,7 +989,7 @@ async function handleCustomAmountInput_A2(messageText, userPhone) {
     const buttonMessage = {
       text: `📍 Would you like to continue with this address for delivery?\n\n🏡 *Address:* ${
         user.address
-      }\n*Delivery fees Applied \n\n✅ `,
+      }\n`,
       buttons: [
         {
           id: "old_address",
@@ -1057,7 +1057,7 @@ async function handleCustomAmountInput_buffalo(messageText, userPhone) {
     const buttonMessage = {
       text: `📍 Would you like to continue with this address for delivery?\n\n🏡 *Address:* ${
         user.address
-      }\n*Delivery fees Applied \n\n✅ *Confirm* or provide a new address to proceed!`,
+      }\n**Confirm* or provide a new address to proceed!`,
       buttons: [
         {
           id: "old_address",
@@ -1184,8 +1184,30 @@ async function createPayment_A2(userPhone, amount) {
       description
     );
     const user=  await User.findOne({phone:userPhone});
+    const baseAmount = amount; // This includes the delivery fee in ₹.
+    const userOrderQuantity = user.userOrderQuantity; // Quantity in ml.
+    let deliveryFee = 0;
+
+// Determine delivery fee based on quantity.
+if (userOrderQuantity >= 6000) {
+    deliveryFee = 500; // ₹500 for ≥6000ml.
+} else if (userOrderQuantity >= 3000) {
+    deliveryFee = 250; // ₹250 for >3000ml.
+} else if (baseAmount < 3000) { // Less than ₹3000.
+    deliveryFee = 150; // ₹150 for orders less than ₹3000.
+}
+
+// Deduct delivery fee from base amount to calculate product cost.
+    const productCost = baseAmount - deliveryFee;
+
     const message = {
-      text: `Complete your purchase of *${user.userOrderQuantity}* ml 🛒,\n amount to be paid: *₹${amount}* 💳. You can pay here: ${paymentLink}`,
+      text:`🧾 *Your Bill Details*:\n
+      Product Quantity: *${userOrderQuantity}ml*
+      \nProduct Cost: *₹${productCost.toFixed(2)}*
+      \nDelivery Fee: *₹${deliveryFee.toFixed(2)}*
+      \n*Total Amount: ₹${baseAmount.toFixed(2)}*
+
+You can pay here: ${paymentLink}`,
     };
 
     const state = await State.findOne({ userPhone });
@@ -1212,10 +1234,31 @@ async function createPayment_buffalo(userPhone, amount) {
       description
     );
     const user= await User.findOne({phone:userPhone});
-    const message = {
-      text: `Complete your purchase of *${user.userOrderQuantity}* ml 🛒, amount to be paid: *₹${amount}* 💳. You can pay here: ${paymentLink}`,
-    };
+    const baseAmount = amount; // This includes the delivery fee in ₹.
+    const userOrderQuantity = user.userOrderQuantity; // Quantity in ml.
+    let deliveryFee = 0;
 
+// Determine delivery fee based on quantity.
+if (userOrderQuantity >= 6000) {
+    deliveryFee = 500; // ₹500 for ≥6000ml.
+} else if (userOrderQuantity >= 3000) {
+    deliveryFee = 250; // ₹250 for >3000ml.
+} else if (baseAmount < 3000) { // Less than ₹3000.
+    deliveryFee = 150; // ₹150 for orders less than ₹3000.
+}
+
+// Deduct delivery fee from base amount to calculate product cost.
+    const productCost = baseAmount - deliveryFee;
+
+    const message = {
+      text:`🧾 *Your Bill Details*:\n
+      Product Quantity: *${userOrderQuantity}ml*
+      \nProduct Cost: *₹${productCost.toFixed(2)}*
+      \nDelivery Fee: *₹${deliveryFee.toFixed(2)}*
+      \n*Total Amount: ₹${baseAmount.toFixed(2)}*
+
+You can pay here: ${paymentLink}`,
+    };
     const state = await State.findOne({ userPhone });
     state.userState = null;
     state.useradd = null;
