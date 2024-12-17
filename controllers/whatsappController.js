@@ -1185,7 +1185,7 @@ async function createPayment_A2(userPhone, amount) {
     );
     const user=  await User.findOne({phone:userPhone});
     const baseAmount = amount; // This includes the delivery fee in ₹.
-    const userOrderQuantity = user.userOrderQuantity; // Quantity in ml.
+    const userOrderQuantity = parseInt(user.userOrderQuantity, 10); // Convert quantity to integer (in ml).
     let deliveryFee = 0;
 
 // Determine delivery fee based on quantity.
@@ -1235,7 +1235,7 @@ async function createPayment_buffalo(userPhone, amount) {
     );
     const user= await User.findOne({phone:userPhone});
     const baseAmount = amount; // This includes the delivery fee in ₹.
-    const userOrderQuantity = user.userOrderQuantity; // Quantity in ml.
+    const userOrderQuantity = parseInt(user.userOrderQuantity, 10); // Convert quantity to integer (in ml).
     let deliveryFee = 0;
 
 // Determine delivery fee based on quantity.
