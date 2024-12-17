@@ -288,13 +288,14 @@ router.post("/sub-success", async (req, res) => {
       await user.save();
 
       const successMessage = {
-        text: `✅✅ *Payment Received!* 🎉\n\n📄 *Payment Details:*\n——————————————\n 📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.deliveryDate.toDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${amount/100}\n\n🔔 *Next Reminder Date:* ${nextremdate.toDateString()}\n\n🛍️ Thank you for processing this payment for *Subscription ID:* ${subscriptionData.id}.\n——————————————\n✨ Please ensure smooth handling of the subscription.`,
+        text: `🪔✨ *Subscription Activated!!* 🎉\nPure ghee, delivered with care, right to your doorstep! 🧈\n📄 *Payment Details:*\n——————————————\n📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.deliveryDate.toDateString()}\n🚚 *Delivery Date:* Around ${user.deliveryDate.toDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${amount/100}\n\n——————————————\n✨\n*You can view your plan and edit its details anytime by typing 'Hi' and clicking on *View Your Plans*.\n\nFor customer support, contact: ${process.env.CUSTOMER_SUPPORT_CONTACT}`
+
       };
       await sendMessage(userPhone, successMessage);
 
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminSuccessMessage = {
-        text: `✅✅ Payment received!\n User with payment ID : ${paymentData.id} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee.toDateString()} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${amount/100} for subscription ${subscriptionData.id}.\n Its Next Remainder Date is ${nextremdate.toDateString()}\n`,
+        text: `✅✅ Payment received!\n User with payment ID : ${paymentData.id} \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee.toDateString()}\n *Delivery Date:* ${user.deliveryDate.toDateString()} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${amount/100} for subscription ${subscriptionData.id}.\n Its Next Remainder Date is ${nextremdate.toDateString()}\n`,
       };
       await sendMessage(adminPhone, adminSuccessMessage);
       return res.status(200).send("sub charged");

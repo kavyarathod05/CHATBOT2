@@ -1201,7 +1201,7 @@ if (userOrderQuantity >= 6000) {
     const productCost = baseAmount - deliveryFee;
 
     const message = {
-      text:`🧾 *Your Bill Details*:\n
+      text:`🧾 *Your Bill Details*:
       Product Quantity: *${userOrderQuantity}ml*
       \nProduct Cost: *₹${productCost.toFixed(2)}*
       \nDelivery Fee: *₹${deliveryFee.toFixed(2)}*
@@ -1251,8 +1251,8 @@ if (userOrderQuantity >= 6000) {
     const productCost = baseAmount - deliveryFee;
 
     const message = {
-      text:`🧾 *Your Bill Details*:\n
-      Product Quantity: *${userOrderQuantity}ml*
+      text:`🧾 *Your Bill Details*:
+      Product Quantity: Indian Buffalo Ghee *${userOrderQuantity}ml*
       \nProduct Cost: *₹${productCost.toFixed(2)}*
       \nDelivery Fee: *₹${deliveryFee.toFixed(2)}*
       \n*Total Amount: ₹${baseAmount.toFixed(2)}*
@@ -1355,8 +1355,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
             `Your first delivery is expected on or around **${user.deliveryDate.toDateString()}**.\n` +
             `**Total Price: ₹${newPrice}**\n\n` +
             `Please complete your payment here to activate: **${subscription.short_url} 💳**\n\n` +
-            `**Note:** Payment confirmation and details will be sent to you within **3-5 minutes**. Please hold on. 🙏\n
-            *You can view your plan and edit its details anytime by typing 'Hi' and clicking on *View Your Plans**`,
+            `**Note:** Payment confirmation and details will be sent to you within **3-5 minutes**. Please hold on. 🙏`,
     }
     await sendMessage(userPhone, message);
 
