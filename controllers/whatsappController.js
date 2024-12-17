@@ -535,13 +535,13 @@ exports.receiveMessage = async (req, res) => {
 
             if (state.planType.includes("plan")) {
               const message = {
-                text: `🏠 Please provide your address to complete your subscription. \n *Delivery fees Applied \n\n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
+                text: `🏠 Please provide your address to complete your subscription. \n \n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
               };
 
               await sendMessage(userPhone, message);
             } else {
               const message = {
-                text: `🏠 Please provide your address to complete your payment. \n *Delivery fees Applied\n\n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
+                text: `🏠 Please provide your address to complete your payment. \n \n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
               };
 
               await sendMessage(userPhone, message);
@@ -703,7 +703,7 @@ exports.receiveMessage = async (req, res) => {
               return await sendMessage(userPhone, buttonMessage);
             }
             const message = {
-              text: `🏠 Please provide your address to complete your payment. \n*Delivery fees Applied \n\n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
+              text: `🏠 Please provide your address to complete your payment. \n\n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
             };
             state.useradd = "awaiting_address";
             await state.save();
@@ -723,7 +723,7 @@ exports.receiveMessage = async (req, res) => {
               }
 
               const message = {
-                text: "💰 Please enter the amount you'd like to order (must be divisible by 500).",
+                text: "🍯 Please enter the amount you'd like to order in m;(must be divisible by 500).",
               };
 
               return await sendMessage(userPhone, message);
@@ -756,7 +756,7 @@ exports.receiveMessage = async (req, res) => {
               return await sendMessage(userPhone, buttonMessage);
             }
             const message = {
-              text: `🏠 Please provide your address to complete your payment. \n *Delivery fees Applied\n\n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
+              text: `🏠 Please provide your address to complete your payment. \n \n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
             };
 
             if (state) {
@@ -782,7 +782,7 @@ exports.receiveMessage = async (req, res) => {
               }
 
               const message = {
-                text: "💸 Please enter the amount you'd like to order (must be divisible by 500).",
+                text: "🍯 Please enter the amount you'd like to order in *ml*(must be divisible by 500).",
               };
 
               return await sendMessage(userPhone, message);
@@ -818,7 +818,7 @@ exports.receiveMessage = async (req, res) => {
               return await sendMessage(userPhone, buttonMessage);
             }
             const message = {
-              text: `🏠 Please provide your address to complete your payment. \n *Delivery fees Applied\n\n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
+              text: `🏠 Please provide your address to complete your payment. \n \n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
             };
 
             if (state) {
@@ -833,7 +833,7 @@ exports.receiveMessage = async (req, res) => {
               state.useradd = "awaiting_edit_address";
               await state.save();
               const message = {
-                text: `🏠 Please provide your address to complete your payment. \n*Delivery fees Applied \n\n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
+                text: `🏠 Please provide your address to complete your payment. \n\n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
               };
 
               return await sendMessage(userPhone, message);
@@ -1067,7 +1067,7 @@ async function handleCustomAmountInput_buffalo(messageText, userPhone) {
     return await sendMessage(userPhone, buttonMessage);
   }
   const message = {
-    text: `🏠 Please provide your address to complete your subscription. \n *Delivery fees Applied\n\n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
+    text: `🏠 Please provide your address to complete your subscription. \n \n📋 *Address Format:*\nName: [Your Name]\nHouse No/Street: [Your House/Street]\nCity: [Your City]\nState: [Your State]\nPincode: [Your Pincode]`,
   };
   if (state) {
     state.useradd = "awaiting_address";
@@ -1196,14 +1196,16 @@ if (userOrderQuantity >= 6000) {
     const productCost = baseAmount - deliveryFee;
 
     const message = {
-      text:`🧾 *Your Bill Details*:
-      Product Quantity: *${userOrderQuantity}ml*
-      \nProduct Cost: *₹${productCost.toFixed(2)}*
-      \nDelivery Fee: *₹${deliveryFee.toFixed(2)}*
-      \n*Total Amount: ₹${baseAmount.toFixed(2)}*
-
-You can pay here: ${paymentLink}`,
+      text: `🧾 *Your Bill Details*:\n
+    Product Quantity: *${userOrderQuantity}ml*\n
+    Product Cost: *₹${productCost.toFixed(2)}*\n
+    Delivery Fee: *₹${deliveryFee.toFixed(2)}*\n
+    ------------------------------------------\n
+    *Total Amount: ₹${baseAmount.toFixed(2)}*\n
+    ------------------------------------------\n
+    You can pay here: ${paymentLink}`,
     };
+    
 
     const state = await State.findOne({ userPhone });
     state.userState = null;
@@ -1246,13 +1248,7 @@ if (userOrderQuantity >= 6000) {
     const productCost = baseAmount - deliveryFee;
 
     const message = {
-      text:`🧾 *Your Bill Details*:
-      Product Quantity: Indian Buffalo Ghee *${userOrderQuantity}ml*
-      \nProduct Cost: *₹${productCost.toFixed(2)}*
-      \nDelivery Fee: *₹${deliveryFee.toFixed(2)}*
-      \n*Total Amount: ₹${baseAmount.toFixed(2)}*
-
-You can pay here: ${paymentLink}`,
+      text: `🧾 *Your Bill Details*:\nProduct Quantity:Indian Buffalo Ghee *${userOrderQuantity}ml*\nProduct Cost: *₹${productCost.toFixed(2)}*\nDelivery Fee: *₹${deliveryFee.toFixed(2)}*\n——————————————\n*Total Amount: ₹${baseAmount.toFixed(2)}*\n——————————————\nYou can pay here: ${paymentLink}`,
     };
     const state = await State.findOne({ userPhone });
     state.userState = null;
@@ -1535,7 +1531,7 @@ async function handleAddressInput(messageText, userPhone) {
     state.useradd = null;
     await state.save();
     const rewriteAddress = {
-      text: `📍 Want to continue with your address: ${user.address}?\n\nOr would you like to edit your address? ✏️  *Address Format:*\nName:\nHouse No/Street:\nCity:\nState:\nPincode:`,
+      text: `📍 Want to continue with your address: ${user.address}?\n\nOr would you like to edit your address? ✏️\n  *Address Format:*\nName:\nHouse No/Street:\nCity:\nState:\nPincode:`,
       buttons: [
         {
           id: "edit_address",
