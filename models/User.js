@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
   planId:{type:String, required:false},
   deliveryDate:{type:Date,default:Date.now()},
   nextReminderDate:{type:Date , default: Date.now()},
+  delivered:{type:Boolean, default:false}
 });
 
 module.exports = mongoose.model('User', userSchema);

@@ -7,6 +7,11 @@ const { sendMessage } = require("../utils/whatsappAPI");
 const User = require("../models/User"); // Adjust the path if necessar
 const State = require("../models/State");
 // const State = require('../models/State');
+const Razorpay = require("razorpay");
+const razorpayInstance = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 // GET request for webhook verification
 router.get("/webhook", (req, res) => {
@@ -166,10 +171,11 @@ router.post("/payment-success", async (req, res) => {
       // Handle failed one-time payment
       const failureReason = paymentData.error_description || "Unknown error";
       const user = User.findOne({ phone: userPhone });
-      const { name, address } = user;
+      
+      
       // Send failure message to user
       const failureMessage = {
-        text: `❌ *Payment Failed* ❌\n\nHi *${name}*,\n\nWe regret to inform you that your payment of ₹${amount} could not be processed. 😔\n\n📜 *Order Summary:*\n🛍️ *Item:* Nani's Bilona Ghee\n📍 *Delivery Address:* ${address}\n⚠️ *Reason:* ${failureReason}\n\n🔄 You can retry the payment or contact us for assistance.\n\n💛 We're here to help you enjoy the goodness of Nani's Bilona Ghee! 🌟`,
+        text: `❌ *Payment Failed* ❌\n\nHi *${user.name}*,\n\nWe regret to inform you that your payment of ₹${amount} could not be processed. 😔\n\n📜 *Order Summary:*\n🛍️ *Item:* Nani's Bilona Ghee\n📍 *Delivery Address:* ${user.address}\n⚠️ *Reason:* ${failureReason}\n\n🔄 You can retry the payment or contact us for assistance.\n\n💛 We're here to help you enjoy the goodness of Nani's Bilona Ghee! 🌟`,
       };
       await sendMessage(userPhone, failureMessage);
 
@@ -238,7 +244,6 @@ router.post("/payment-success", async (req, res) => {
 
 router.post("/sub-success", async (req, res) => {
   const secret = process.env.VERIFY_TOKEN;
-
   // Verify the signature to authenticate Razorpay's webhook
   const receivedSignature = req.headers["x-razorpay-signature"];
   const generatedSignature = crypto
@@ -257,13 +262,17 @@ router.post("/sub-success", async (req, res) => {
   const subscriptionData = req.body.payload.subscription
     ? req.body.payload.subscription.entity
     : null;
-  const userPhone = paymentData
-    ? paymentData.contact.replace(/^\+/, "") // Remove leading `+` // Remove leading `+`
-    : subscriptionData
-    ? (subscriptionData.notes = (subscriptionData.notes || "")
-        .toString()
-        .replace(/^\+/, ""))
-    : null;
+  // const userPhone = paymentData
+  //   ? paymentData.contact.replace(/^\+/, "") // Remove leading `+` // Remove leading `+`
+  //   : subscriptionData
+  //   ? (subscriptionData.notes = (subscriptionData.notes || "")
+  //       .toString()
+  //       .replace(/^\+/, ""))
+  //   : null;
+  const userPhone = subscriptionData && subscriptionData.notes
+  ? subscriptionData.notes.phone
+  : null;
+
   const amount = paymentData
     ? paymentData.amount
     : subscriptionData
@@ -287,10 +296,11 @@ router.post("/sub-success", async (req, res) => {
       const subscrptionStartDatee = user.subscriptionStartDate;
       const nextremdate = user.nextReminderDate;
       user.subscriptionPaymentStatus = true;
+      user.delivered = false;
       await user.save();
 
       const successMessage = {
-        text: `🪔✨ *Subscription Activated!!* 🎉\nPure ghee, delivered with care, right to your doorstep! 🧈\n📄 *Payment Details:*\n——————————————\n📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.deliveryDate.toDateString()}\n🚚 *Delivery Date:* Around ${user.deliveryDate.toDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${
+        text: `🪔✨ *Subscription Activated!!* 🎉\nPure ghee, delivered with care, right to your doorstep! 🧈\n📄 *Payment Details:*\n——————————————\n📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.deliveryDate.toLocaleDateString()}\n🚚 *Delivery Date:* Around ${user.deliveryDate.toLocaleDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${
           amount / 100
         }\n📦 *Subscription Quantity:* ${
           user.subscriptionQuantity
@@ -305,43 +315,93 @@ router.post("/sub-success", async (req, res) => {
       const adminSuccessMessage = {
         text: `✅✅ Payment received!\n User with payment ID : ${
           paymentData.id
-        } \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee.toDateString()}\n *Delivery Date:* ${user.deliveryDate.toDateString()} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${
+        } \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee.toLocaleDateString()}\n *Delivery Date:* ${user.deliveryDate.toLocaleDateString()} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${
           amount / 100
         } for subscription ${
           subscriptionData.id
-        }.\n Its Next Remainder Date is ${nextremdate.toDateString()}\n`,
+        }.\n Its Next Remainder Date is ${nextremdate.toLocaleDateString()}\n`,
       };
       await sendMessage(adminPhone, adminSuccessMessage);
       return res.status(200).send("sub charged");
-    } else if (event === "subscription.payment_failed") {
+    } else if (event === "subscription.halted") {
       // Handle failed subscription payment
+
       const failureReason = paymentData
         ? paymentData.error_description
         : "Payment failure during subscription renewal";
 
+      console.log(subscriptionData);
       const user = await User.findOne({ phone: userPhone });
-      user.subscriptionPaymentStatus = false;
+      console.log(userPhone);
+      console.log(user);
+      
+      if (user.subscriptionPaymentStatus && user.subscriptionPaymentStatus!=null && user) {
+        user.subscriptionPaymentStatus = false; // Mark the payment status as failed
+      }
       await user.save();
 
-      // Send failure message to user
+      // Cancel the existing subscription
+      if (user.subscriptionId) {
+        await razorpayInstance.subscriptions.cancel(user.subscriptionId);
+      }
+
+      // Create a new subscription with the same details
+      const description = "Monthly Subscription of A2 Cow Ghee";
+
+      const newSubscriptionData = await razorpayInstance.subscriptions.create({
+        plan_id: user.planId, // Assuming user.subscriptionType stores the plan ID
+        customer_notify: 1,
+        total_count: 12, // Total cycles for the subscription
+        quantity: 1, // Use calculated price or default quantity
+        notes: {
+          phone: userPhone,
+          description: description,
+          amount: parseInt(user.subscriptionAmount, 10),
+        },
+      });
+
+      // Update user record with new subscription ID
+     // user.subscriptionId = newSubscriptionData.id;
+      // user.subscriptionPaymentStatus = true; // Reset payment status
+      user.delivered = false;
+      user.deliveryDate = new Date(new Date(user.deliveryDate).setDate(new Date(user.deliveryDate).getDate() + 4));
+      user.subscriptionStartDate = new Date(); // Update start date to current date
+
+      await user.save();
+
+      // Send failure message to user about the failed payment
       const failureMessage = {
-        text: `Subscription renewal payment of ₹${amount} failed. Please update your payment method. Reason: ${failureReason}`,
+        text: `Subscription renewal payment of ₹${user.subscriptionAmount} failed. Please update your payment method. Reason: ${failureReason}`,
       };
       await sendMessage(userPhone, failureMessage);
 
-      // Notify admin of the subscription payment failure
+      const paymentLinkMessage = {
+        text: `🚨 *Payment Required to Reactivate Your Subscription!* 🚨\n\nSubscription renewal failed. To continue your subscription for ${user.subscriptionType}, please complete the payment using the following link:\n\n🔗 *Payment Link:* ${newSubscriptionData.short_url}\n\n💰 *Amount:* ₹${user.subscriptionAmount}\n📦 *Quantity:* ${user.subscriptionQuantity}ml\n📝 *Description:* ${description}\n\n*New Delivery Date:* ${user.deliveryDate.toLocaleDateString()}\n\nOnce the payment is successful, your subscription will be reactivated. If you have any questions, contact our support at: ${process.env.CUSTOMER_SUPPORT_CONTACT}`
+      };
+      
+
+      await sendMessage(userPhone, paymentLinkMessage);
+      // Notify admin about the subscription payment failure
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminMessage = {
-        text: `Alert: Subscription renewal payment of ₹${amount} failed for ${userPhone}. Reason: ${failureReason}`,
+        text: `Alert: Subscription renewal payment of ₹${user.subscriptionAmount} failed for ${userPhone}. Reason: ${failureReason}`,
       };
-
       await sendMessage(adminPhone, adminMessage);
-      return res.status(200).send("Subscription payment failed handled"); // Only one response here
+
+      // Send a success message after creating a new subscription
+
+      return res
+        .status(200)
+        .send(
+          "Subscription payment failed, handled and new subscription created"
+        );
     }
 
     res.status(200).send("Webhook received");
   } catch (error) {
+  
     res.status(500).send("Server error processing payment");
+    console.log(error);
   }
 });
 
