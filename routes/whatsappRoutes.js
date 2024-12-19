@@ -297,6 +297,7 @@ router.post("/sub-success", async (req, res) => {
       const nextremdate = user.nextReminderDate;
       user.subscriptionPaymentStatus = true;
       user.delivered = false;
+      user.remindersent= false;
       await user.save();
 
       const successMessage = {
