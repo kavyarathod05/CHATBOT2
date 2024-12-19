@@ -1098,7 +1098,7 @@ async function handleCustomAmountInput_plan_buffalo(messageText, userPhone) {
   await state.save();
   if (user.address) {
     const buttonMessage = {
-      text: `📍 Want to continue with your current address: ${user.address}?  *Address Format:*\nName:\nHouse No/Street:\nCity:\nState:\nPincode:`,
+      text: `📍 Want to continue with your current address: ${user.address}? \n *Address Format:*\nName:\nHouse No/Street:\nCity:\nState:\nPincode:`,
       buttons: [
         {
           id: "old_address",

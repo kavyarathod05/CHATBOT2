@@ -83,7 +83,7 @@ router.get("/payment-done", (req, res) => {
   const { razorpay_payment_id } = req.query;
 
   // Customize the WhatsApp message link
-  const whatsappNumber = "91904058161"; // Replace with your target number
+  const whatsappNumber = "919904058161"; // Replace with your target number
   const message = encodeURIComponent(
     `Thank you for your payment! Your Razorpay ID: ${razorpay_payment_id}`
   );
@@ -114,13 +114,8 @@ router.post("/payment-success", async (req, res) => {
   const subscriptionData = req.body.payload.subscription
     ? req.body.payload.subscription.entity
     : null;
-  const userPhone = paymentData
-    ? paymentData.contact.replace(/^\+/, "") // Remove leading `+` // Remove leading `+`
-    : subscriptionData
-    ? (subscriptionData.notes = (subscriptionData.notes || "")
-        .toString()
-        .replace(/^\+/, ""))
-    : null;
+    const userPhone = paymentData.contact.replace('+', '');
+
   const amount = paymentData
     ? paymentData.amount / 100
     : subscriptionData
@@ -133,6 +128,9 @@ router.post("/payment-success", async (req, res) => {
 
   try {
     if (event === "payment.captured") {
+      console.log(paymentData);
+      console.log(userPhone);
+      
       // Handle successful one-time payment
       const user = await User.findOneAndUpdate(
         { phone: userPhone },
@@ -141,6 +139,7 @@ router.post("/payment-success", async (req, res) => {
       );
       const name = user.name;
       const address = user.address;
+      
 
       if (!user) {
         return res.status(404).send("User not found");
@@ -168,9 +167,10 @@ router.post("/payment-success", async (req, res) => {
 
       return res.status(200).send("Payment processed");
     } else if (event === "payment.failed") {
+
       // Handle failed one-time payment
       const failureReason = paymentData.error_description || "Unknown error";
-      const user = User.findOne({ phone: userPhone });
+      const user =await User.findOne({ phone: userPhone });
       
       
       // Send failure message to user
