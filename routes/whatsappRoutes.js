@@ -93,7 +93,7 @@ router.get("/payment-done", (req, res) => {
   res.redirect(whatsappRedirectURL);
 });
 
-router.post("/payment-success", async (req, res) => {
+router.post("/payments-success", async (req, res) => {
   const secret = process.env.VERIFY_TOKEN;
 
   // Verify the signature to authenticate Razorpay's webhook
@@ -242,7 +242,7 @@ router.post("/payment-success", async (req, res) => {
   }
 });
 
-router.post("/sub-success", async (req, res) => {
+router.post("/subs-success", async (req, res) => {
   const secret = process.env.VERIFY_TOKEN;
   // Verify the signature to authenticate Razorpay's webhook
   const receivedSignature = req.headers["x-razorpay-signature"];
@@ -332,7 +332,7 @@ router.post("/sub-success", async (req, res) => {
         : "Payment failure during subscription renewal";
 
       console.log(subscriptionData);
-      const user = await User.findOne({ phone: userPhone });
+      const user = await User.findOne({ phone: userPhone }).exec();
       console.log(userPhone);
       console.log(user);
       
@@ -344,6 +344,7 @@ router.post("/sub-success", async (req, res) => {
       // Cancel the existing subscription
       if (user.subscriptionId) {
         await razorpayInstance.subscriptions.cancel(user.subscriptionId);
+        user.subscriptionId += "cancelled";
       }
 
       // Create a new subscription with the same details
@@ -397,7 +398,7 @@ router.post("/sub-success", async (req, res) => {
           "Subscription payment failed, handled and new subscription created"
         );
     }
-    else if(event==="subscription.halted"){
+    else if(event==="subscription.cancelled"){
       const successMessage = {
         text: `cancelled uff`,
       };
