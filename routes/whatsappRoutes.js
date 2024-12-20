@@ -316,11 +316,11 @@ router.post("/subs-success", async (req, res) => {
       await user.save();
 
       const successMessage = {
-        text: `🪔✨ *Subscription Activated!!* 🎉\nPure ghee, delivered with care, right to your doorstep! 🧈\n📄 *Payment Details:*\n——————————————\n📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.subscrptionStartDatee.toLocaleDateString()}\n🚚 *Delivery Date:* Around ${user.deliveryDate.toLocaleDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${
+        text: `🪔✨ *Subscription Activated!!* 🎉\nPure ghee, delivered with care, right to your doorstep! 🧈\n📄 *Payment Details:*\n——————————————\n📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${subscrptionStartDatee.toLocaleDateString()}\n🚚 *Delivery Date:* Around ${user.deliveryDate.toLocaleDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${
           amount / 100
         }\n📦 *Subscription Quantity:* ${
           user.subscriptionQuantity
-        }ml\n\n——————————————\n✨\n*You can view your plan and edit its details anytime by typing 'Hi' and clicking on *View Your Plans*.\n\nFor customer support, contact: ${
+        }ml\n\n——————————————\n✨*You can view your plan and edit its details anytime by typing 'Hi' and clicking on *View Your Plans*.\n\nFor customer support, contact: ${
           process.env.CUSTOMER_SUPPORT_CONTACT
         }`,
       };

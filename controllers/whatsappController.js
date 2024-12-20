@@ -1479,8 +1479,7 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
         `Your first delivery is expected on or around **${user.deliveryDate.toLocaleDateString()}**.\n` +
         `**Total Price: ₹${newPrice}**\n` +
         `Please complete your payment here to activate: **${subscription.short_url} 💳**\n\n` +
-        `**Note:** Payment confirmation and details will be sent to you within **3-5 minutes**. Please hold on. 🙏\n
-              *You can view your plan and edit its details anytime by typing 'Hi' and clicking on *View Your Plans**`,
+        `**Note:** Payment confirmation and details will be sent to you within **3-5 minutes**. Please hold on. 🙏\n*You can view your plan and edit its details anytime by typing 'Hi' and clicking on *View Your Plans**`,
     };
 
     await sendMessage(userPhone, message);
