@@ -316,7 +316,7 @@ router.post("/subs-success", async (req, res) => {
       await user.save();
 
       const successMessage = {
-        text: `🪔✨ *Subscription Activated!!* 🎉\nPure ghee, delivered with care, right to your doorstep! 🧈\n📄 *Payment Details:*\n——————————————\n📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.deliveryDate.toLocaleDateString()}\n🚚 *Delivery Date:* Around ${user.deliveryDate.toLocaleDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${
+        text: `🪔✨ *Subscription Activated!!* 🎉\nPure ghee, delivered with care, right to your doorstep! 🧈\n📄 *Payment Details:*\n——————————————\n📅 *Subscription Type:* ${subscriptionType}\n🛡️ *Subscription Start Date:* ${user.subscrptionStartDatee.toLocaleDateString()}\n🚚 *Delivery Date:* Around ${user.deliveryDate.toLocaleDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${
           amount / 100
         }\n📦 *Subscription Quantity:* ${
           user.subscriptionQuantity
