@@ -146,15 +146,25 @@ router.post("/payments-success", async (req, res) => {
       }
 
       // Update the single order payment status
+      if(!user.subscription){
       user.singleorderPaymentStatus = true;
-
+      }
       // Save the updated user to the database if necessary
       await user.save();
+      if (singleOrderPaymentStatus) {
+        const orderTypeDescription = user.userOrderType === "A2" ? "A2 Cow Ghee" : "Indian Buffalo Ghee";
+        const successMessage = {
+          text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your purchase! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* ${orderTypeDescription}\n🔢 *Quantity:* ${user.userOrderQuantity}\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Delivery Info:*\nYour order will be delivered within **4-5 business days**. 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n📞 *Customer Support:* ${process.env.CUSTOMER_SUPPORT_CONTACT}\n\n✨ Stay healthy, stay happy! ✨`,
+        };
+        // Code to send this message goes here
+      } else {
+        const successMessage = {
+          text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your purchase! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* Nani's Bilona Ghee\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Delivery Info:*\nYour order will be delivered within **4-5 business days**. 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n📞 *Customer Support:* ${process.env.CUSTOMER_SUPPORT_CONTACT}\n\n✨ Stay healthy, stay happy! ✨`,
+        };
+        // Code to send this message goes here
+      }
+      
 
-      // Send success message to user
-      const successMessage = {
-        text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your purchase! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* Nani's Bilona Ghee\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Delivery Info:*\nYour order will be delivered within **4-5 business days**. 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n📞 *Customer Support:* ${process.env.CUSTOMER_SUPPORT_CONTACT}\n\n✨ Stay healthy, stay happy! ✨`,
-      };
 
       await sendMessage(userPhone, successMessage);
 
