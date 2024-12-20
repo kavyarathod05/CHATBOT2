@@ -408,14 +408,14 @@ router.post("/subs-success", async (req, res) => {
           "Subscription payment failed, handled and new subscription created"
         );
     }
-    else if(event==="subscription.cancelled"){
-      const successMessage = {
-        text: `cancelled uff`,
-      };
+    // else if(event==="subscription.cancelled"){
+    //   const successMessage = {
+    //     text: `cancelled uff`,
+    //   };
 
-      await sendMessage(userPhone, successMessage);
+    //   await sendMessage(userPhone, successMessage);
       
-    }
+    // }
 
     res.status(200).send("Webhook received");
   } catch (error) {
