@@ -6,7 +6,7 @@ const { generatePaymentLinkWithDivision } = require("../razorpay/razorpay.js");
 const Razorpay = require("razorpay");
 const PhoneNumber = require("../models/phoneNumber.js");
 const { use } = require("../app.js");
-require('dotenv').config();
+require("dotenv").config();
 
 // Timeout duration in milliseconds (3 minutes)
 const TIMEOUT_DURATION = 3 * 60 * 1000;
@@ -431,7 +431,7 @@ exports.receiveMessage = async (req, res) => {
               await razorpayInstance.subscriptions.cancel(user.subscriptionId);
               let msg;
               if (user.delivered) {
-                 msg = {
+                msg = {
                   text: `🎉 *Subscription Cancelled Successfully!* ✅\nWe're sorry to see you go, but thank you for using our service! 💙\nIf you ever want to continue, just type *Hi* and we’ll get you started again! 👋😊`,
                 };
               } else {
@@ -447,7 +447,7 @@ exports.receiveMessage = async (req, res) => {
               user.subscriptionQuantity += " cancelled";
               user.subscriptionType += " cancelled";
               user.subscription = false;
-              user.subscriptionId =null;
+              user.subscriptionId = null;
               user.planId += " cancelled";
               user.subscriptionPaymentStatus = false;
               return await user.save();
@@ -1252,12 +1252,7 @@ async function createPayment_buffalo(userPhone, amount) {
 
     const message = {
       text: `🧾 *Your Bill Details*:\nProduct Quantity:Indian Buffalo Ghee *${userOrderQuantity}ml* Indian Buffalo Ghee\nProduct Cost: *₹${productCost.toFixed(
-        2
-      )}*\nDelivery Fee: *₹${deliveryFee.toFixed(
-        2
-      )}*\n——————————————\n*Total Amount: ₹${baseAmount.toFixed(
-        2
-      )}*\n——————————————\nYou can pay here: ${paymentLink}`,
+        2)}*\nDelivery Fee: *₹${deliveryFee.toFixed(2)}*\n——————————————\n*Total Amount: ₹${baseAmount.toFixed(2)}*\n——————————————\nYou can pay here: ${paymentLink}`,
     };
     const state = await State.findOne({ userPhone });
     state.userState = null;
@@ -1300,7 +1295,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     4500: process.env.PLAN_A2_4500, // 4.5L
     5000: process.env.PLAN_A2_5000, // 5L
   };
-console.log(process.env.PLAN_A2_1000);
+  console.log(process.env.PLAN_A2_1000);
 
   // Determine the plan_id from the map based on the amountMultiplier
   let planId;
