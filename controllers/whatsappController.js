@@ -1558,13 +1558,18 @@ async function handleAddressInput(messageText, userPhone) {
     let message;
 
     if (state.planType === "plan_buffalo" || state.planType === "plan_A2") {
-      const today = new Date();
-      const nextMonth = new Date(today);
-      nextMonth.setMonth(today.getMonth() + 1);
+      // const today = new Date();
+      // const nextMonth = new Date(today);
+      // nextMonth.setMonth(today.getMonth() + 1);
 
+      const today = new Date();
+      const fourDaysLater = new Date(today);
+      fourDaysLater.setDate(today.getDate() + 4); // Add 4 days
+      
       const message = {
-        text: `Thank you for providing your address! 🙏\nNow, please select a day (1-28) for your delivery. You can choose a day from *${today.toLocaleDateString()}* onwards, or pick a day before today in the next month *(${nextMonth.toLocaleDateString()})*. 📅`,
+        text: `Thank you for providing your address! 🙏\nNow, please select a day (1-28) for your delivery. You can choose a day from *${fourDaysLater.toLocaleDateString()}* onwards. 📅`,
       };
+      
 
       // Update user state to await subscription date
 
