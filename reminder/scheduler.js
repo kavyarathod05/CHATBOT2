@@ -11,6 +11,7 @@ function scheduleSubscriptionReminders() {
       // Query users who have a reminder date <= today and have not yet received the reminder
       const users = await User.find({
         nextReminderDate: { $lte: today }, // Reminder date today or earlier
+
         remindersent: false, // Only process users whose reminder has not been sent
       });
 

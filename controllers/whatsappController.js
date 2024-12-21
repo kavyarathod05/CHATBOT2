@@ -413,6 +413,12 @@ exports.receiveMessage = async (req, res) => {
         }
       }
       if (state.useredit === "awaiting_cancel_subscription") {
+        if(messageText!=="cancel"){
+          const msg={
+            text: "❌ Invalid input. Please type 'cancel' to cancel the subscription.",
+          }
+          return await sendMessage(userPhone, msg);
+        }
         state.useredit = null; // Clear the user status
         await state.save();
 
@@ -433,7 +439,7 @@ exports.receiveMessage = async (req, res) => {
                   text: `🎉 *Subscription Cancelled Successfully!* ✅\nWe're sorry to see you go, but thank you for using our service! 💙\nIf you ever want to continue, just type *Hi* and we’ll get you started again! 👋😊`,
                 };
               } else {
-                const msg = {
+                msg = {
                   text: `🚚 Your order is already in transit and will be delivered by ${user.deliveryDate.toLocaleDateString()} this month. 📦\n\nWe're processing the cancellation of your subscription, and it will be fully canceled after your delivery. Thank you for using our service! 💙 If you wish to restart your subscription at any point, just type *Hi* and we’ll be happy to assist you again! 👋😊`,
                 };
               }
@@ -443,6 +449,7 @@ exports.receiveMessage = async (req, res) => {
               // user.deliveryDate = Date.now();
               user.nextReminderDate = Date.now();
               user.subscriptionQuantity += " cancelled";
+              user.remindersent=true;
               user.subscriptionType += " cancelled";
               user.subscription = false;
               user.subscriptionId = null;
@@ -886,6 +893,7 @@ exports.receiveMessage = async (req, res) => {
             const msg = {
               text: "❌ To cancel your subscription, simply reply with 'cancel'.",
             };
+            
 
             return await sendMessage(userPhone, msg);
           } else if (buttonId === "no_cancel") {
