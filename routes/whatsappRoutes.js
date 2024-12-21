@@ -99,7 +99,7 @@ router.get("/payment-done", (req, res) => {
     const message = encodeURIComponent(
       `Thank you for your payment!`
     );
-    const whatsappRedirectURL = `https://wa.me/${whatsappNumber}?text=${message}`;
+    const whatsappRedirectURL = `https://wa.me/${whatsappNumber}`;
 
     // Redirect user to WhatsApp
     res.redirect(whatsappRedirectURL);
