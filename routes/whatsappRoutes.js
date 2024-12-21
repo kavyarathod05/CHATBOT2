@@ -164,11 +164,7 @@ router.post("/payments-success", async (req, res) => {
         };
         // Code to send this message goes here
       }
-      else{
-        successMessage = {
-          text:"An error we will solve this as soon as possible"
-      }
-    }
+      
 
 
       await sendMessage(userPhone, successMessage);
