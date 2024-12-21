@@ -184,15 +184,13 @@ exports.receiveMessage = async (req, res) => {
         const user = await User.findOne({ phone: userPhone });
 
         if (user) {
-          // Update the date in your database
-          user.deliveryDate = newDeliveryDate;
-          // Set nextReminderDate to one month after the delivery date
-          const reminderDate = new Date(newDeliveryDate);
-          reminderDate.setMonth(reminderDate.getMonth() + 1);
-          user.nextReminderDate = reminderDate;
-
-          await user.save();
-
+          // // Update the date in your database
+          // user.deliveryDate = newDeliveryDate;
+          // // Set nextReminderDate to one month after the delivery date
+          // const reminderDate = new Date(newDeliveryDate);
+          // reminderDate.setMonth(reminderDate.getMonth() + 1);
+          // user.nextReminderDate = reminderDate;
+         
           try {
             // // Step 1: Cancel the old subscription if it exists
             // if (user.subscriptionId) {
@@ -1335,7 +1333,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
       );
     }
 
-    const reminderDate = new Date(user.deliveryDate);
+    const reminderDate = new Date();
     reminderDate.setMonth(reminderDate.getMonth() + 1); // Advance by one month
     reminderDate.setDate(reminderDate.getDate() - 7);
 
@@ -1460,7 +1458,7 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
       );
     }
 
-    const reminderDate = new Date(user.deliveryDate);
+    const reminderDate = new Date();
     reminderDate.setMonth(reminderDate.getMonth() + 1); // Advance by one month
     reminderDate.setDate(reminderDate.getDate() - 7); // Set to 7 days before the next cycle // Set reminder 7 days before next cycle
 
@@ -1710,7 +1708,7 @@ async function handleSubscriptionDateInput(messageText, userPhone) {
 
     if (user) {
       const subscriptionDate = new Date();
-      
+
       // Save user's preferred day and the calculated first delivery date
       user.deliveryDate = selectedDate;
       user.subscriptionStartDate = subscriptionDate;

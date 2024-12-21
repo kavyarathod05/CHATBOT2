@@ -56,9 +56,9 @@ function scheduleSubscriptionReminders() {
         const nextDeliveryDate = new Date(currentDeliveryDate.setMonth(currentDeliveryDate.getMonth() + 1));
 
         // Calculate the next reminder date (advance by one month and subtract 7 days)
-        const nextReminderDate = new Date(user.nextReminderDate || user.subscriptionStartDate);
+        const nextReminderDate = new Date(user.nextReminderDate );
         nextReminderDate.setMonth(nextReminderDate.getMonth() + 1); // Advance by one month
-        nextReminderDate.setDate(nextReminderDate.getDate() - 7); // Set reminder 7 days before
+        // nextReminderDate.setDate(nextReminderDate.getDate() - 7); // Set reminder 7 days before
 
         // Update `remindersent` to `true`, set the next reminder date, and update delivery date
         user.remindersent = true;

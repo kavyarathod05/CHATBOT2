@@ -324,6 +324,17 @@ router.post("/subs-success", async (req, res) => {
       user.subscriptionPaymentStatus = true;
       user.delivered = false;
       user.remindersent= false;
+      const currentMonth = new Date().getMonth(); // Current month (0-11)
+      const subscriptionStartMonth = new Date(user.subscriptionStartDate).getMonth(); // Month of the subscription start date
+    
+      // Check if the current month is different from the subscription start month
+      if (currentMonth !== subscriptionStartMonth) {
+        // Update deliveryDate by increasing it by one month
+        const newDeliveryDate = new Date(user.deliveryDate);
+        newDeliveryDate.setMonth(newDeliveryDate.getMonth() + 1); // Advance by one month
+        user.deliveryDate = newDeliveryDate;
+      }
+      
       await user.save();
 
       const successMessage = {
