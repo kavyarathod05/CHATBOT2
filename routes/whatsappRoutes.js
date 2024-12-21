@@ -80,17 +80,31 @@ router.post("/webhook", (req, res) => {
   }
 });
 router.get("/payment-done", (req, res) => {
-  const { razorpay_payment_id } = req.query;
+  try {
+    const { razorpay_payment_id } = req.query;
+    const event = req.body?.event || null;
+    const paymentData = req.body?.payload?.payment
+      ? req.body.payload.payment.entity
+      : null;
 
-  // Customize the WhatsApp message link
-  const whatsappNumber = "919904058161"; // Replace with your target number
-  const message = encodeURIComponent(
-    `Thank you for your payment! Your Razorpay ID: ${razorpay_payment_id}`
-  );
-  const whatsappRedirectURL = `https://wa.me/${whatsappNumber}?text=${message}`;
+    if (!paymentData || !paymentData.contact) {
+      return res.status(400).send("Invalid payment data");
+    }
 
-  // Redirect user to WhatsApp
-  res.redirect(whatsappRedirectURL);
+    const userPhone = paymentData.contact.replace('+', '');
+
+    // Customize the WhatsApp message link
+    const whatsappNumber = userPhone; // Corrected to use userPhone directly
+    const message = encodeURIComponent(
+      `Thank you for your payment! Your Razorpay ID: ${razorpay_payment_id}`
+    );
+    const whatsappRedirectURL = `https://wa.me/${whatsappNumber}?text=${message}`;
+
+    // Redirect user to WhatsApp
+    res.redirect(whatsappRedirectURL);
+  } catch (error) {
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 router.post("/payments-success", async (req, res) => {
