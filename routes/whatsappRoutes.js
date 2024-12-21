@@ -95,9 +95,9 @@ router.get("/payment-done", (req, res) => {
     // const userPhone = paymentData.contact.replace('+', '');
 
     // Customize the WhatsApp message link
-    const whatsappNumber =919904058161; // Corrected to use userPhone directly
+    const whatsappNumber =919518095606; // Corrected to use userPhone directly
     const message = encodeURIComponent(
-      `Thank you for your payment! Your Razorpay ID: ${razorpay_payment_id}`
+      `Thank you for your payment!`
     );
     const whatsappRedirectURL = `https://wa.me/${whatsappNumber}?text=${message}`;
 
