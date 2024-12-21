@@ -142,7 +142,7 @@ exports.receiveMessage = async (req, res) => {
         await state.save();
         await user.save();
         const message = {
-          text: `Welcome, ${user.name}! 💛 Nani’s purest ghee awaits you. Let’s get started on this delightful journey! 🎉`,
+          text: `Welcome, ${user.name}! 💛 Nani’s purest ghee awaits you. Let’s get started on this delightful journey!(Just write your name) 🎉`,
           buttons: [{ id: "help", title: "Get started!" }],
         };
         return await sendMessage(userPhone, message);

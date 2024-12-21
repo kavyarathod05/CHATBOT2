@@ -90,6 +90,7 @@ router.get("/payment-done", (req, res) => {
     if (!paymentData || !paymentData.contact) {
       return res.status(400).send("Invalid payment data");
     }
+console.log(paymentData);
 
     const userPhone = paymentData.contact.replace('+', '');
 
@@ -169,7 +170,7 @@ router.post("/payments-success", async (req, res) => {
       if (user.singleorderPaymentStatus) {
         const orderTypeDescription = user.userOrderType === "A2" ? "A2 Cow Ghee" : "Indian Buffalo Ghee";
         successMessage = {
-          text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your purchase! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* ${orderTypeDescription}\n🔢 *Quantity:* ${user.userOrderQuantity}\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Delivery Info:*\nYour order will be delivered within **4-5 business days**. 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n📞 *Customer Support:* ${process.env.CUSTOMER_SUPPORT_CONTACT}\n\n✨ Stay healthy, stay happy! ✨`,
+          text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your purchase! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* ${orderTypeDescription}\n🔢 *Quantity:* ${user.userOrderQuantity}ml\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Delivery Info:*\nYour order will be delivered within **4-5 business days**. 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n📞 *Customer Support:* ${process.env.CUSTOMER_SUPPORT_CONTACT}\n\n✨ Stay healthy, stay happy! ✨`,
         };
         // Code to send this message goes here
       } if(user.subscription) {
