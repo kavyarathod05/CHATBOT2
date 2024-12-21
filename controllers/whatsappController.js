@@ -142,7 +142,7 @@ exports.receiveMessage = async (req, res) => {
         await state.save();
         await user.save();
         const message = {
-          text: `Welcome, ${user.name}! 💛 Nani’s purest ghee awaits you. Let’s get started on this delightful journey!(Just write your name) 🎉`,
+          text: `Welcome, ${user.name}! 💛 Nani’s purest ghee awaits you. Let’s get started on this delightful journey! 🎉`,
           buttons: [{ id: "help", title: "Get started!" }],
         };
         return await sendMessage(userPhone, message);
@@ -487,7 +487,7 @@ exports.receiveMessage = async (req, res) => {
             };
 
             const message3 = {
-              text: "Hey there! 😊 Could you share your name with us to get started? 💛",
+              text: "Hey there! 😊 Could you share your name with us to get started? 💛(Just write your name)"
             };
 
             // Send the messages sequentially
@@ -1710,7 +1710,7 @@ async function handleSubscriptionDateInput(messageText, userPhone) {
 
     if (user) {
       const subscriptionDate = new Date();
-
+      
       // Save user's preferred day and the calculated first delivery date
       user.deliveryDate = selectedDate;
       user.subscriptionStartDate = subscriptionDate;

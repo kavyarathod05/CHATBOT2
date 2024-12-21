@@ -87,10 +87,10 @@ router.get("/payment-done", (req, res) => {
       ? req.body.payload.payment.entity
       : null;
 
+    console.log(paymentData);
     if (!paymentData || !paymentData.contact) {
       return res.status(400).send("Invalid payment data");
     }
-console.log(paymentData);
 
     const userPhone = paymentData.contact.replace('+', '');
 

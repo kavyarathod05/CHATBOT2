@@ -15,7 +15,6 @@ function scheduleSubscriptionReminders() {
       });
 
       if (users.length === 0) {
-        // console.log("No users need reminders today.");
         return; // No users to process
       }
 
@@ -52,16 +51,21 @@ function scheduleSubscriptionReminders() {
         await sendMessage(user.phone, reminderMessage);
         await sendMessage(adminPhone, adminMessage);
 
+        // Update `deliveryDate` by advancing it by one month (keeping the day the same)
+        const currentDeliveryDate = new Date(user.deliveryDate);
+        const nextDeliveryDate = new Date(currentDeliveryDate.setMonth(currentDeliveryDate.getMonth() + 1));
+
         // Calculate the next reminder date (advance by one month and subtract 7 days)
         const nextReminderDate = new Date(user.nextReminderDate || user.subscriptionStartDate);
         nextReminderDate.setMonth(nextReminderDate.getMonth() + 1); // Advance by one month
         nextReminderDate.setDate(nextReminderDate.getDate() - 7); // Set reminder 7 days before
 
-        // Update `remindersent` to `true` and set the next reminder date
+        // Update `remindersent` to `true`, set the next reminder date, and update delivery date
         user.remindersent = true;
         user.nextReminderDate = nextReminderDate;
+        user.deliveryDate = nextDeliveryDate;
 
-        // Save the user after updating the reminder flag and date
+        // Save the user after updating the fields
         await user.save();
         console.log(`Reminder sent to ${user.name || user.phone}. Reminder updated.`);
       }
