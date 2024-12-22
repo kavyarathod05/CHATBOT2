@@ -42,10 +42,12 @@ exports.receiveMessage = async (req, res) => {
       const messageId = messages.id; // Unique message ID provided by WhatsApp
       const userPhone = messages.from; // Phone number of the sender
       const messageText = messages.text ? messages.text.body.toLowerCase() : ""; // Safely access message text
-
+      const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
       // Check if the user already exists in the database
       let user = await User.findOne({ phone: userPhone });
       let state = await State.findOne({ userPhone });
+
+      
 
       if (!user) {
         user = new User({
@@ -62,6 +64,14 @@ exports.receiveMessage = async (req, res) => {
         await state.save();
       }
 
+      if(user.phone===process.env.ADMIN_PHONE && messageText==="gujju"){
+        const message = {
+          text: "Type the number you would like to make true for delivered status. Please provide your phone number in the format: 91xxxxxxxxxx (without spaces and without the +)."
+        };
+        state.adminstate="changedeliverystatus";
+        await state.save();
+        return await sendMessage(adminPhone, message);
+      }
       // Clear the existing timeout for this user if any
       if (userTimeouts.has(userPhone)) {
         clearTimeout(userTimeouts.get(userPhone));
@@ -135,7 +145,31 @@ exports.receiveMessage = async (req, res) => {
           throw new Error(`Failed to send welcome message to ${userPhone}`);
         }
       }
-
+      if(state.adminstate==="changedeliverystatus" ){
+        const num= messageText;
+        if(num.length!==12){
+          const dhangse={
+            text: "Please enter a valid 12 digit number. Please provide your phone number in the format: 91xxxxxxxxxx (without spaces and without the +).",
+          }
+          return await sendMessage(adminPhone,dhangse);
+        }
+        console.log(num);
+        const user= await User.findOne({phone:num});
+        if(!user.subscriptionPaymentStatus){
+          const check={
+            text: `User with user-phone: ${num} subscription payment status is ${user.subscriptionPaymentStatus}`,
+          }
+          return await sendMessage(adminPhone,check);
+        }
+        user.delivered= true;
+        await user.save();
+        state.adminstate=null;
+        await state.save();
+        const msg={
+          text: `Delivery status changed for ${num} to ${user.delivered} `,
+        }
+        return await sendMessage(adminPhone,msg);
+      }
       if (state.username === "taking_name") {
         state.username = null;
         user.name = messageText;
@@ -436,12 +470,14 @@ exports.receiveMessage = async (req, res) => {
               let msg;
               if (user.delivered) {
                 msg = {
-                  text: `🎉 *Subscription Cancelled Successfully!* ✅\nWe're sorry to see you go, but thank you for using our service! 💙\nIf you ever want to continue, just type *Hi* and we’ll get you started again! 👋😊`,
+                  text: `🎉 *Subscription Cancelled Successfully!* ✅\nWe're sorry to see you go, but thank you for using our service! 💙\nYour order has already been dispatched and, if you haven't received it yet, you will receive it in 2-3 days. 🚚📦\nIf you ever want to continue, just type *Hi* and we’ll get you started again! 👋😊`
                 };
+                
               } else {
                 msg = {
-                  text: `🚚 Your order is already in transit and will be delivered by ${user.deliveryDate.toLocaleDateString()} this month. 📦\n\nWe're processing the cancellation of your subscription, and it will be fully canceled after your delivery. Thank you for using our service! 💙 If you wish to restart your subscription at any point, just type *Hi* and we’ll be happy to assist you again! 👋😊`,
+                  text: `💰 Your payment has been received, and your order is still being processed. 🚚 It has not been dispatched yet, but you will receive it around ${user.deliveryDate.toLocaleDateString()}. 📦\n\nWe're processing the cancellation of your subscription, and it will be fully canceled after your delivery. Thank you for using our service! 💙 If you wish to restart your subscription at any point, just type *Hi* and we’ll be happy to assist you again! 👋😊`
                 };
+                
               }
               await sendMessage(userPhone, msg);
               // user.subscriptionStartDate = Date.now();
@@ -923,7 +959,10 @@ exports.receiveMessage = async (req, res) => {
     return res.sendStatus(500); // Internal server error if something goes wrong
   }
 };
+// async function admin(messageText,userPhone){
+//     let phoneNumber= messageText;
 
+// }
 async function handleAddress(userPhone) {
   const state = await State.findOne({ userPhone });
   if (state.planType === "plan_buffalo" || state.planType === "plan_A2") {
