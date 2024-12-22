@@ -162,14 +162,13 @@ exports.receiveMessage = async (req, res) => {
       
         // Find the user with the provided phone number
         const user = await User.findOne({ phone: num });
-      
         if (!user) {
           const check = {
             text: `No user found with phone number: ${num}`,
           };
           return await sendMessage(adminPhone, check);
         }
-      
+        
         // Check if the user's subscription payment is not completed
         if (!user.subscriptionPaymentStatus) {
           const check = {
@@ -177,7 +176,14 @@ exports.receiveMessage = async (req, res) => {
           };
           return await sendMessage(adminPhone, check);
         }
-      
+        const userphone = user.phone;  
+        const confirmation = {  
+          text: `🌟 Hi ${user.name},\n\n📦 Exciting news! Your order from *Nani Bilona Ghee* is on its way:\n🧈 Order Type: ${user.subscriptionType} Ghee\n📏 Quantity: ${user.subscriptionQuantity} ml\n💰 Amount: ₹${user.subscriptionAmount}\n📍 Delivery Address: ${user.userAddress}\n\nYour order has been dispatched 🚚 and will arrive at your doorstep in just 4-5 days. Stay tuned for updates. If you have any questions, feel free to reach out to our customer support at ${process.env.CUSTOMER_SUPPORT_CONTACT}.\n.`  
+        };  
+        
+        await sendMessage(userphone, confirmation);
+        
+        
         // Update delivery status to true
         user.delivered = true;
         await user.save();
