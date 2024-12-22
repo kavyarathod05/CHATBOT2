@@ -145,31 +145,53 @@ exports.receiveMessage = async (req, res) => {
           throw new Error(`Failed to send welcome message to ${userPhone}`);
         }
       }
-      if(state.adminstate==="changedeliverystatus" ){
-        const num= messageText;
-        if(num.length!==12){
-          const dhangse={
+      if (state.adminstate === "changedeliverystatus") {
+        const num = messageText;
+      
+        // Validate phone number format: starts with 91 and followed by exactly 10 digits
+        const phoneRegex = /^91\d{10}$/;
+      
+        if (!phoneRegex.test(num)) {
+          const dhangse = {
             text: "Please enter a valid 12 digit number. Please provide your phone number in the format: 91xxxxxxxxxx (without spaces and without the +).",
-          }
-          return await sendMessage(adminPhone,dhangse);
+          };
+          return await sendMessage(adminPhone, dhangse);
         }
+      
         console.log(num);
-        const user= await User.findOne({phone:num});
-        if(!user.subscriptionPaymentStatus){
-          const check={
-            text: `User with user-phone: ${num} subscription payment status is ${user.subscriptionPaymentStatus}`,
-          }
-          return await sendMessage(adminPhone,check);
+      
+        // Find the user with the provided phone number
+        const user = await User.findOne({ phone: num });
+      
+        if (!user) {
+          const check = {
+            text: `No user found with phone number: ${num}`,
+          };
+          return await sendMessage(adminPhone, check);
         }
-        user.delivered= true;
+      
+        // Check if the user's subscription payment is not completed
+        if (!user.subscriptionPaymentStatus) {
+          const check = {
+            text: `User with user-phone: ${num} has not completed the payment. Subscription payment status: ${user.subscriptionPaymentStatus}`,
+          };
+          return await sendMessage(adminPhone, check);
+        }
+      
+        // Update delivery status to true
+        user.delivered = true;
         await user.save();
-        state.adminstate=null;
+      
+        // Reset admin state
+        state.adminstate = null;
         await state.save();
-        const msg={
-          text: `Delivery status changed for ${num} to ${user.delivered} `,
-        }
-        return await sendMessage(adminPhone,msg);
+      
+        const msg = {
+          text: `Delivery status for user with phone number ${num} has been changed to: ${user.delivered}`,
+        };
+        return await sendMessage(adminPhone, msg);
       }
+      
       if (state.username === "taking_name") {
         state.username = null;
         user.name = messageText;
