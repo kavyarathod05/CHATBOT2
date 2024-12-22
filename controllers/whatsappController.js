@@ -178,7 +178,7 @@ exports.receiveMessage = async (req, res) => {
         }
         const userphone = user.phone;  
         const confirmation = {  
-          text: `🌟 Hi ${user.name},\n\n📦 Exciting news! Your order from *Nani Bilona Ghee* is on its way:\n🧈 Order Type: ${user.subscriptionType} Ghee\n📏 Quantity: ${user.subscriptionQuantity} ml\n💰 Amount: ₹${user.subscriptionAmount}\n📍 Delivery Address: ${user.userAddress}\n\nYour order has been dispatched 🚚 and will arrive at your doorstep in just 4-5 days. Stay tuned for updates. If you have any questions, feel free to reach out to our customer support at ${process.env.CUSTOMER_SUPPORT_CONTACT}.\n.`  
+          text: `🌟 Hi ${user.name},\n\n📦 Exciting news! Your order from *Nani Bilona Ghee* is on its way:\n🧈 Order Type: ${user.subscriptionType} Ghee\n📏 Quantity: ${user.subscriptionQuantity} ml\n💰 Amount: ₹${user.subscriptionAmount}\n📍 Delivery Address: ${user.address}\n\nYour order has been dispatched 🚚 and will arrive at your doorstep in just 4-5 days. Stay tuned for updates. If you have any questions, feel free to reach out to our customer support at ${process.env.CUSTOMER_SUPPORT_CONTACT}.\n.`  
         };  
         
         await sendMessage(userphone, confirmation);
