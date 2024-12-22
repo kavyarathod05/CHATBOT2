@@ -64,7 +64,7 @@ exports.receiveMessage = async (req, res) => {
         await state.save();
       }
 
-      if(user.phone===process.env.ADMIN_PHONE && messageText==="gujju"){
+      if(user.phone===process.env.ADMIN_PHONE && messageText.toLowerCase()==="admin"){
         const message = {
           text: "Type the number you would like to make true for delivered status. Please provide your phone number in the format: 91xxxxxxxxxx (without spaces and without the +)."
         };
