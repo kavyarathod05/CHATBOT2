@@ -230,7 +230,7 @@ exports.receiveMessage = async (req, res) => {
 
         return await state.save();
       }
-       if (state.useredit === "awaiting_edit_date") {
+      if (state.useredit === "awaiting_edit_date") {
         try {
           const dayOfMonth = parseInt(messageText, 10);
       
@@ -255,36 +255,35 @@ exports.receiveMessage = async (req, res) => {
           // Calculate the earliest allowed date (4 days from now)
           const minAllowedDate = new Date(currentYear, currentMonth, currentDay + 4);
       
-          // Determine if the entered date is in the current month or the next month
-          const deliveryDateCurrentMonth = new Date(currentYear, currentMonth, dayOfMonth);
-          const deliveryDateNextMonth = new Date(currentYear, currentMonth + 1, dayOfMonth);
-      
-          let selectedDate;
-      
-          // Allow delivery date in the current month only if it's after minAllowedDate
-          if (deliveryDateCurrentMonth >= minAllowedDate) {
-            selectedDate = deliveryDateCurrentMonth;
-          }
-          // Allow delivery date in the next month if it's before the current date of the next month
-          else if (dayOfMonth < currentDay) {
-            selectedDate = deliveryDateNextMonth;
-          }
-      
-          // If no valid date is found, send an error message
-          if (!selectedDate) {
-            const errorMessage = {
-              text: `*Invalid date* \n Please choose a delivery date that is at least 4 days from today (${today.toLocaleDateString()}) or a date before today in the next month.`,
-            };
-            return await sendMessage(userPhone, errorMessage);
-          }
-      
-          // Save selected date in the database
+          // Get current delivery date from the database
           const user = await User.findOne({ phone: userPhone });
-      
           if (!user) {
             throw new Error("User not found");
           }
       
+          const currentDeliveryDate = user.deliveryDate; // Assuming deliveryDate is a Date object
+      
+          const currentDeliveryDay = currentDeliveryDate.getDate(); // Current day for the delivery
+      
+          let selectedDate;
+      
+          // If the entered day is before the current delivery day, move to next month
+          if (dayOfMonth < currentDeliveryDay) {
+            selectedDate = new Date(currentYear, currentMonth + 1, dayOfMonth);
+          } else {
+            // If the entered day is the same or after the current delivery day, keep the same month
+            selectedDate = new Date(currentYear, currentMonth, dayOfMonth);
+          }
+      
+          // Ensure the date is at least 4 days from today
+          if (selectedDate < minAllowedDate) {
+            const errorMessage = {
+              text: `Please choose a delivery date that is at least 4 days from today (${today.toLocaleDateString()}).`,
+            };
+            return await sendMessage(userPhone, errorMessage);
+          }
+      
+          // Save the updated delivery date to the database
           user.deliveryDate = selectedDate;
           await user.save();
       
@@ -312,6 +311,7 @@ exports.receiveMessage = async (req, res) => {
           return await sendMessage(userPhone, generalErrorMessage);
         }
       }
+      
       
       //k
       if (state.useredit === "awaiting_edit_address_existing") {
