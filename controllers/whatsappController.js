@@ -230,74 +230,89 @@ exports.receiveMessage = async (req, res) => {
 
         return await state.save();
       }
-      if (state.useredit === "awaiting_edit_date") {
-        const newDeliveryDate = new Date(messageText);
-        // Validate the date format
-        if (
-          isNaN(newDeliveryDate.getTime()) ||
-          newDeliveryDate < new Date().setHours(0, 0, 0, 0)
-        ) {
-          const errorMessage = {
-            text: "🚫 Please enter a valid future date (e.g., YYYY-MM-DD).",
-          };
-          return await sendMessage(userPhone, errorMessage);
-        }
-
-        const user = await User.findOne({ phone: userPhone });
-
-        if (user) {
-          // // Update the date in your database
-          // user.deliveryDate = newDeliveryDate;
-          // // Set nextReminderDate to one month after the delivery date
-          // const reminderDate = new Date(newDeliveryDate);
-          // reminderDate.setMonth(reminderDate.getMonth() + 1);
-          // user.nextReminderDate = reminderDate;
-         
-          try {
-            // // Step 1: Cancel the old subscription if it exists
-            // if (user.subscriptionId) {
-            //   await razorpayInstance.subscriptions.cancel(user.subscriptionId);
-            // }
-
-            // // Step 2: Create a new subscription with the updated date
-            // const newSubscription = await razorpayInstance.subscriptions.create(
-            //   {
-            //     plan_id: user.planId, // Use the existing plan ID from the user data
-            //     customer_notify: 1,
-            //     total_count: 12, // Example: 12-month subscription
-            //     quantity: user.amountMultiplier / 500, // Adjust based on user data
-            //     start_at: Math.floor(subscriptionDate.getTime() / 1000), // UNIX timestamp
-            //     notes: {
-            //       phone: user.phone,
-            //       description: "Subscription with updated start date",
-            //     },
-            //   }
-            // );
-
-            // // Save the new subscription ID in the user's document
-            // user.subscriptionId = newSubscription.id;
-            // await user.save();
-            user.deliveryDate= newDeliveryDate;
-            await user.save();
-            // Step 3: Confirm success
-            const message = {
-              text: `🎉 Delivery Date Of your Order has been successfully updated!\n Your new Delivery date is ${user.deliveryDate.toLocaleDateString()}. Type 'Hi' to go back`,
-            };
-            return await sendMessage(userPhone, message);
-          } catch (error) {
+       if (state.useredit === "awaiting_edit_date") {
+        try {
+          const dayOfMonth = parseInt(messageText, 10);
+      
+          // Validate that the input is a valid day of the month (1-28)
+          if (isNaN(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 28) {
+            const today = new Date();
+            const fourDaysLater = new Date(today);
+            fourDaysLater.setDate(today.getDate() + 4);
+      
+            // Error message for invalid day input
             const errorMessage = {
-              text: "❌ Date update failed.\nPlease try again later. 🙏",
+              text: `Please pick a day between 1 and 28 that is at least 4 days from today (${today.toLocaleDateString()}). You can choose any day from ${fourDaysLater.toLocaleDateString()} onwards.`,
             };
             return await sendMessage(userPhone, errorMessage);
           }
-        } else {
-          const errorMessage = {
-            text: "🚫 No user found with this phone number.\nPlease check and try again.",
+      
+          const today = new Date();
+          const currentDay = today.getDate();
+          const currentMonth = today.getMonth();
+          const currentYear = today.getFullYear();
+      
+          // Calculate the earliest allowed date (4 days from now)
+          const minAllowedDate = new Date(currentYear, currentMonth, currentDay + 4);
+      
+          // Determine if the entered date is in the current month or the next month
+          const deliveryDateCurrentMonth = new Date(currentYear, currentMonth, dayOfMonth);
+          const deliveryDateNextMonth = new Date(currentYear, currentMonth + 1, dayOfMonth);
+      
+          let selectedDate;
+      
+          // Allow delivery date in the current month only if it's after minAllowedDate
+          if (deliveryDateCurrentMonth >= minAllowedDate) {
+            selectedDate = deliveryDateCurrentMonth;
+          }
+          // Allow delivery date in the next month if it's before the current date of the next month
+          else if (dayOfMonth < currentDay) {
+            selectedDate = deliveryDateNextMonth;
+          }
+      
+          // If no valid date is found, send an error message
+          if (!selectedDate) {
+            const errorMessage = {
+              text: `*Invalid date* \n Please choose a delivery date that is at least 4 days from today (${today.toLocaleDateString()}) or a date before today in the next month.`,
+            };
+            return await sendMessage(userPhone, errorMessage);
+          }
+      
+          // Save selected date in the database
+          const user = await User.findOne({ phone: userPhone });
+      
+          if (!user) {
+            throw new Error("User not found");
+          }
+      
+          user.deliveryDate = selectedDate;
+          await user.save();
+      
+          // Send confirmation message to the user
+          const message = {
+            text: `Your subscription deliveries will begin on ${selectedDate.toLocaleDateString()}.\n\nFrom then on, deliveries will be made on the ${dayOfMonth} of each month.`,
           };
-          return await sendMessage(userPhone, errorMessage);
-          // Return if no user is found
+          return await sendMessage(userPhone, message);
+      
+        } catch (error) {
+          console.error("Error occurred while processing date:", error);
+      
+          // Handle specific errors and send appropriate responses
+          if (error.message === "User not found") {
+            const errorMessage = {
+              text: "We couldn't find your account. Please make sure you're using the correct phone number.",
+            };
+            return await sendMessage(userPhone, errorMessage);
+          }
+      
+          // Handle unexpected errors
+          const generalErrorMessage = {
+            text: "Something went wrong while processing your request. Please try again later.",
+          };
+          return await sendMessage(userPhone, generalErrorMessage);
         }
       }
+      
       //k
       if (state.useredit === "awaiting_edit_address_existing") {
         // Update the user's address
@@ -574,9 +589,12 @@ exports.receiveMessage = async (req, res) => {
             }
           } else if (buttonId === "edit_date") {
             const state = await State.findOne({ userPhone });
+
+
             const dateprompt = {
-              text: "⏰ Please enter the date you'd like to edit (format: YYYY-MM-DD).",
+              text: "⏰ Please enter the day you'd like to edit ",
             };
+
             state.useredit = "awaiting_edit_date";
             await state.save();
             return await sendMessage(userPhone, dateprompt);
