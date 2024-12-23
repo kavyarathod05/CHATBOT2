@@ -234,72 +234,63 @@ exports.receiveMessage = async (req, res) => {
         try {
           const dayOfMonth = parseInt(messageText, 10);
       
-          // Validate that the input is a valid day of the month (1-28)
-          if (isNaN(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 28) {
-            const today = new Date();
-            const fourDaysLater = new Date(today);
-            fourDaysLater.setDate(today.getDate() + 4);
-      
-            // Error message for invalid day input
-            const errorMessage = {
-              text: `Please pick a day between 1 and 28 that is at least 4 days from today (${today.toLocaleDateString()}). You can choose any day from ${fourDaysLater.toLocaleDateString()} onwards.`,
-            };
-            return await sendMessage(userPhone, errorMessage);
-          }
-      
-          const today = new Date();
-          const currentDay = today.getDate();
-          const currentMonth = today.getMonth();
-          const currentYear = today.getFullYear();
-      
-          // Calculate the earliest allowed date (4 days from now)
-          const minAllowedDate = new Date(currentYear, currentMonth, currentDay + 4);
-      
-          // Get current delivery date from the database
+          // Fetch user data from the database
           const user = await User.findOne({ phone: userPhone });
           if (!user) {
             throw new Error("User not found");
           }
       
-          const currentDeliveryDate = user.deliveryDate; // Assuming deliveryDate is a Date object
+          const subscriptionStartDate = new Date(user.subscriptionStartDate); // Subscription start date
+          const subscriptionDay = subscriptionStartDate.getDate(); // Subscription day of the month
+          const subscriptionMonth = subscriptionStartDate.getMonth();
+          const subscriptionYear = subscriptionStartDate.getFullYear();
       
-          const currentDeliveryDay = currentDeliveryDate.getDate(); // Current day for the delivery
+          // Calculate the min allowed day (4 days after subscriptionStartDate)
+          const minAllowedDate = new Date(subscriptionYear, subscriptionMonth, subscriptionDay + 4);
       
-          let selectedDate;
-      
-          // If the entered day is before the current delivery day, move to next month
-          if (dayOfMonth < currentDeliveryDay) {
-            selectedDate = new Date(currentYear, currentMonth + 1, dayOfMonth);
-          } else {
-            // If the entered day is the same or after the current delivery day, keep the same month
-            selectedDate = new Date(currentYear, currentMonth, dayOfMonth);
-          }
-      
-          // Ensure the date is at least 4 days from today
-          if (selectedDate < minAllowedDate) {
+          // Validate that the input day is valid (1-28)
+          if (isNaN(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 28) {
             const errorMessage = {
-              text: `Please choose a delivery date that is at least 4 days from today (${today.toLocaleDateString()}).`,
+              text: `🚫 Please pick a valid day between 1 and 28.`,
             };
             return await sendMessage(userPhone, errorMessage);
           }
       
-          // Save the updated delivery date to the database
-          user.deliveryDate = selectedDate;
-          await user.save();
+          let selectedDate = new Date(subscriptionYear, subscriptionMonth, dayOfMonth);
       
-          // Send confirmation message to the user
-          const message = {
-            text: `Your subscription deliveries will begin on ${selectedDate.toLocaleDateString()}.\n\nFrom then on, deliveries will be made on the ${dayOfMonth} of each month.`,
-          };
-          return await sendMessage(userPhone, message);
+          // If the selected day is before the subscriptionStartDate, move to the next month
+          if (dayOfMonth < subscriptionDay) {
+            selectedDate = new Date(subscriptionYear, subscriptionMonth + 1, dayOfMonth);
+          }
+      
+          // If the selected date is between subscriptionStartDate and minAllowedDate, show error
+          if (selectedDate >= subscriptionStartDate && selectedDate < minAllowedDate) {
+            const errorMessage = {
+              text: `🚫 Invalid choice! The delivery date must be **at least 4 days after** your subscription date (${subscriptionStartDate.toLocaleDateString()}).`,
+            };
+            return await sendMessage(userPhone, errorMessage);
+          }
+      
+          // If the selected date is after minAllowedDate, accept it in the same month
+          if (selectedDate >= minAllowedDate) {
+            // Save the updated delivery date to the database
+            user.deliveryDate = selectedDate;
+            await user.save();
+      
+            // Send confirmation message to the user
+            const confirmationMessage = {
+              text: `✅ Your delivery date has been successfully updated to ${selectedDate.toLocaleDateString()}.\n\nDeliveries will now occur on this date every month.`,
+            };
+            return await sendMessage(userPhone, confirmationMessage);
+          }
       
         } catch (error) {
-          console.error("Error occurred while processing date:", error);
+          console.error("Error while processing the delivery date update:", error);
       
-          // Handle specific errors and send appropriate responses
+          // Handle specific errors
           if (error.message === "User not found") {
             const errorMessage = {
-              text: "We couldn't find your account. Please make sure you're using the correct phone number.",
+              text: "We couldn't find your account. Please ensure you're using the correct phone number.",
             };
             return await sendMessage(userPhone, errorMessage);
           }
@@ -311,6 +302,7 @@ exports.receiveMessage = async (req, res) => {
           return await sendMessage(userPhone, generalErrorMessage);
         }
       }
+      
       
       
       //k
@@ -1447,7 +1439,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
         `Your subscription will start on **${user.subscriptionStartDate.toLocaleDateString()}**. Every month, ₹${newPrice} will be automatically deducted from your bank account on the subscription date. 💳\n\n` +
         `Your first delivery is expected on or around **${user.deliveryDate.toLocaleDateString()}**. 📦\n\n` +
         `**Total Price: ₹${newPrice}**\n\n` +
-        `Please complete your payment here to activate your subscription: **${subscription.short_url}**\n\n` +
+        `Please complete your payment here to activate your subscription: ${subscription.short_url}\n\n` +
         `**Note:** Payment confirmation and details will be sent to you within **3-5 minutes**. Please hold on. 🙏`,
     };
 
@@ -1574,7 +1566,7 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
         }** 📦\n\n` +
         `Your first delivery is expected on or around **${user.deliveryDate.toLocaleDateString()}**.\n` +
         `**Total Price: ₹${newPrice}**\n` +
-        `Please complete your payment here to activate: **${subscription.short_url} 💳**\n\n` +
+        `Please complete your payment here to activate: ${subscription.short_url} 💳\n\n` +
         `**Note:** Payment confirmation and details will be sent to you within **3-5 minutes**. Please hold on. 🙏\n*You can view your plan and edit its details anytime by typing 'Hi' and clicking on *View Your Plans**`,
     };
 

@@ -143,97 +143,120 @@ router.post("/payments-success", async (req, res) => {
 
   try {
     if (event === "payment.captured") {
-     console.log(paymentData);
-      console.log(userPhone);
       
-      // Handle successful one-time payment
+      // Define subscription amounts (for subscription orders)
+      const subscriptionAmounts = [
+        6888, 5031, 4272, 4366, 3607, 2942, 2848, 2183, 1424, 759,
+        7837, 7310, 6456, 5696, 4842, 4082, 3228, 2468, 1614, 854,
+      ];
+    
       const user = await User.findOneAndUpdate(
         { phone: userPhone },
-        { userOrderPaymentID: paymentData.id }, // Store the successful payment ID
+        { userOrderPaymentID: paymentData.id },
         { new: true }
       );
       const name = user.name;
       const address = user.address;
-      
-
+    
       if (!user) {
         return res.status(404).send("User not found");
       }
-
-      // Update the single order payment status
-      if(!user.subscription){
-      user.singleorderPaymentStatus = true;
-      }
-      // Save the updated user to the database if necessary
-      await user.save();
-      let successMessage;
-      if (user.singleorderPaymentStatus) {
-        const orderTypeDescription = user.userOrderType === "A2" ? "A2 Cow Ghee" : "Indian Buffalo Ghee";
-        successMessage = {
-          text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your purchase! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* ${orderTypeDescription}\n🔢 *Quantity:* ${user.userOrderQuantity}ml\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Delivery Info:*\nYour order will be delivered within **4-5 business days**. 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n📞 *Customer Support:* ${process.env.CUSTOMER_SUPPORT_CONTACT}\n\n✨ Stay healthy, stay happy! ✨`,
+    
+      // Check if the amount is for a subscription or single order
+      if (subscriptionAmounts.includes(amount)) {
+        // Handle subscription payment
+        if (!user.subscription) {
+          user.subscription = true;  // Mark the user as having a subscription
+          user.subscriptionType = user.subscriptionType === "Buffalo" ?"Indian Buffalo Ghee": "A2 Cow Ghee"  ;
+          // Update other subscription-specific fields if necessary
+        }
+    
+        const successMessage = {
+          text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your subscription! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* ${user.subscriptionType}\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Your subscription is being activated, and you will receive a confirmation message within 2-3 minutes.* 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n📞 *Customer Support:* ${process.env.CUSTOMER_SUPPORT_CONTACT}\n\n✨ Stay healthy, stay happy! ✨`,
         };
-        // Code to send this message goes here
-      } if(user.subscription) {
-        const subsorder = user.subscriptionType === "Buffalo" ? "Indian Buffalo Ghee" : "A2 Cow Ghee";
-         successMessage = {
-          text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your purchase! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* ${subsorder}\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Delivery Info:*\nYour order will be delivered within **4-5 business days**. 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n📞 *Customer Support:* ${process.env.CUSTOMER_SUPPORT_CONTACT}\n\n✨ Stay healthy, stay happy! ✨`,
+        
+    
+        // Save the user data with the updated subscription status
+        await user.save();
+        await sendMessage(userPhone, successMessage);
+    
+        // Notify admin about the subscription order
+        const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
+        const adminSuccessMessage = {
+          text: `✅ *Payment Received for subscription order!*\n\n📞 *Customer Name:* ${user.name} *Customer Phone:* ${userPhone}\n💳 *Amount Paid:* ₹${amount}\n🛍️ *Item:* ${user.subscriptionType}\n📍 *Delivery Address:* ${address}\n\n📦 Order will be delivered within 4-5 business days.\n\n✨ *Payment ID:* ${paymentData.id}\n✨ *Subscription ID:* ${user.subscriptionId}\n\n💼 Please process the order promptly.\n\n📅 *Estimated Delivery Date:* ${user.deliveryDate.toLocaleString}`,
         };
-        // Code to send this message goes here
+        
+        await sendMessage(adminPhone, adminSuccessMessage);
+      } else {
+        // Handle single order payment
+        user.singleorderPaymentStatus = true;
+        await user.save();
+    
+      const  successMessage = {
+          text: `✅✅ *Payment Successful!* 🎉\n\nThank you, *${name}*, for your purchase! 🐄\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* ${user.userOrderType === "A2" ? "A2 Cow Ghee" : "Indian Buffalo Ghee"}\n🔢 *Quantity:* ${user.userOrderQuantity}ml\n💳 *Amount Paid:* ₹${amount}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${address}\n——————————————\n\n🚚 *Delivery Info:*\nYour order will be delivered within **4-5 business days**. 📦\n\n💛 *Thank you for choosing Nani’s Bilona Ghee!*\nFor queries, feel free to reach out. We’re here to help! 🌟\n\n📞 *Customer Support:* ${process.env.CUSTOMER_SUPPORT_CONTACT}\n\n✨ Stay healthy, stay happy! ✨`,
+        };
+    
+        // Send message for single order payment
+        await sendMessage(userPhone, successMessage);
+    
+        // Notify admin about the single order payment
+        const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
+        const adminSuccessMessage = {
+          text: `✅ *Payment Received for single order!*\n\n📞 *Customer Name:* ${user.name} *Customer Phone:* ${userPhone}\n💳 *Amount Paid:* ₹${amount}\n🛍️ *Item:* ${user.userOrderType === "A2" ? "A2 Cow Ghee" : "Indian Buffalo Ghee"}\n📍 *Delivery Address:* ${address}\n\n📦 Order will be delivered within 4-5 business days.\n\n✨ *Payment ID:* ${paymentData.id}\n\n💼 Please process the order promptly.`,
+        };
+        await sendMessage(adminPhone, adminSuccessMessage);
       }
-      
-
-
-      await sendMessage(userPhone, successMessage);
-      const orderTypeDescription = user.userOrderType === "A2" ? "A2 Cow Ghee" : "Indian Buffalo Ghee";
-
-      //Send success message to admin
-      const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
-      const adminSuccessMessage = {
-        text: `✅ *Payment Received for single order!*\n\n📞 *Customer Name*:${user.name} *Customer Phone:* ${userPhone}\n💳 *Amount Paid:* ₹${amount}\n🛍️ *Item:* ${orderTypeDescription}ml\n📍 *Delivery Address:* ${address}\n\n📦 Order will be delivered within 4-5 business days.\n\n✨ *Payment ID:* ${paymentData.id}\n\n💼 Please process the order promptly.`,
-      };
-      await sendMessage(adminPhone, adminSuccessMessage);
-
+    
       return res.status(200).send("Payment processed");
-    } else if (event === "payment.failed") {
-
+    }
+    else if (event === "payment.failed") {
       // Handle failed one-time payment
       const failureReason = paymentData.error_description || "Unknown error";
-      const user =await User.findOne({ phone: userPhone });
-      
-      
+      const user = await User.findOne({ phone: userPhone });
+  
+      // List of subscription amounts
+      const subscriptionAmounts = [
+          6888, 5031, 4272, 4366, 3607, 2942, 2848, 2183, 1424, 759, 
+          7837, 7310, 6456, 5696, 4842, 4082, 3228, 2468, 1614, 854, 7837
+      ];
+  
+      // Convert the amount to a number (from formatted string)
+      const formattedAmount = parseInt(amount.replace(/[^0-9]/g, ''));
+  
       // Send failure message to user
       let failureMessage, adminMessage;
-
-       if (user.subscription) {
-        const subsorder = user.subscriptionType === "Buffalo" ? "Indian Buffalo Ghee" : "A2 Cow Ghee";
-        failureMessage = {
-          text: `❌ *Payment Failed* for subscription ❌\n\nHi *${user.name}*,\n\nWe regret to inform you that your payment of ₹${amount} for your *${subsorder}* subscription could not be processed. 😔\n\n📜 *Subscription Summary:*\n——————————————\n🛍️ *Subscription Type:* ${subsorder}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${user.address}\n⚠️ *Reason:* ${failureReason}\n——————————————\n\n🔄 You can retry the payment or contact us for assistance. 💛\n\n✨ We’re here to help you enjoy the goodness of Nani’s Bilona Ghee! 🌟`,
-        };
-      
-        // Admin message for subscription failure
-        adminMessage = {
-          text: `❌ *Payment Failure Alert: Subscription Renewal* ❌\n\n 📞 *Customer Phone:* ${userPhone}\n👤 *Customer Name:* ${user.name}\n💳 *Attempted Amount:* ₹${amount}\n🛍️ *Subscription Type:* ${subsorder}\n📍 *Delivery Address:* ${user.address}\n⚠️ *Failure Reason:* ${failureReason}\n💼 *Payment ID:* ${paymentData.id}\n\nPlease review and follow up with the customer to resolve the issue.`,
-        };
+  
+      if (subscriptionAmounts.includes(formattedAmount)) {
+          // If the amount matches a subscription amount
+          const subsorder = user.subscriptionType === "Buffalo" ? "Indian Buffalo Ghee" : "A2 Cow Ghee";
+          failureMessage = {
+              text: `❌ *Payment Failed* for subscription ❌\n\nHi *${user.name}*,\n\nWe regret to inform you that your payment of ₹${amount} for your *${subsorder}* subscription could not be processed. 😔\n\n📜 *Subscription Summary:*\n——————————————\n🛍️ *Subscription Type:* ${subsorder}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${user.address}\n⚠️ *Reason:* ${failureReason}\n——————————————\n\n🔄 You can retry the payment or contact us for assistance. 💛\n\n✨ We’re here to help you enjoy the goodness of Nani’s Bilona Ghee! 🌟`,
+          };
+  
+          // Admin message for subscription failure
+          adminMessage = {
+              text: `❌ *Payment Failure Alert: Subscription* ❌\n\n📞 Name:*${user.name}* \n *Customer Phone:* ${userPhone}\n👤 *Customer Name:* ${user.name}\n💳 *Attempted Amount:* ₹${amount}\n🛍️ *Subscription Type:* ${subsorder}\n📍 *Delivery Address:* ${user.address}\n⚠️ *Failure Reason:* ${failureReason}\n💼 *Payment ID:* ${paymentData.id}\n Delivery date: ${user.deliveryDate.toLocaleString}\nPlease review and follow up with the customer to resolve the issue.`,
+          };
+      } else {
+          // If the amount is not a subscription amount (single order)
+          const orderTypeDescription = user.userOrderType === "A2" ? "A2 Cow Ghee" : "Indian Buffalo Ghee";
+          failureMessage = {
+              text: `❌ *Payment Failed* ❌\n\nHi *${user.name}*,\n\nWe regret to inform you that your payment of ₹${amount} for *${orderTypeDescription}* could not be processed. 😔\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* ${orderTypeDescription}\n🔢 *Quantity:* ${user.userOrderQuantity}ml\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${user.address}\n⚠️ *Reason:* ${failureReason}\n——————————————\n\n🔄 You can retry the payment or contact us for assistance. 💛\n\n✨ We’re here to help you enjoy the goodness of Nani’s Bilona Ghee! 🌟`,
+          };
+  
+          // Admin message for single order failure
+          adminMessage = {
+              text: `❌ *Payment Failure Alert: Order Purchase* ❌\n\n📞 *Customer Phone:* ${userPhone}\n👤 *Customer Name:* ${user.name}\n💳 *Attempted Amount:* ₹${amount}\n🛍️ *Item:* ${orderTypeDescription}\n🔢 *Quantity:* ${user.userOrderQuantity}ml\n📍 *Delivery Address:* ${user.address}\n⚠️ *Failure Reason:* ${failureReason}\n💼 *Payment ID:* ${paymentData.id}\n\nPlease review and follow up with the customer to resolve the issue.`,
+          };
       }
-      // User failure message
-      else  {
-        const orderTypeDescription = user.userOrderType === "A2" ? "A2 Cow Ghee" : "Indian Buffalo Ghee";
-        failureMessage = {
-          text: `❌ *Payment Failed* ❌\n\nHi *${user.name}*,\n\nWe regret to inform you that your payment of ₹${amount} for *${orderTypeDescription}* could not be processed. 😔\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* ${orderTypeDescription}\n🔢 *Quantity:* ${user.userOrderQuantity}ml\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${user.address}\n⚠️ *Reason:* ${failureReason}\n——————————————\n\n🔄 You can retry the payment or contact us for assistance. 💛\n\n✨ We’re here to help you enjoy the goodness of Nani’s Bilona Ghee! 🌟`,
-        };
-      
-        // Admin message for order failure
-        adminMessage = {
-          text: `❌ *Payment Failure Alert: Order Purchase* ❌\n\n📞 *Customer Phone:* ${userPhone}\n👤 *Customer Name:* ${user.name}\n💳 *Attempted Amount:* ₹${amount}\n🛍️ *Item:* ${orderTypeDescription}\n🔢 *Quantity:* ${user.userOrderQuantity}ml\n📍 *Delivery Address:* ${user.address}\n⚠️ *Failure Reason:* ${failureReason}\n💼 *Payment ID:* ${paymentData.id}\n\nPlease review and follow up with the customer to resolve the issue.`,
-        };
-      }
-      
-      // Send messages
+  
+      // Send failure messages to the user and admin
       await sendMessage(userPhone, failureMessage);
       await sendMessage(process.env.ADMIN_PHONE || "918198985878", adminMessage);
-      
-      return res.status(200).send("Payment failure handeled");
-    }
+  
+      return res.status(200).send("Payment failure handled");
+  }
+  
     //  else if (event === "subscription.charged") {
     //   // Handle successful subscription charge
     //   const user = await User.findOneAndUpdate(
