@@ -184,11 +184,12 @@ router.post("/payments-success", async (req, res) => {
 
 
       await sendMessage(userPhone, successMessage);
+      const orderTypeDescription = user.userOrderType === "A2" ? "A2 Cow Ghee" : "Indian Buffalo Ghee";
 
       //Send success message to admin
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminSuccessMessage = {
-        text: `✅ *Payment Alert!*\n\n📞 *Customer Phone:* ${userPhone}\n💳 *Amount Paid:* ₹${amount}\n🛍️ *Item:* Nani's Bilona Ghee\n📍 *Delivery Address:* ${address}\n\n📦 Order will be delivered within 4-5 business days.\n\n✨ *Payment ID:* ${paymentData.id}\n\n💼 Please process the order promptly.`,
+        text: `✅ *Payment Received for single order!*\n\n📞 *Customer Name*:${user.name} *Customer Phone:* ${userPhone}\n💳 *Amount Paid:* ₹${amount}\n🛍️ *Item:* ${orderTypeDescription}ml\n📍 *Delivery Address:* ${address}\n\n📦 Order will be delivered within 4-5 business days.\n\n✨ *Payment ID:* ${paymentData.id}\n\n💼 Please process the order promptly.`,
       };
       await sendMessage(adminPhone, adminSuccessMessage);
 
@@ -340,7 +341,7 @@ router.post("/subs-success", async (req, res) => {
       const subsorder = user.subscriptionType === "Buffalo" ? "Indian Buffalo Ghee" : "A2 Cow Ghee";
 
       const successMessage = {
-        text: `🪔✨ *Subscription Activated!!* 🎉\nPure ghee, delivered with care, right to your doorstep! 🧈\n📄 *Payment Details:*\n——————————————\n📅 *Subscription Type:* ${subsorder}\n🛡️ *Subscription Start Date:* ${subscrptionStartDatee.toLocaleDateString()}\n🚚 *Delivery Date:* Around ${user.deliveryDate.toLocaleDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${
+        text: `🪔✨ *Subscription Activated!! ${user.name}* 🎉\nPure ghee, delivered with care, right to your doorstep! 🧈\n📄 *Payment Details:*\n——————————————\n📅 *Subscription Type:* ${subsorder}\n🛡️ *Subscription Start Date:* ${subscrptionStartDatee.toLocaleDateString()}\n🚚 *Delivery Date:* Around ${user.deliveryDate.toLocaleDateString()}\n📍 *Address:* ${address}\n📱 *User Phone:* ${userPhone}\n💰 *Amount Paid:* ₹${
           amount / 100
         }\n📦 *Subscription Quantity:* ${
           user.subscriptionQuantity
@@ -353,9 +354,9 @@ router.post("/subs-success", async (req, res) => {
 
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminSuccessMessage = {
-        text: `✅✅ Payment received!\n User with payment ID : ${
+        text: `✅✅ Subscription Created for \n Name:${user.name}  \n Address: ${address} \n UserPhone ${userPhone}\n User with payment ID : ${
           paymentData.id
-        } \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee.toLocaleDateString()}\n *Delivery Date:* ${user.deliveryDate.toLocaleDateString()} \n Address: ${address} \n UserPhone ${userPhone} has successfully completed the payment of: ₹${
+        } \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee.toLocaleDateString()}\n *Delivery Date:* ${user.deliveryDate.toLocaleDateString()} has successfully completed the payment of: ₹${
           amount / 100
         } for subscription ${
           subscriptionData.id
@@ -427,8 +428,9 @@ router.post("/subs-success", async (req, res) => {
       // Notify admin about the subscription payment failure
       const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
       const adminMessage = {
-        text: `Alert: Subscription renewal payment of ₹${user.subscriptionAmount} failed for ${userPhone}. Reason: ${failureReason}`,
+        text: `⚠️ *Admin Alert: Payment Pending for Subscription Renewal!* ⚠️\n\n📄 *Customer Details:*\n——————————————\n👤 *Name:* ${user.name}\n📱 *Phone:* ${user.phone}\n📍 *Address:* ${user.address}\n\n📦 *Subscription Type:* ${user.subscriptionType}\n💰 *Pending Amount:* ₹${user.subscriptionAmount}\n🔗 *Payment Link:* ${newSubscriptionData.short_url}\n\n📝 *Description:* ${description}\n*Quantity:* ${user.subscriptionQuantity}ml\n🚚 *New Delivery Date:* ${user.deliveryDate.toLocaleDateString()}`
       };
+      
       await sendMessage(adminPhone, adminMessage);
 
       // Send a success message after creating a new subscription
