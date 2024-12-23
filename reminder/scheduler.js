@@ -4,7 +4,7 @@ const { sendMessage } = require("../utils/whatsappAPI"); // Assuming sendMessage
 
 // Define the cron job function
 function scheduleSubscriptionReminders() {
-  cron.schedule('*/30 * * * * *', async () => { // Adjust the schedule to run at the desired time
+  cron.schedule('9 10 * * *', async () => { // Adjust the schedule to run at the desired time
     try {
       const today = new Date();
 
