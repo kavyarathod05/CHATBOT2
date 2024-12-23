@@ -143,7 +143,7 @@ router.post("/payments-success", async (req, res) => {
 
   try {
     if (event === "payment.captured") {
-      console.log(paymentData);
+     console.log(paymentData);
       console.log(userPhone);
       
       // Handle successful one-time payment
@@ -202,18 +202,36 @@ router.post("/payments-success", async (req, res) => {
       
       
       // Send failure message to user
-      const failureMessage = {
-        text: `❌ *Payment Failed* ❌\n\nHi *${user.name}*,\n\nWe regret to inform you that your payment of ₹${amount} could not be processed. 😔\n\n📜 *Order Summary:*\n🛍️ *Item:* Nani's Bilona Ghee\n📍 *Delivery Address:* ${user.address}\n⚠️ *Reason:* ${failureReason}\n\n🔄 You can retry the payment or contact us for assistance.\n\n💛 We're here to help you enjoy the goodness of Nani's Bilona Ghee! 🌟`,
-      };
+      let failureMessage, adminMessage;
+
+       if (user.subscription) {
+        const subsorder = user.subscriptionType === "Buffalo" ? "Indian Buffalo Ghee" : "A2 Cow Ghee";
+        failureMessage = {
+          text: `❌ *Payment Failed* for subscription ❌\n\nHi *${user.name}*,\n\nWe regret to inform you that your payment of ₹${amount} for your *${subsorder}* subscription could not be processed. 😔\n\n📜 *Subscription Summary:*\n——————————————\n🛍️ *Subscription Type:* ${subsorder}\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${user.address}\n⚠️ *Reason:* ${failureReason}\n——————————————\n\n🔄 You can retry the payment or contact us for assistance. 💛\n\n✨ We’re here to help you enjoy the goodness of Nani’s Bilona Ghee! 🌟`,
+        };
+      
+        // Admin message for subscription failure
+        adminMessage = {
+          text: `❌ *Payment Failure Alert: Subscription Renewal* ❌\n\n 📞 *Customer Phone:* ${userPhone}\n👤 *Customer Name:* ${user.name}\n💳 *Attempted Amount:* ₹${amount}\n🛍️ *Subscription Type:* ${subsorder}\n📍 *Delivery Address:* ${user.address}\n⚠️ *Failure Reason:* ${failureReason}\n💼 *Payment ID:* ${paymentData.id}\n\nPlease review and follow up with the customer to resolve the issue.`,
+        };
+      }
+      // User failure message
+      else  {
+        const orderTypeDescription = user.userOrderType === "A2" ? "A2 Cow Ghee" : "Indian Buffalo Ghee";
+        failureMessage = {
+          text: `❌ *Payment Failed* ❌\n\nHi *${user.name}*,\n\nWe regret to inform you that your payment of ₹${amount} for *${orderTypeDescription}* could not be processed. 😔\n\n📜 *Order Summary:*\n——————————————\n🛍️ *Item:* ${orderTypeDescription}\n🔢 *Quantity:* ${user.userOrderQuantity}ml\n📱 *Phone:* ${userPhone}\n📍 *Delivery Address:* ${user.address}\n⚠️ *Reason:* ${failureReason}\n——————————————\n\n🔄 You can retry the payment or contact us for assistance. 💛\n\n✨ We’re here to help you enjoy the goodness of Nani’s Bilona Ghee! 🌟`,
+        };
+      
+        // Admin message for order failure
+        adminMessage = {
+          text: `❌ *Payment Failure Alert: Order Purchase* ❌\n\n📞 *Customer Phone:* ${userPhone}\n👤 *Customer Name:* ${user.name}\n💳 *Attempted Amount:* ₹${amount}\n🛍️ *Item:* ${orderTypeDescription}\n🔢 *Quantity:* ${user.userOrderQuantity}ml\n📍 *Delivery Address:* ${user.address}\n⚠️ *Failure Reason:* ${failureReason}\n💼 *Payment ID:* ${paymentData.id}\n\nPlease review and follow up with the customer to resolve the issue.`,
+        };
+      }
+      
+      // Send messages
       await sendMessage(userPhone, failureMessage);
-
-      // Notify the admin of the payment failure
-      const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER";
-      const adminMessage = {
-        text: `❌ *Payment Failure Alert!*\n\n📞 *Customer Phone:* ${userPhone}\n💳 *Attempted Amount:* ₹${amount}\n📦 *Delivery Address:* ${address}\n⚠️ *Failure Reason:* ${failureReason}\n\n💼 *Payment ID:* ${paymentData.id}\n\nPlease review and follow up with the customer for resolution.`,
-      };
-      await sendMessage(adminPhone, adminMessage);
-
+      await sendMessage(process.env.ADMIN_PHONE || "918198985878", adminMessage);
+      
       return res.status(200).send("Payment failure handeled");
     }
     //  else if (event === "subscription.charged") {

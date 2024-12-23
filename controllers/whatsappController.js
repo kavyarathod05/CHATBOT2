@@ -158,7 +158,7 @@ exports.receiveMessage = async (req, res) => {
           return await sendMessage(adminPhone, dhangse);
         }
       
-        console.log(num);
+   //     console.log(num);
       
         // Find the user with the provided phone number
         const user = await User.findOne({ phone: num });
@@ -463,7 +463,7 @@ exports.receiveMessage = async (req, res) => {
             const errorMessage = {
               text: "❌ Failed to update the quantity.\nPlease try again later.",
             };
-            console.log(error);
+       //     console.log(error);
 
             return await sendMessage(userPhone, errorMessage);
           }
@@ -982,7 +982,7 @@ exports.receiveMessage = async (req, res) => {
 
     return;
   } catch (error) {
-    console.log(error);
+ //   console.log(error);
 
     return res.sendStatus(500); // Internal server error if something goes wrong
   }
@@ -1372,7 +1372,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     4500: process.env.PLAN_A2_4500, // 4.5L
     5000: process.env.PLAN_A2_5000, // 5L
   };
-  console.log(process.env.PLAN_A2_1000);
+//  console.log(process.env.PLAN_A2_1000);
 
   // Determine the plan_id from the map based on the amountMultiplier
   let planId;
@@ -1456,7 +1456,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
       text: "Failed to create subscription. Please try again later.",
     };
     await sendMessage(userPhone, errorMessage);
-    console.log(error);
+  //  console.log(error);
 
     // Notify the admin of subscription creation failure
     const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
