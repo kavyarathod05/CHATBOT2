@@ -277,7 +277,8 @@ exports.receiveMessage = async (req, res) => {
             // // Save the new subscription ID in the user's document
             // user.subscriptionId = newSubscription.id;
             // await user.save();
-
+            user.deliveryDate= newDeliveryDate;
+            await user.save();
             // Step 3: Confirm success
             const message = {
               text: `🎉 Delivery Date Of your Order has been successfully updated!\n Your new Delivery date is ${user.deliveryDate.toLocaleDateString()}. Type 'Hi' to go back`,

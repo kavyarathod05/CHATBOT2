@@ -129,7 +129,7 @@ router.post("/payments-success", async (req, res) => {
   const subscriptionData = req.body.payload.subscription
     ? req.body.payload.subscription.entity
     : null;
-    const userPhone = paymentData.contact.replace('+', '');
+  const userPhone = paymentData.contact.replace('+', '');
 
   const amount = paymentData
     ? paymentData.amount / 100
