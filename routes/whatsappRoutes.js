@@ -129,8 +129,11 @@ router.post("/payments-success", async (req, res) => {
   const subscriptionData = req.body.payload.subscription
     ? req.body.payload.subscription.entity
     : null;
+  if (!paymentData.contact) {
+      throw new Error('Contact information is missing in payment data');
+  }
   const userPhone = paymentData.contact.replace('+', '');
-
+  
   const amount = paymentData
     ? paymentData.amount / 100
     : subscriptionData
