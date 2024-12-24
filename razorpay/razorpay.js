@@ -41,9 +41,9 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
     const paymentLink = response.data.short_url;
     
     // Send success notification to the admin
-    const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER';
+    const adminPhone = process.env.ADMIN_PHONE ;
     const successMessage = {
-      text: `💳 Payment link created for *${userPhone}*:\n🔗 *${paymentLink}*\nThank you! 😊`,
+      text: `💳 Payment link created for name:${user.name} phone *${userPhone}*:\n🔗 *${paymentLink}*\nThank you! 😊`,
     };
     await sendMessage(adminPhone, successMessage);
 
@@ -53,7 +53,7 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
     // Send error message to the admin
     const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER';
     const errorMessage = {
-      text: `Alert: Failed to create payment link for ${userPhone}. Error: ${error.response ? error.response.data.description : error.message}`,
+      text: `Alert: Failed to create payment link for  name:${user.name} phone ${userPhone}. Error: ${error.response ? error.response.data.description : error.message}`,
     };
     await sendMessage(adminPhone, errorMessage);
 

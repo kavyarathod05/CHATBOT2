@@ -130,7 +130,7 @@ exports.handleCustomerSupport = async (userPhone) => {
   const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; 
   
   const adminMessage = {
-    text: `Customer Support required for : ${userPhone}.`,
+    text: `Customer Support required for  name:${user.name} phone : ${userPhone}.`,
   };
 
 

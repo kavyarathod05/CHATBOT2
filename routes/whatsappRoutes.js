@@ -400,7 +400,7 @@ router.post("/subs-success", async (req, res) => {
       const adminSuccessMessage = {
         text: `✅✅ Subscription Created for \n Name:${user.name}  \n Address: ${address} \n UserPhone ${userPhone}\n User with payment ID : ${
           paymentData.id
-        } \n Subscription Type : ${subscriptionType} \n Subscription Start Date: ${subscrptionStartDatee.toLocaleDateString()}\n *Delivery Date:* ${user.deliveryDate.toLocaleDateString()} has successfully completed the payment of: ₹${
+        } \n Subscription Type : ${subscriptionType} \n Quantity: ${user.subscriptionQuantity} \n Subscription Start Date: ${subscrptionStartDatee.toLocaleDateString()}\n *Delivery Date:* ${user.deliveryDate.toLocaleDateString()} has successfully completed the payment of: ₹${
           amount / 100
         } for subscription ${
           subscriptionData.id

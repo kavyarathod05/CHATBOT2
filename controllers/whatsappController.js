@@ -233,21 +233,23 @@ exports.receiveMessage = async (req, res) => {
       if (state.useredit === "awaiting_edit_date") {
         try {
           const dayOfMonth = parseInt(messageText, 10);
-
+          let newdelivery
           // Fetch user data from the database
           const user = await User.findOne({ phone: userPhone });
           if (!user) {
             throw new Error("User not found");
           }
 
-          const subscriptionStartDate = new Date(user.subscriptionStartDate); // Subscription start date
-          const subscriptionDay = subscriptionStartDate.getDate(); // Subscription day of the month
-          const subscriptionMonth = subscriptionStartDate.getMonth();
-          const subscriptionYear = subscriptionStartDate.getFullYear();
-
+          const deliveryDate= new Date(user.deliveryDate); // Subscription start date
+          const subsmonth= new Date(user.subscriptionStartDate).getDate();
+          if(user.delivered){
+            if(dayOfMonth< deliveryDate.getDate()){
+              newdelivery()
+            }
+          }
           // Calculate the min allowed day (4 days after subscriptionStartDate)
           const minAllowedDate = new Date(
-            subscriptionYear,
+            cur,
             subscriptionMonth,
             subscriptionDay + 4
           );
@@ -961,7 +963,7 @@ exports.receiveMessage = async (req, res) => {
               }ml.\nStarted on: ${user.subscriptionStartDate.toLocaleDateString()}\nScheduled delivery: ${deliveryDate.toLocaleDateString()}\n
             *Total amount*: ₹ ${user.subscriptionAmount}`,
               buttons: [
-                { id: "edit_date", title: "Edit Date" },
+                // { id: "edit_date", title: "Edit Date" },
                 // { id: "edit_quantity", title: "Edit Qty" },
                 { id: "edit_address_existing", title: "Edit Address" },
               ],
@@ -1491,7 +1493,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     // Notify the admin of subscription and payment link creation
     const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
     const adminMessage = {
-      text: `Subscription created for ${userPhone}. Payment link: ${subscription.short_url}. Delivery in 4-5 days.`,
+      text: `Subscription created for Name: ${user.name}  phone: ${userPhone}. Payment link: ${subscription.short_url}. Delivery in 4-5 days.`,
     };
 
     return await sendMessage(adminPhone, adminMessage);
@@ -1506,7 +1508,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     // Notify the admin of subscription creation failure
     const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
     const adminMessage = {
-      text: `Alert: Subscription creation failed for ${userPhone}. Error: ${
+      text: `Alert: Subscription creation failed for name:${user.name} for phone: ${userPhone}. Error: ${
         error.response ? error.response.data.description : error.message
       }`,
     };
@@ -1561,7 +1563,7 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
     const subscription = await razorpayInstance.subscriptions.create({
       plan_id: planId,
       customer_notify: 1, // This will still notify the customer (default behavior)
-      total_count: 12, // Example: 12-month subscription
+      total_count: 120, // Example: 12-month subscription
       quantity: amountMultiplier > 5000 ? Math.round(Price / 100) : 1, // Use calculated price or default quantity
       notes: {
         phone: userPhone,
@@ -1625,7 +1627,7 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
     // Notify the admin of subscription and payment link creation
     const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
     const adminMessage = {
-      text: `Subscription created for ${userPhone}. Payment link: ${subscription.short_url}. Subscription ID: ${subscription.id}`,
+      text: `Subscription created for name:${user.name} phone ${userPhone}. Payment link: ${subscription.short_url}. Subscription ID: ${subscription.id}`,
     };
     return await sendMessage(adminPhone, adminMessage);
   } catch (error) {
@@ -1634,11 +1636,11 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
       text: "Failed to create subscription. Please try again later.",
     };
     await sendMessage(userPhone, errorMessage);
-
+    const user = await User.findOne({phone:userPhone});
     // Notify the admin of subscription creation failure
     const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
     const adminMessage = {
-      text: `Alert: Subscription creation failed for ${userPhone}. Error: ${
+      text: `Alert: Subscription creation failed for  name:${user.name} phone ${userPhone}. Error: ${
         error.response ? error.response.data.description : error.message
       }`,
     };
