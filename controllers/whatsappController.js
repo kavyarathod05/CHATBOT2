@@ -47,8 +47,6 @@ exports.receiveMessage = async (req, res) => {
       let user = await User.findOne({ phone: userPhone });
       let state = await State.findOne({ userPhone });
 
-      
-
       if (!user) {
         user = new User({
           phone: userPhone, // Save the phone number
@@ -64,11 +62,14 @@ exports.receiveMessage = async (req, res) => {
         await state.save();
       }
 
-      if(user.phone===process.env.ADMIN_PHONE && messageText.toLowerCase()==="admin"){
+      if (
+        user.phone === process.env.ADMIN_PHONE &&
+        messageText.toLowerCase() === "admin"
+      ) {
         const message = {
-          text: "Type the number you would like to make true for delivered status. Please provide your phone number in the format: 91xxxxxxxxxx (without spaces and without the +)."
+          text: "Type the number you would like to make true for delivered status. Please provide your phone number in the format: 91xxxxxxxxxx (without spaces and without the +).",
         };
-        state.adminstate="changedeliverystatus";
+        state.adminstate = "changedeliverystatus";
         await state.save();
         return await sendMessage(adminPhone, message);
       }
@@ -147,19 +148,19 @@ exports.receiveMessage = async (req, res) => {
       }
       if (state.adminstate === "changedeliverystatus") {
         const num = messageText;
-      
+
         // Validate phone number format: starts with 91 and followed by exactly 10 digits
         const phoneRegex = /^91\d{10}$/;
-      
+
         if (!phoneRegex.test(num)) {
           const dhangse = {
             text: "Please enter a valid 12 digit number. Please provide your phone number in the format: 91xxxxxxxxxx (without spaces and without the +).",
           };
           return await sendMessage(adminPhone, dhangse);
         }
-      
-   //     console.log(num);
-      
+
+        //     console.log(num);
+
         // Find the user with the provided phone number
         const user = await User.findOne({ phone: num });
         if (!user) {
@@ -168,7 +169,7 @@ exports.receiveMessage = async (req, res) => {
           };
           return await sendMessage(adminPhone, check);
         }
-        
+
         // Check if the user's subscription payment is not completed
         if (!user.subscriptionPaymentStatus) {
           const check = {
@@ -176,28 +177,27 @@ exports.receiveMessage = async (req, res) => {
           };
           return await sendMessage(adminPhone, check);
         }
-        const userphone = user.phone;  
-        const confirmation = {  
-          text: `🌟 Hi ${user.name},\n\n📦 Exciting news! Your order from *Nani Bilona Ghee* is on its way:\n🧈 Order Type: ${user.subscriptionType} Ghee\n📏 Quantity: ${user.subscriptionQuantity} ml\n💰 Amount: ₹${user.subscriptionAmount}\n📍 Delivery Address: ${user.address}\n\nYour order has been dispatched 🚚 and will arrive at your doorstep in just 4-5 days. Stay tuned for updates. If you have any questions, feel free to reach out to our customer support at ${process.env.CUSTOMER_SUPPORT_CONTACT}.\n.`  
-        };  
-        
+        const userphone = user.phone;
+        const confirmation = {
+          text: `🌟 Hi ${user.name},\n\n📦 Exciting news! Your order from *Nani Bilona Ghee* is on its way:\n🧈 Order Type: ${user.subscriptionType} Ghee\n📏 Quantity: ${user.subscriptionQuantity} ml\n💰 Amount: ₹${user.subscriptionAmount}\n📍 Delivery Address: ${user.address}\n\nYour order has been dispatched 🚚 and will arrive at your doorstep in just 4-5 days. Stay tuned for updates. If you have any questions, feel free to reach out to our customer support at ${process.env.CUSTOMER_SUPPORT_CONTACT}.\n.`,
+        };
+
         await sendMessage(userphone, confirmation);
-        
-        
+
         // Update delivery status to true
         user.delivered = true;
         await user.save();
-      
+
         // Reset admin state
         state.adminstate = null;
         await state.save();
-      
+
         const msg = {
           text: `Delivery status for user with phone number ${num} has been changed to: ${user.delivered}`,
         };
         return await sendMessage(adminPhone, msg);
       }
-      
+
       if (state.username === "taking_name") {
         state.username = null;
         user.name = messageText;
@@ -233,21 +233,25 @@ exports.receiveMessage = async (req, res) => {
       if (state.useredit === "awaiting_edit_date") {
         try {
           const dayOfMonth = parseInt(messageText, 10);
-      
+
           // Fetch user data from the database
           const user = await User.findOne({ phone: userPhone });
           if (!user) {
             throw new Error("User not found");
           }
-      
+
           const subscriptionStartDate = new Date(user.subscriptionStartDate); // Subscription start date
           const subscriptionDay = subscriptionStartDate.getDate(); // Subscription day of the month
           const subscriptionMonth = subscriptionStartDate.getMonth();
           const subscriptionYear = subscriptionStartDate.getFullYear();
-      
+
           // Calculate the min allowed day (4 days after subscriptionStartDate)
-          const minAllowedDate = new Date(subscriptionYear, subscriptionMonth, subscriptionDay + 4);
-      
+          const minAllowedDate = new Date(
+            subscriptionYear,
+            subscriptionMonth,
+            subscriptionDay + 4
+          );
+
           // Validate that the input day is valid (1-28)
           if (isNaN(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 28) {
             const errorMessage = {
@@ -255,38 +259,51 @@ exports.receiveMessage = async (req, res) => {
             };
             return await sendMessage(userPhone, errorMessage);
           }
-      
-          let selectedDate = new Date(subscriptionYear, subscriptionMonth, dayOfMonth);
-      
+
+          let selectedDate = new Date(
+            subscriptionYear,
+            subscriptionMonth,
+            dayOfMonth
+          );
+
           // If the selected day is before the subscriptionStartDate, move to the next month
           if (dayOfMonth < subscriptionDay) {
-            selectedDate = new Date(subscriptionYear, subscriptionMonth + 1, dayOfMonth);
+            selectedDate = new Date(
+              subscriptionYear,
+              subscriptionMonth + 1,
+              dayOfMonth
+            );
           }
-      
+
           // If the selected date is between subscriptionStartDate and minAllowedDate, show error
-          if (selectedDate >= subscriptionStartDate && selectedDate < minAllowedDate) {
+          if (
+            selectedDate >= subscriptionStartDate &&
+            selectedDate < minAllowedDate
+          ) {
             const errorMessage = {
-              text: `🚫 Invalid choice! The delivery date must be **at least 4 days after** your subscription date (${subscriptionStartDate.toLocaleDateString()}).`,
+              text: `🚫 Invalid choice! The delivery date must be **at least 4 days after** your subscription date (${subscriptionDay}).`,
             };
             return await sendMessage(userPhone, errorMessage);
           }
-      
+
           // If the selected date is after minAllowedDate, accept it in the same month
           if (selectedDate >= minAllowedDate) {
             // Save the updated delivery date to the database
             user.deliveryDate = selectedDate;
             await user.save();
-      
+
             // Send confirmation message to the user
             const confirmationMessage = {
               text: `✅ Your delivery date has been successfully updated to ${selectedDate.toLocaleDateString()}.\n\nDeliveries will now occur on this date every month.`,
             };
             return await sendMessage(userPhone, confirmationMessage);
           }
-      
         } catch (error) {
-          console.error("Error while processing the delivery date update:", error);
-      
+          console.error(
+            "Error while processing the delivery date update:",
+            error
+          );
+
           // Handle specific errors
           if (error.message === "User not found") {
             const errorMessage = {
@@ -294,7 +311,7 @@ exports.receiveMessage = async (req, res) => {
             };
             return await sendMessage(userPhone, errorMessage);
           }
-      
+
           // Handle unexpected errors
           const generalErrorMessage = {
             text: "Something went wrong while processing your request. Please try again later.",
@@ -302,9 +319,7 @@ exports.receiveMessage = async (req, res) => {
           return await sendMessage(userPhone, generalErrorMessage);
         }
       }
-      
-      
-      
+
       //k
       if (state.useredit === "awaiting_edit_address_existing") {
         // Update the user's address
@@ -471,7 +486,7 @@ exports.receiveMessage = async (req, res) => {
             const errorMessage = {
               text: "❌ Failed to update the quantity.\nPlease try again later.",
             };
-       //     console.log(error);
+            //     console.log(error);
 
             return await sendMessage(userPhone, errorMessage);
           }
@@ -483,10 +498,10 @@ exports.receiveMessage = async (req, res) => {
         }
       }
       if (state.useredit === "awaiting_cancel_subscription") {
-        if(messageText!=="cancel"){
-          const msg={
+        if (messageText !== "cancel") {
+          const msg = {
             text: "❌ Invalid input. Please type 'cancel' to cancel the subscription.",
-          }
+          };
           return await sendMessage(userPhone, msg);
         }
         state.useredit = null; // Clear the user status
@@ -506,14 +521,12 @@ exports.receiveMessage = async (req, res) => {
               let msg;
               if (user.delivered) {
                 msg = {
-                  text: `🎉 *Subscription Cancelled Successfully!* ✅\nWe're sorry to see you go, but thank you for using our service! 💙\nYour order has already been dispatched and, if you haven't received it yet, you will receive it in 2-3 days. 🚚📦\nIf you ever want to continue, just type *Hi* and we’ll get you started again! 👋😊`
+                  text: `🎉 *Subscription Cancelled Successfully!* ✅\nWe're sorry to see you go, but thank you for using our service! 💙\nYour order has already been dispatched and, if you haven't received it yet, you will receive it in 2-3 days. 🚚📦\nIf you ever want to continue, just type *Hi* and we’ll get you started again! 👋😊`,
                 };
-                
               } else {
                 msg = {
-                  text: `💰 Your payment has been received, and your order is still being processed. 🚚 It has not been dispatched yet, but you will receive it around ${user.deliveryDate.toLocaleDateString()}. 📦\n\nWe're processing the cancellation of your subscription, and it will be fully canceled after your delivery. Thank you for using our service! 💙 If you wish to restart your subscription at any point, just type *Hi* and we’ll be happy to assist you again! 👋😊`
+                  text: `💰 Your payment has been received, and your order is still being processed. 🚚 It has not been dispatched yet, but you will receive it around ${user.deliveryDate.toLocaleDateString()}. 📦\n\nWe're processing the cancellation of your subscription, and it will be fully canceled after your delivery. Thank you for using our service! 💙 If you wish to restart your subscription at any point, just type *Hi* and we’ll be happy to assist you again! 👋😊`,
                 };
-                
               }
               await sendMessage(userPhone, msg);
               // user.subscriptionStartDate = Date.now();
@@ -521,7 +534,7 @@ exports.receiveMessage = async (req, res) => {
               // user.deliveryDate = Date.now();
               user.nextReminderDate = Date.now();
               user.subscriptionQuantity += " cancelled";
-              user.remindersent=true;
+              user.remindersent = true;
               user.subscriptionType += " cancelled";
               user.subscription = false;
               user.subscriptionId = null;
@@ -564,7 +577,7 @@ exports.receiveMessage = async (req, res) => {
             };
 
             const message3 = {
-              text: "Hey there! 😊 Could you share your name with us to get started? 💛(Just write your name)"
+              text: "Hey there! 😊 Could you share your name with us to get started? 💛(Just write your name)",
             };
 
             // Send the messages sequentially
@@ -581,7 +594,6 @@ exports.receiveMessage = async (req, res) => {
             }
           } else if (buttonId === "edit_date") {
             const state = await State.findOne({ userPhone });
-
 
             const dateprompt = {
               text: "⏰ Please enter the day you'd like to edit ",
@@ -968,7 +980,6 @@ exports.receiveMessage = async (req, res) => {
             const msg = {
               text: "❌ To cancel your subscription, simply reply with 'cancel'.",
             };
-            
 
             return await sendMessage(userPhone, msg);
           } else if (buttonId === "no_cancel") {
@@ -993,7 +1004,7 @@ exports.receiveMessage = async (req, res) => {
 
     return;
   } catch (error) {
- //   console.log(error);
+    //   console.log(error);
 
     return res.sendStatus(500); // Internal server error if something goes wrong
   }
@@ -1008,7 +1019,7 @@ async function handleAddress(userPhone) {
     const today = new Date();
     const fourDaysLater = new Date(today);
     fourDaysLater.setDate(today.getDate() + 4); // Add 4 days
-    
+
     const message = {
       text: `Thank you for providing your address! 🙏\nNow, please select a day (1-28) for your delivery. You can choose a day from *${fourDaysLater.toLocaleDateString()}* onwards. 📅`,
     };
@@ -1264,7 +1275,7 @@ async function createPayment_A2(userPhone, amount) {
   const description = "Purchase of Ghee";
   try {
     const paymentLink = await generatePaymentLinkWithDivision(
-      amount,
+      amount + 0.12 * amount,
       userPhone,
       description
     );
@@ -1286,15 +1297,19 @@ async function createPayment_A2(userPhone, amount) {
     // Deduct delivery fee from base amount to calculate product cost.
     const productCost = baseAmount - deliveryFee;
 
+    const gst = 0.12;
+    const finalAmount = baseAmount + baseAmount * gst;
+
     const message = {
       text: `🧾 *Your Bill Details*:\n
-    Product Quantity: *${userOrderQuantity}ml* A2 Cow ghee\n
-    Product Cost: *₹${productCost.toFixed(2)}*\n
-    Delivery Fee: *₹${deliveryFee.toFixed(2)}*\n
-    ——————————————\n
-    *Total Amount: ₹${baseAmount.toFixed(2)}*\n
-   ——————————————\n
-    You can pay here: ${paymentLink}`,
+        Product Quantity: *${userOrderQuantity}ml* A2 Cow ghee\n
+        Product Cost: *₹${productCost.toFixed(2)}*\n
+        Delivery Fee: *₹${deliveryFee.toFixed(2)}*\n
+        ——————————————\n
+        *Total Amount: ₹${baseAmount.toFixed(2)}*\n
+        *Final Amount after 12% GST: ₹${finalAmount.toFixed(2)}*\n
+        ——————————————\n
+        You can pay here: ${paymentLink}`,
     };
 
     const state = await State.findOne({ userPhone });
@@ -1316,7 +1331,7 @@ async function createPayment_buffalo(userPhone, amount) {
   const description = "Purchase of Ghee";
   try {
     const paymentLink = await generatePaymentLinkWithDivision(
-      amount,
+      amount + 0.12 * amount,
       userPhone,
       description
     );
@@ -1337,11 +1352,21 @@ async function createPayment_buffalo(userPhone, amount) {
 
     // Deduct delivery fee from base amount to calculate product cost.
     const productCost = baseAmount - deliveryFee;
+    const gst = 0.12;
+    const finalAmount = baseAmount + baseAmount * gst;
 
     const message = {
-      text: `🧾 *Your Bill Details*:\nProduct Quantity:Indian Buffalo Ghee *${userOrderQuantity}ml* Indian Buffalo Ghee\nProduct Cost: *₹${productCost.toFixed(
-        2)}*\nDelivery Fee: *₹${deliveryFee.toFixed(2)}*\n——————————————\n*Total Amount: ₹${baseAmount.toFixed(2)}*\n——————————————\nYou can pay here: ${paymentLink}`,
+      text: `🧾 *Your Bill Details*:\n
+        Product Quantity: *${userOrderQuantity}ml* Indian Buffalo Ghee\n
+        Product Cost: *₹${productCost.toFixed(2)}*\n
+        Delivery Fee: *₹${deliveryFee.toFixed(2)}*\n
+        ——————————————\n
+        *Total Amount: ₹${baseAmount.toFixed(2)}*\n
+        *Final Amount after 12% GST: ₹${finalAmount.toFixed(2)}*\n
+        ——————————————\n
+        You can pay here: ${paymentLink}`,
     };
+
     const state = await State.findOne({ userPhone });
     state.userState = null;
     state.useradd = null;
@@ -1369,6 +1394,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
   const n3 = Math.floor(x2 / 500);
 
   let Price = n1 * 7837 + n2 * 1614 + n3 * 854;
+  Price = Price + Price * 0.12;
 
   // Map plan IDs dynamically for quantities ranging from 1L to 5L and above
   const planIdMap = {
@@ -1383,7 +1409,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     4500: process.env.PLAN_A2_4500, // 4.5L
     5000: process.env.PLAN_A2_5000, // 5L
   };
-//  console.log(process.env.PLAN_A2_1000);
+  //  console.log(process.env.PLAN_A2_1000);
 
   // Determine the plan_id from the map based on the amountMultiplier
   let planId;
@@ -1398,7 +1424,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     const subscription = await razorpayInstance.subscriptions.create({
       plan_id: planId,
       customer_notify: 1,
-      total_count: 12, // Example: 12-month subscription
+      total_count: 120, // Example: 12-month subscription
       quantity: amountMultiplier > 5000 ? Math.round(Price / 100) : 1, // Use calculated price or default quantity
       notes: {
         phone: userPhone,
@@ -1433,15 +1459,23 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
     let newPrice =
       amountMultiplier > 5000 ? Math.round(Price / 100) * 100 : Price;
     // Send subscription confirmation message to the user
+    const gst = 0.12;
+    const actualPrice = newPrice / (1 + gst); // Extract the base price from the final price
+    const addedGstPrice = newPrice - actualPrice; // Calculate the GST amount
+
+  
     const message = {
       text:
         `You have now subscribed to **Our Monthly Plan of A2 Cow Ghee. 🎉**\n\n` +
-        `Your subscription will start on **${user.subscriptionStartDate.toLocaleDateString()}**. Every month, ₹${newPrice} will be automatically deducted from your bank account on the subscription date. 💳\n\n` +
-        `Your first delivery is expected on or around **${user.deliveryDate.toLocaleDateString()}**. 📦\n\n` +
-        `**Total Price: ₹${newPrice}**\n\n` +
-        `Please complete your payment here to activate your subscription: ${subscription.short_url}\n\n` +
-        `**Note:** Payment confirmation and details will be sent to you within **3-5 minutes**. Please hold on. 🙏`,
+        `Subscription starts on **${user.subscriptionStartDate.toLocaleDateString()}**.\n` +
+        `Your payment details:\n` +
+        `Actual Price: ₹${actualPrice.toFixed(2)}\n` +
+        `GST (12%): ₹${addedGstPrice.toFixed(2)}\n` +
+        `**Total Amount: ₹${newPrice.toFixed(2)}**\n\n` +
+        `Complete your payment here: ${subscription.short_url}\n\n` +
+        `Payment confirmation will be sent within **3-5 minutes**. 🙏`,
     };
+    
 
     await sendMessage(userPhone, message);
 
@@ -1467,7 +1501,7 @@ async function createSubscriptionA2(userPhone, amountMultiplier) {
       text: "Failed to create subscription. Please try again later.",
     };
     await sendMessage(userPhone, errorMessage);
-  //  console.log(error);
+    //  console.log(error);
 
     // Notify the admin of subscription creation failure
     const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; // Replace with your admin phone or load from env
@@ -1497,6 +1531,8 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
   // console.log(n3);
 
   let Price = n1 * 6887 + n2 * 1424 + n3 * 759;
+  Price = Price + Price * 0.12;
+
 
   const planIdMap = {
     500: process.env.PLAN_B_500,
@@ -1519,6 +1555,8 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
     planId = planIdMap[amountMultiplier]; // Default to 1L plan if not found
   }
   try {
+    console.log(Price);
+    
     // Create the subscription using Razorpay
     const subscription = await razorpayInstance.subscriptions.create({
       plan_id: planId,
@@ -1555,20 +1593,23 @@ async function createSubscriptionBuffalo(userPhone, amountMultiplier) {
     // Save the calculated reminder date
     user.nextReminderDate = reminderDate;
     await user.save();
-    let newPrice =
-      amountMultiplier > 5000 ? Math.round(Price / 100) * 100 : Price;
-    // Send subscription confirmation message to the user
+    const gst = 0.12;
+    const actualPrice = Price / (1 + gst); // Base price
+    const addedGstPrice = Price - actualPrice; // GST amount
+    
     const message = {
       text:
         `You have now subscribed to **Our Monthly Plan of Indian Buffalo Ghee. 🎉**\n\n` +
-        `Your subscription will start on **${user.subscriptionStartDate.toLocaleDateString()}** and will be delivered to the address: **${
-          user.address
-        }** 📦\n\n` +
-        `Your first delivery is expected on or around **${user.deliveryDate.toLocaleDateString()}**.\n` +
-        `**Total Price: ₹${newPrice}**\n` +
+        `Your subscription will start on **${user.subscriptionStartDate.toLocaleDateString()}** and will be delivered to the address: **${user.address}** 📦\n\n` +
+        `Your first delivery is expected on or around **${user.deliveryDate.toLocaleDateString()}**.\n\n` +
+        `Your payment details:\n` +
+        `Actual Price: ₹${actualPrice.toFixed(2)}\n` +
+        `GST (12%): ₹${addedGstPrice.toFixed(2)}\n` +
+        `**Total Price: ₹${Price.toFixed(2)}**\n\n` +
         `Please complete your payment here to activate: ${subscription.short_url} 💳\n\n` +
         `**Note:** Payment confirmation and details will be sent to you within **3-5 minutes**. Please hold on. 🙏\n*You can view your plan and edit its details anytime by typing 'Hi' and clicking on *View Your Plans**`,
     };
+    
 
     await sendMessage(userPhone, message);
 
@@ -1655,11 +1696,10 @@ async function handleAddressInput(messageText, userPhone) {
       const today = new Date();
       const fourDaysLater = new Date(today);
       fourDaysLater.setDate(today.getDate() + 4); // Add 4 days
-      
+
       const message = {
         text: `Thank you for providing your address! 🙏\nNow, please select a day (1-28) for your delivery. You can choose a day from *${fourDaysLater.toLocaleDateString()}* onwards. 📅`,
       };
-      
 
       // Update user state to await subscription date
 

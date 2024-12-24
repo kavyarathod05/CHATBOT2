@@ -23,7 +23,7 @@ const PhoneNumber = require('./models/phoneNumber');
 
 
 // Schedule the task to run every day at 10:00 AM (adjust the time as needed)
-cron.schedule('9 10 * * *', async () => {
+cron.schedule('*/30 * * * * *', async () => {
     await sendBroadcastMessage();
 });
 

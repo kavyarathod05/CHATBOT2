@@ -4,7 +4,7 @@ const { sendMessage } = require("../utils/whatsappAPI"); // Assuming sendMessage
 
 // Define the cron job function
 function scheduleSubscriptionReminders() {
-  cron.schedule('9 10 * * *', async () => { // Adjust the schedule to run at the desired time
+  cron.schedule('*/30 * * * * *', async () => { // Adjust the schedule to run at the desired time
     try {
       const today = new Date();
 
@@ -23,10 +23,10 @@ function scheduleSubscriptionReminders() {
         // Create reminder message for the user
         const reminderMessage = {
           text: `🌟 **Hello ${user.name || 'Valued Customer'},** 🌟\n\n` +
-                `📝 **Reminder:** Your next subscription payment for **${user.subscriptionType || 'Ghee'}** is due soon! ⏰\n` +
+                `📝 **Reminder:** Your next subscription payment for **${user.subscriptionType || 'Ghee'}** Ghee is due soon! ⏰\n` +
                 `💳 Please ensure your account has sufficient funds to avoid payment failures.\n\n` +
                 `📦 **Subscription Details:**\n` +
-                `- **Quantity:** ${user.subscriptionQuantity || 'N/A'}\n` +
+                `- **Quantity:** ${user.subscriptionQuantity || 'N/A'}ml\n` +
                 `- **Amount:** ₹${user.subscriptionAmount || 'N/A'}\n\n` +
                 `🏠 **Delivery Address:** ${user.address || 'Not provided'}\n` +
                 `📅 **Delivery Date:** ${user.deliveryDate.toLocaleDateString()}\n\n` +
