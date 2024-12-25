@@ -532,6 +532,11 @@ exports.receiveMessage = async (req, res) => {
               }
               await sendMessage(userPhone, msg);
               // user.subscriptionStartDate = Date.now();
+              const adminmessage={
+                text: `🚨 *Subscription Cancelled* for Name : ${user.name} \n Phone Number :${user.phone} with amount ${user.subscriptionAmount} \n Type : ${user.subscriptionType} \n Quantity: ${user.subscriptionQuantity} \n Payment Status ${user.subscriptionPaymentStatus}`
+              }
+              await sendMessage(adminPhone, adminmessage);
+
               user.subscriptionAmount += " cancelled";
               // user.deliveryDate = Date.now();
               user.nextReminderDate = Date.now();
