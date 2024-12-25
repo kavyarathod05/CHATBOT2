@@ -5,7 +5,7 @@ const buttonHandlers = require("../handlers/buttonHandlers"); // Import button h
 const { generatePaymentLinkWithDivision } = require("../razorpay/razorpay.js");
 const Razorpay = require("razorpay");
 const PhoneNumber = require("../models/phoneNumber.js");
-const { use } = require("../app.js");
+// const { use } = require("../app.js");
 require("dotenv").config();
 
 // Timeout duration in milliseconds (3 minutes)
