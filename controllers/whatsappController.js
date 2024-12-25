@@ -1279,6 +1279,8 @@ const razorpayInstance = new Razorpay({
 });
 
 async function createPayment_A2(userPhone, amount) {
+  console.log('hiii');
+  
   const description = "Purchase of Ghee";
   try {
     const paymentLink = await generatePaymentLinkWithDivision(
