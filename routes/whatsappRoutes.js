@@ -131,7 +131,8 @@ router.post("/payments-success", async (req, res) => {
     : null;
 
     let userPhone; // Declare `userPhone` globally
-
+  console.log('hiiu');
+  
     try {
       if (!paymentData || !paymentData.contact) {
         throw new Error('Contact information is missing in payment data');
