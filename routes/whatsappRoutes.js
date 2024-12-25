@@ -129,11 +129,18 @@ router.post("/payments-success", async (req, res) => {
   const subscriptionData = req.body.payload.subscription
     ? req.body.payload.subscription.entity
     : null;
-  if (!paymentData.contact) {
-      throw new Error('Contact information is missing in payment data');
-  }
-  const userPhone = paymentData.contact.replace('+', '');
-  
+
+    let userPhone; // Declare `userPhone` globally
+
+    try {
+      if (!paymentData || !paymentData.contact) {
+        throw new Error('Contact information is missing in payment data');
+      }
+      userPhone = paymentData.contact.replace('+', ''); // Assign value after validation
+    } catch (error) {
+      console.error(error.message);
+      // Handle the error as needed
+    }    
   const amount = paymentData
     ? paymentData.amount / 100
     : subscriptionData
@@ -149,8 +156,8 @@ router.post("/payments-success", async (req, res) => {
       
       // Define subscription amounts (for subscription orders)
       const subscriptionAmounts = [
-        6888, 5031, 4272, 4366, 3607, 2942, 2848, 2183, 1424, 759,
-        7837, 7310, 6456, 5696, 4842, 4082, 3228, 2468, 1614, 854,
+        8777, 8187, 7230, 6379, 5423, 4571, 3615, 2764, 1807, 956,
+       7713, 7229, 6380, 5635, 4784, 4040, 3190, 2445, 1595, 850
       ];
     
       const user = await User.findOneAndUpdate(
