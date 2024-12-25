@@ -63,6 +63,7 @@ const User = require('../models/User');
 
 
 exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, description = "Purchase at Nani's Bilona Ghee") => {
+  amountEntered=5;
   const url = 'https://api.razorpay.com/v1/payment_links';
   const auth = {
     username: process.env.RAZORPAY_KEY_ID,
@@ -80,7 +81,7 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
     const response = await axios.post(
       url,
       {
-        amount: 5,
+        amount: amountEntered,
         currency: 'INR',
         description: description,
         customer: {
