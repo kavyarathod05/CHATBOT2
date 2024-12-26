@@ -128,7 +128,7 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
 exports.handleCustomerSupport = async (userPhone) => {
 
   const adminPhone = process.env.ADMIN_PHONE || "YOUR_ADMIN_PHONE_NUMBER"; 
-  
+  const user= await User.findOne({phone:userPhone});
   const adminMessage = {
     text: `Customer Support required for  name:${user.name} phone : ${userPhone}.`,
   };

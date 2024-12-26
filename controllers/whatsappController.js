@@ -599,6 +599,7 @@ exports.receiveMessage = async (req, res) => {
               await state.save();
               return await sendMessage(userPhone, message3);
             }
+            return;
           } else if (buttonId === "edit_date") {
             const state = await State.findOne({ userPhone });
 
@@ -1011,7 +1012,7 @@ exports.receiveMessage = async (req, res) => {
 
     return;
   } catch (error) {
-    //   console.log(error);
+      // console.log(error);
 
     return res.sendStatus(500); // Internal server error if something goes wrong
   }
