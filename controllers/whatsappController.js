@@ -1319,7 +1319,8 @@ async function createPayment_A2(userPhone, amount) {
         *Total Amount: ₹${baseAmount.toFixed(2)}*\n
         *Final Amount after 12% GST: ₹${finalAmount.toFixed(2)}*\n
         ——————————————\n
-        You can pay here: ${paymentLink}`,
+        You can pay here: ${paymentLink}
+         *NOTE*: Your Payment Link will expire in 5 minutes. ⏳ If the payment is not completed within this time, you will need to create a new order. 🛒\n`,
     };
 
     const state = await State.findOne({ userPhone });
@@ -1374,7 +1375,8 @@ async function createPayment_buffalo(userPhone, amount) {
         *Total Amount: ₹${baseAmount.toFixed(2)}*\n
         *Final Amount after 12% GST: ₹${finalAmount.toFixed(2)}*\n
         ——————————————\n
-        You can pay here: ${paymentLink}`,
+        You can pay here: ${paymentLink}
+    *NOTE*: Your Payment Link will expire in 5 minutes. ⏳ If the payment is not completed within this time, you will need to create a new order. 🛒\n`
     };
 
     const state = await State.findOne({ userPhone });

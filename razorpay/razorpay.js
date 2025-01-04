@@ -17,6 +17,7 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
   const user = await User.findOne({phone:userPhone})
   user.userOrderAmount = calculatedAmount/100;
   user.save()
+  const fiveMinutesFromNow = Math.floor(Date.now() / 1000) + 5 * 60; // Current time + 5 minutes in seconds
 
   try {
     const response = await axios.post(
@@ -35,6 +36,7 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
         },
         callback_url: process.env.CALLBACK_URL, // Update as needed
         callback_method: 'get',
+        expire_by: fiveMinutesFromNow, // Set expiry time
       },
       { auth }
     );
