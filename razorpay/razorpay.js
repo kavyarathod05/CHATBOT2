@@ -18,7 +18,7 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
   user.userOrderAmount = calculatedAmount/100;
   user.save()
   const fiveMinutesFromNow = Math.floor(Date.now() / 1000) + 5 * 60; // Current time + 5 minutes in seconds
-
+clog(fiveMinutesFromNow);
   try {
     const response = await axios.post(
       url,
@@ -40,7 +40,8 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
       },
       { auth }
     );
-
+    console.log(response);
+    
     const paymentLink = response.data.short_url;
     
     // Send success notification to the admin
