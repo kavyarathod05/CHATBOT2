@@ -36,7 +36,7 @@ clog(fiveMinutesFromNow);
         },
         callback_url: process.env.CALLBACK_URL, // Update as needed
         callback_method: 'get',
-        expire_by: fiveMinutesFromNow, // Set expiry time
+     
       },
       { auth }
     );
@@ -54,8 +54,6 @@ clog(fiveMinutesFromNow);
     return paymentLink;
   } catch (error) {
     console.log(error);
-    
-    // Send error message to the admin
     const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER';
     const errorMessage = {
       text: `Alert: Failed to create payment link for  name:${user.name} phone ${userPhone}. Error: ${error.response ? error.response.data.description : error.message}`,
