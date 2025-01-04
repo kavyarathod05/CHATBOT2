@@ -53,13 +53,14 @@ clog(fiveMinutesFromNow);
 
     return paymentLink;
   } catch (error) {
-
+    console.log(error);
+    
     // Send error message to the admin
     const adminPhone = process.env.ADMIN_PHONE || 'YOUR_ADMIN_PHONE_NUMBER';
     const errorMessage = {
       text: `Alert: Failed to create payment link for  name:${user.name} phone ${userPhone}. Error: ${error.response ? error.response.data.description : error.message}`,
     };
-    await sendMessage(adminPhone, errorMessage);
+   // await sendMessage(adminPhone, errorMessage);
 
     throw new Error('Failed to create payment link');
   }
