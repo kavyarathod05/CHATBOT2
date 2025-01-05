@@ -36,7 +36,7 @@ exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, descr
         },
         callback_url: process.env.CALLBACK_URL, // Update as needed
         callback_method: 'get',
-        expire_by: fiveMinutesFromNow
+        
       },
       { auth }
     );
