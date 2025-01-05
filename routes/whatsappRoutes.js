@@ -142,6 +142,8 @@ router.post("/payments-success", async (req, res) => {
       console.error(error.message);
       // Handle the error as needed
     }    
+    console.log('payment success called');
+    
   const amount = paymentData
     ? paymentData.amount / 100
     : subscriptionData
@@ -154,6 +156,8 @@ router.post("/payments-success", async (req, res) => {
 
   try {
     if (event === "payment.captured") {
+      console.log('payment captured');
+      
       
       // Define subscription amounts (for subscription orders)
       const subscriptionAmounts = [
@@ -224,7 +228,8 @@ router.post("/payments-success", async (req, res) => {
       // Handle failed one-time payment
       const failureReason = paymentData.error_description || "Unknown error";
       const user = await User.findOne({ phone: userPhone });
-  
+        console.log('payment is failed');
+        
       // List of subscription amounts
       const subscriptionAmounts = [
           6888, 5031, 4272, 4366, 3607, 2942, 2848, 2183, 1424, 759, 
