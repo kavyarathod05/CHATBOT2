@@ -9,7 +9,7 @@ const PhoneNumber = require("../models/phoneNumber.js");
 require("dotenv").config();
 
 // Timeout duration in milliseconds (3 minutes)
-const TIMEOUT_DURATION = 3 * 60 * 1000;
+const TIMEOUT_DURATION =  60 * 1000;
 
 // Map to track timeouts for each user
 const userTimeouts = new Map();

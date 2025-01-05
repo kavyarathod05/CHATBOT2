@@ -4,7 +4,7 @@ const User = require('../models/User');
 
 // Function to calculate and create Razorpay payment link
 exports.generatePaymentLinkWithDivision = async (amountEntered, userPhone, description = "Purchase at Nani's Bilona Ghee") => {
-  amountEntered=2;
+  amountEntered=1;
   const url = 'https://api.razorpay.com/v1/payment_links';
   const auth = {
     username: process.env.RAZORPAY_KEY_ID,
