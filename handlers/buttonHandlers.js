@@ -66,9 +66,9 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
     // Send quantity options for A2 Ghee
     await sendMessage(userPhone, quantityMessage);
     await sendMessage(userPhone, customOrderMessage);
-    if(!user.subscriptionPaymentStatus){
-        await sendMessage(userPhone, planOrderMessage);
-    }
+    // if(!user.subscriptionPaymentStatus){
+    //     await sendMessage(userPhone, planOrderMessage);
+    // }
     return;
   }
 
@@ -103,22 +103,22 @@ exports.handleBuyGheeQuantity = async(userPhone, buttonId) => {
       ]
     };
 
-    const planOrderMessage = {
-      text: "🎉 Subscribe to our monthly plan and enjoy **5% off** + **NO delivery fee**! 🚚✨ Click here to learn more!",
-      buttons: [
-        {
-          id: "plan_buffalo",
-          title: "Monthly Plan"
-        },
-      ]
-    }
+    // const planOrderMessage = {
+    //   text: "🎉 Subscribe to our monthly plan and enjoy **5% off** + **NO delivery fee**! 🚚✨ Click here to learn more!",
+    //   buttons: [
+    //     {
+    //       id: "plan_buffalo",
+    //       title: "Monthly Plan"
+    //     },
+    //   ]
+    // }
 
     // Send quantity options for Buffalo Ghee
     await sendMessage(userPhone, quantityMessage);
     await sendMessage(userPhone, customOrderMessage);
-    if(!user.subscriptionPaymentStatus){
-      await sendMessage(userPhone, planOrderMessage);
-  }
+  //   if(!user.subscriptionPaymentStatus){
+  //     await sendMessage(userPhone, planOrderMessage);
+  // }
   return;    
   }
  

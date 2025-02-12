@@ -5,6 +5,8 @@ const axios = require('axios');
 const db = require('./config/db.js');
 const cron = require('node-cron'); // For cron scheduling
 require('dotenv').config(); // Load environment variables
+const cors = require('cors');
+app.use(cors());
 
 const app = express();
 
@@ -29,7 +31,7 @@ cron.schedule('0 10 * * *', async () => {
 
 // Start cron jobs for subscription reminders
 const scheduleSubscriptionReminders = require('./reminder/scheduler.js');
-scheduleSubscriptionReminders();
+// scheduleSubscriptionReminders();
 
 // Routes
 const whatsappRoutes = require('./routes/whatsappRoutes');

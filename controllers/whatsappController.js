@@ -171,12 +171,12 @@ exports.receiveMessage = async (req, res) => {
         }
 
         // Check if the user's subscription payment is not completed
-        if (!user.subscriptionPaymentStatus) {
-          const check = {
-            text: `User with user-phone: ${num} has not completed the payment. Subscription payment status: ${user.subscriptionPaymentStatus}`,
-          };
-          return await sendMessage(adminPhone, check);
-        }
+        // if (!user.subscriptionPaymentStatus) {
+        //   const check = {
+        //     text: `User with user-phone: ${num} has not completed the payment. Subscription payment status: ${user.subscriptionPaymentStatus}`,
+        //   };
+        //   return await sendMessage(adminPhone, check);
+        // }
         const userphone = user.phone;
         const confirmation = {
           text: `🌟 Hi ${user.name},\n\n📦 Exciting news! Your order from *Nani Bilona Ghee* is on its way:\n🧈 Order Type: ${user.subscriptionType} Ghee\n📏 Quantity: ${user.subscriptionQuantity} ml\n💰 Amount: ₹${user.subscriptionAmount}\n📍 Delivery Address: ${user.address}\n\nYour order has been dispatched 🚚 and will arrive at your doorstep in just 4-5 days. Stay tuned for updates. If you have any questions, feel free to reach out to our customer support at ${process.env.CUSTOMER_SUPPORT_CONTACT}.\n.`,
@@ -1012,7 +1012,7 @@ exports.receiveMessage = async (req, res) => {
 
     return;
   } catch (error) {
-      // console.log(error);
+      console.log(error);
 
     return res.sendStatus(500); // Internal server error if something goes wrong
   }
